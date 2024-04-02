@@ -1,0 +1,220 @@
+* {
+    font-family: "Montserrat", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+}
+div {
+    display: block;
+}
+button {
+    border: none;
+    background: none;
+}
+.page-wrapper {
+    display: inline-flex;
+    width: 100%;
+}
+/* side */
+.tab-sidebar {
+    max-width: 345px;
+    width: 50%;
+    height: 100vh;
+    background: #FFFFFF;
+    position: sticky;
+    top: 0;
+}
+.main-sidebar {
+    width: auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #EBEBEB;
+    padding: 73px 50px 0 50px;
+}
+ul.tabs-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    list-style: none;
+}
+.logo-site, li.tab-item {
+    padding-left: 23px !important;
+}
+.tabs-wrapper {
+    margin-top: 66px;
+}
+.logo-site .logo-content a img {
+    width: 108px;
+    height: 50px;
+}
+ul.tabs-content li a {
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: auto;
+    color: #666666;
+}
+ul.tabs-content li.tab-active a {
+    color: #1768F7;
+}
+li.tab-active {
+    background: #F1F5FF;
+}
+li.tab-active i {
+    color: #1768F7;
+}
+li.tab-item {
+    padding: 15px 0;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    border-radius: 6px;
+}
+li.tab-item:hover {
+    background: #F8F8F9;
+}
+/* content orders */
+.content {
+    width: 85%;
+    max-width: 1575px;
+}
+.content-title {
+    position: sticky;
+    top: 0;
+    background: #FFFFFF;
+    z-index: 10;
+}
+.content-title h2.title-detail {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 50px;
+}
+.content-title .header-title {
+    padding: 38px 0 37px 35px;
+    border-bottom: 2px solid #EBEBEB;
+}
+.content .orders-detail {
+    padding: 48px 50px 80px 35px;
+    background: #F8F8F9;
+    height: auto;
+    overflow-y: auto;
+}
+.content .orders-detail-table {
+    background-color: #FFFFFF;
+    border-radius: 10px;
+}
+span.span-table-title {
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 35px;
+}
+.orders-detail .table-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 26px 40px 0px 40px;
+}
+.select-wrapper, ul.select-content {
+    font-size: 14px;
+    color: #606060;
+    padding: 9px 14px;
+    background: #F4F4F4;
+    border: 1px solid #EBEBEB;
+    BORDER-RADIUS: 10px;
+    cursor: pointer;
+}
+ul.select-content {
+    list-style: none;
+    display: none;
+    flex-direction: column;
+    margin-top: 10px;
+    padding: 0!important;
+    position: absolute;
+    width: 100%;
+}
+ul.select-content li {
+    padding: 9px 14px;
+}
+ul.select-content li:hover {
+    background: #ececec;
+}
+
+button.select-btn-item, .select-wrapper i {
+    color: #606060;
+}
+.select-wrapper i {
+    width: 18px;
+    height: 18px;
+    margin-left: 14px;
+}
+.dropdown-active {
+    display: flex !important;
+}
+.orders-table-content thead {
+    border-top: 1px solid #EBEBEB;
+}
+.orders-table-content thead th {
+    font-size: 14px;
+    line-height: 26px;
+    font-weight: 700;
+    color: #6A6A6A;
+    background: #F6F6F6;
+    padding: 15px 40px;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: #EBEBEB;
+}
+.orders-table-content tbody td {
+    padding: 25px 40px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+    border-bottom: 1px solid #EBEBEB;
+}
+.col-nb-1, .col-nb-3{
+    width: 24%;
+}
+.col-nb-4, .col-nb-2 {
+    width: 26%
+}
+.order-status {
+    text-align: center;
+}
+.orders-table-content tbody td.order-status {
+    color: #7CC741;
+}
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 40px;
+    }
+    .previous-btn, .next-btn, .pagination-items {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .previous-btn, .next-btn {
+        border: 1px solid #EBEBEB;
+        border-radius: 10px;
+        color: #606060;
+        padding: 6px 11px;
+    }
+    .previous-btn i, .next-btn i {
+        color: #606060;
+    } 
+    span.pre-label, span.next-label, .pagi-item  {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 24px;
+        cursor: pointer;
+    }
+    .pagi-item {
+        color: #B8B8B8;
+        padding: 6px 14px;
+        border-radius: 10px;
+    }
+    .pagination-items .pagi-active, .pagi-item:hover {
+        background-color: #1768F7;
+        color: #FFFFFF;
+    }

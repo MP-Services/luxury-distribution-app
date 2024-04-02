@@ -1,0 +1,42 @@
+.support-content, .helpdesk-content {
+    background: #F8F8F9;
+    height: 100vh;
+    padding: 50px 0 0 35px;
+}
+.info-contact {
+    width: 100%;
+    padding-top: 34px;
+    display: inline-flex;
+    gap: 30px;
+}
+.contact-wrapper {
+    width: 40%;
+    max-width: 568px;
+    padding: 60px 50px;
+    display: inline-flex;
+    gap: 26px;
+    align-items: center;
+    background: #FFFFFF;
+    border-radius: 10px;
+}
+.icon-info {
+    background: #1768F7;
+    padding: 19px 20px;
+    border-radius: 50%;
+}
+.icon-info i {
+    color: #FFFFFF;
+    font-size: 28px;
+}
+.info-title span.title-label {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 35px;
+}
+
+.email-info span, .website-info span {
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #6A6A6A;
+}
