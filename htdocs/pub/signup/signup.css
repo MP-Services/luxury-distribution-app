@@ -7,6 +7,14 @@
     padding: 0;
 }
 
+button {
+    cursor: pointer;
+}
+
+i {
+    margin-right: 6px;
+}
+
 .wrapper {
     display: flex;
     flex-wrap: wrap;
