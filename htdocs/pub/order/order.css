@@ -19,7 +19,7 @@ button {
 /* side */
 .tab-sidebar {
     max-width: 345px;
-    width: 50%;
+    width: 20%;
     height: 100vh;
     background: #FFFFFF;
     position: sticky;
@@ -39,7 +39,7 @@ ul.tabs-content {
     gap: 14px;
     list-style: none;
 }
-.logo-site, li.tab-item {
+.logo-site, li.tab-item a {
     padding-left: 23px !important;
 }
 .tabs-wrapper {
@@ -62,15 +62,17 @@ ul.tabs-content li.tab-active a {
 li.tab-active {
     background: #F1F5FF;
 }
-li.tab-active i {
-    color: #1768F7;
+li.tab-active svg path {
+    fill: #1768F7;
 }
 li.tab-item {
-    padding: 15px 0;
+    border-radius: 6px;
+}
+li.tab-item a {
     display: flex;
     gap: 14px;
     align-items: center;
-    border-radius: 6px;
+    padding: 15px 0;
 }
 li.tab-item:hover {
     background: #F8F8F9;
@@ -84,7 +86,9 @@ li.tab-item:hover {
     position: sticky;
     top: 0;
     background: #FFFFFF;
+    padding-left: 35px;
     z-index: 10;
+    border-bottom: 2px solid #EBEBEB;
 }
 .content-title h2.title-detail {
     font-size: 40px;
@@ -92,8 +96,16 @@ li.tab-item:hover {
     line-height: 50px;
 }
 .content-title .header-title {
-    padding: 38px 0 37px 35px;
-    border-bottom: 2px solid #EBEBEB;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    padding: 38px 0 37px 0;
+}
+.toggle-menu i{
+    font-size: 26px;
+    cursor: pointer;
+    display:none;
 }
 .content .orders-detail {
     padding: 48px 50px 80px 35px;
@@ -113,7 +125,7 @@ span.span-table-title {
 .orders-detail .table-header {
     display: flex;
     justify-content: space-between;
-    padding: 26px 40px 0px 40px;
+    padding: 26px 40px;
 }
 .select-wrapper, ul.select-content {
     font-size: 14px;
@@ -217,4 +229,102 @@ button.select-btn-item, .select-wrapper i {
     .pagination-items .pagi-active, .pagi-item:hover {
         background-color: #1768F7;
         color: #FFFFFF;
+    }
+    .opacity {
+        background: #000000;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 1440px) {
+        .main-sidebar {
+            padding: 75px 20px 0 20px!important;
+        }
+        
+    }
+    @media(min-width: 913px) and (max-width:1024px) {
+        .orders-table-content thead th {
+            padding: 8px 26px;
+        }
+        .orders-detail .table-header, .orders-table-content tbody td {
+            padding: 16px 30px;
+        }
+        .content .orders-detail {
+            height: 100vh;
+        }
+    }
+    @media (max-width: 912px) {
+        .toggle-menu i {
+            display: block;
+        }
+        .tab-sidebar {
+            position: fixed;
+            left: -345px;
+            max-width: initial;
+            width: 320px;
+            z-index: 11;
+            transition: all 0.5s ease;
+        }
+        .content {
+            width: 100%;
+        }
+        .menu-active {
+            left: 0;
+        }
+        .toggle-menu.active-toggle i {
+            position: fixed;
+            left: 350px;
+            transition: all 0.5s ease;
+        }
+        .orders-table-content tbody td {
+            font-size: 12px;
+        }
+        .content .orders-detail {
+            height: 100vh;
+        }
+    }
+    @media screen and (max-width: 540px) {
+        .tab-sidebar {
+            width: 250px;
+        }
+        .content .orders-detail {
+            padding: 26px;
+        }
+        .orders-detail .table-header, .pagination-wrapper  {
+            padding: 16px 26px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .orders-table-content thead {
+            display: none;
+        }
+        .orders-table-content tbody tr {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #EBEBEB;
+        }
+        .orders-table-content tbody tr:first-child {
+            border-top: 1px solid #EBEBEB;
+        }
+        .orders-table-content tbody td {
+            padding: 16px 30px;
+            border: none;
+        }
+        .orders-table-content tbody td:before {
+            padding-right: 10px;
+            content: attr(data-th) ': ';
+            color: #000000;
+            font-weight: 700
+        }
+        .order-status {
+            text-align: unset;
+        }
+        span.pre-label, span.next-label {
+            display: none;
+        }
+        .pagi-item {
+            padding: 0px 8px;
+        }
+        .pg-sm {
+            display: none;
+        }
     }

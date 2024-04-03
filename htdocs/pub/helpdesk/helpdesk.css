@@ -1,0 +1,36 @@
+.frequently-questions {
+    background: #FFFFFF;
+    padding: 45px 60px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.question-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 0;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.question-detail span.question-label {
+    font-weight: 600;
+    line-height: 26px;
+    color: #000000;
+}
+
+button.action-btn {
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+}
+@media (max-width: 540px) {
+    .frequently-questions  {
+        padding: 30px;
+    }
+    .helpdesk-content {
+        height: auto !important;
+        padding-right: 35px !important;
+    }
+}
