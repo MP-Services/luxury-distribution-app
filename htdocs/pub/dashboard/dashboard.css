@@ -28,7 +28,7 @@ i {
     background: #fff;
 }
 
-/* side */
+/* Start Sidebar */
 .main-sidebar {
     width: auto;
     height: 100vh;
@@ -80,7 +80,7 @@ li.tab-item {
 li.tab-item:hover {
     background: #F8F8F9;
 }
-
+/* End Sidebar */
 .main {
     display: flex;
     flex-direction: column;
