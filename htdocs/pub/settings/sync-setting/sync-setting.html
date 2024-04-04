@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./sync-setting.css">
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar">
+            <div class="main-sidebar">
+                <div class="logo-site">
+                    <div class="logo-content">
+                        <a href="#">
+                            <img src="https://luxury-distribution.com/wp-content/uploads/2024/02/Luxury-Distribution-Symbol_With-Text-1-1.svg" alt="Luxury Distribution">
+                        </a>
+                    </div>
+                </div>
+                <div class="tabs-wrapper">
+                    <ul class="tabs-content">
+                        <li class="tab-item">
+                            <i class="fa-solid fa-house"></i>
+                            <a href="#dashboard">Dashboard</a>
+                        </li>
+                        <li class="tab-item">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <a href="#orders">Orders</a>
+                        </li>
+                        <li class="tab-item tab-active">
+                            <i class="fa-solid fa-gear"></i>
+                            <a href="#setting">Setting</a>
+                        </li>
+                        <li class="tab-item">
+                            <i class="fa-solid fa-headset"></i>
+                            <a href="#support">Support</a>
+                        </li>
+                        <li class="tab-item">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <a href="#helpdesk">Helpdesk</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+        <div class="main">
+            <div class="header">
+                <button type="button">
+                    <i class="solid arrow-left"></i>
+                </button>
+                <p>Sync Settings</p>
+            </div>
+            <div class="content">
+                <div class="notification">
+                <p>
+                    <i class="solid circle-check"></i>
+                    <span>Enabling sync settings will initiate the process of updating all products.</span>
+                </p>
+                <p>
+                    <i class="solid circle-check"></i>
+                    <span>Clicking on the save button will restart the process of importing if one is in progress.</span>
+                </p>
+                </div>
+                <div class="table-wrapper">
+                    <div class="table-info-top">
+                        <div class="info-card info-retailer">
+                            <p class="info-url">
+                                Retailer: <span>luxury-distribution.com</span>
+                            </p>
+                        </div>
+                        <div class="info-card info-dropshipper">
+                            <p class="info-url">
+                                Dropshipper: <span>elixiremarketing.myshopify.com</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="table-sync-setting">
+                        <div class="sync-title">
+                            <p>Sync setting</p>
+                        </div>
+                        <div class="sync-items">
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>SKU</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Title</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Price</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Desc</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Categories</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Images</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>Tags</span>
+                            </span>
+                            <span class="sync-item">
+                                <i class="check"></i>
+                                <span>EAN</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="table-main">
+                        <div class="row-middle">
+                            <form id="sync-setting-form" action="">
+                                <div class="sync-options">
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">SKU</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Title</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Price</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Description</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Categories</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                            <p>By disabling the "Categories feature, if changes to the category mapping are applied the products will be placed in wrong categones. To avoid this, make sure to keep the feature enabled.</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Images</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">Tags</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="sync-option">
+                                            <label for="">EAN</label>
+                                            <input type="checkbox" name="" id="" checked>
+                                        </div>
+                                        <div class="sync-option-tooltip">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="row-bottom">
+                            <div class="table-actions">
+                                <button type="submit" form="sync-setting-form" class="btn-save">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
