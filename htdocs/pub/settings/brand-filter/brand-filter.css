@@ -227,6 +227,7 @@ li.tab-item:hover {
 
 .table-sync-setting {
     display: table;
+    width: 100%;
     padding: 22px;
     border-bottom: 1px solid #EBEBEB;
 }
