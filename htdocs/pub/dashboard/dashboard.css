@@ -13,6 +13,27 @@ button {
 
 i {
     margin-right: 6px;
+    vertical-align: middle;
+}
+
+i.refresh::before {
+    content: url('/media/icon/others/Frame.svg');
+    vertical-align: bottom;
+}
+
+i.solid.file-plus::before {
+    content: url('/media/icon/others/Layer_1.svg');
+    vertical-align: bottom;
+}
+
+i.solid.rotate::before {
+    content: url('/media/icon/others/Layer_1-1.svg');
+    vertical-align: bottom;
+}
+
+i.solid.trash-can::before {
+    content: url('/media/icon/others/Layer_1-2.svg');
+    vertical-align: bottom;
 }
 
 .wrapper {
@@ -141,6 +162,7 @@ li.tab-item:hover {
 
 .btn-card-refresh {
     padding: 6px 15px;
+    height: 36px;
     color: #fff;
     font-size: 14px;
     font-weight: 600;
