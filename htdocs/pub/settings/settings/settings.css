@@ -176,6 +176,7 @@ li.tab-item:hover {
 }
 
 .content {
+    width: 100%;
     flex-grow: 1;
     padding: 50px 50px 50px 33px;
     background: #F8F8F9;

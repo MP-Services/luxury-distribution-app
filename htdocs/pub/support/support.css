@@ -53,4 +53,8 @@
     .contact-wrapper {
         width: 60%;
     }
+    .icon-info, .icon-info img{
+        width: 45px;
+        height: 45px;
+    }
 }
