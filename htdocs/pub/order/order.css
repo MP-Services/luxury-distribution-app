@@ -325,6 +325,6 @@ button.select-btn-item, .select-wrapper i {
             padding: 0px 8px;
         }
         .pg-sm {
-            display: none;
+            display: none !important;
         }
     }

@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="./category-mapping.css">
     <link rel="stylesheet" href="../../order/order.css">
+    <link rel="stylesheet" href="./category-mapping.css">
     <link rel="stylesheet" href="../../dashboard/dashboard.css">
 </head>
 <body>
@@ -88,18 +88,18 @@
             </div>
             <div class="content">
                 <div class="notification">
-                <p>
-                    <i class="solid circle-check"></i>
-                    <span>For a faster import or update, configure all mappings per time and then save your changes.</span>
-                </p>
-                <p>
-                    <i class="solid circle-check"></i>
-                    <span>All parent categories can contain products of all child categories, in case there are different margins, the lowest one will be applied and in case there are different fixed shipping values, the maximum one will be applied.</span>
-                </p>
-                <p>
-                    <i class="solid circle-check"></i>
-                    <span>Please note that margin changes could take up to 24 hours to update.</span>
-                </p>
+                    <p>
+                        <i class="solid circle-check"></i>
+                        <span>For a faster import or update, configure all mappings per time and then save your changes.</span>
+                    </p>
+                    <p>
+                        <i class="solid circle-check"></i>
+                        <span>All parent categories can contain products of all child categories, in case there are different margins, the lowest one will be applied and in case there are different fixed shipping values, the maximum one will be applied.</span>
+                    </p>
+                    <p>
+                        <i class="solid circle-check"></i>
+                        <span>Please note that margin changes could take up to 24 hours to update.</span>
+                    </p>
                 </div>
                 <div class="table-wrapper">
                     <div class="table-info-top">
@@ -176,21 +176,21 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>1</td>
-                                        <td>
+                                        <td data-th="STT">1</td>
+                                        <td data-th="Retailer Category">
                                             <select name="retailer_category" id="retailer_category">
                                                 <option value="0">men > accessories</option>
                                             </select>
                                         </td>
-                                        <td>
+                                        <td data-th="Dropshipper Category">
                                             <select name="dropshipper_category" id="dropshipper_category">
                                                 <option value="0">All products</option>
                                             </select>
                                         </td>
-                                        <td>
+                                        <td data-th="Margin">
                                             <input type="number" name="margin" step="0.1" value="1.5">
                                         </td>
-                                        <td class="row-actions">
+                                        <td data-th="Action" class="row-actions">
                                             <button type="button" class="action cancel">
                                                 <i class="xmark"></i>
                                             </button>
@@ -200,17 +200,17 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>2</td>
-                                        <td>
+                                        <td data-th="STT">2</td>
+                                        <td data-th="Retailer Category">
                                             men > bags
                                         </td>
-                                        <td>
+                                        <td data-th="Dropshipper Category">
                                             All products
                                         </td>
-                                        <td>
+                                        <td data-th="Margin">
                                             1.5
                                         </td>
-                                        <td class="row-actions">
+                                        <td data-th="Action" class="row-actions">
                                             <button type="button" class="action edit">
                                                 <i class="edit"></i>
                                             </button>
@@ -220,17 +220,17 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>3</td>
-                                        <td>
+                                        <td data-th="STT">3</td>
+                                        <td data-th="Retailer Category">
                                             men > bags
                                         </td>
-                                        <td>
+                                        <td data-th="Dropshipper Category">
                                             All products
                                         </td>
-                                        <td>
+                                        <td data-th="Margin">
                                             1.5
                                         </td>
-                                        <td class="row-actions">
+                                        <td data-th="Action" class="row-actions">
                                             <button type="button" class="action edit">
                                                 <i class="edit"></i>
                                             </button>
@@ -240,17 +240,17 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>4</td>
-                                        <td>
+                                        <td data-th="STT">4</td>
+                                        <td data-th="Retailer Category">
                                             men > bags
                                         </td>
-                                        <td>
+                                        <td data-th="Dropshipper Category">
                                             All products
                                         </td>
-                                        <td>
+                                        <td data-th="Margin">
                                             1.5
                                         </td>
-                                        <td class="row-actions">
+                                        <td data-th="Action" class="row-actions">
                                             <button type="button" class="action edit">
                                                 <i class="edit"></i>
                                             </button>
@@ -266,18 +266,18 @@
                             <div class="table-paging">
                                 <button type="button" class="paging-option">
                                     <i class="arrow-left"></i>
-                                    Previous
+                                    <span class="pre-label">Previous</span> 
                                 </button>
                                 <div class="pagination paging-option">
                                     <span class="active">1</span>
                                     <span>2</span>
                                     <span>3</span>
-                                    <span>4</span>
+                                    <span class="pg-sm">4</span>
                                     <span>...</span>
                                     <span>10</span>
                                 </div>
                                 <button type="button" class="paging-option">
-                                    Next
+                                    <span class="next-label">Next</span> 
                                     <i class="arrow-right"></i>
                                 </button>
                             </div>

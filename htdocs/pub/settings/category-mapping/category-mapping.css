@@ -137,13 +137,14 @@ i.solid.circle-check::before {
     align-items: center;
     flex-grow: 1;
     padding: 10px 22px;
-    line-height: 35px;
-    font-size: 18px;
-    font-weight: 600;
     background: #F8F8F9;
     border-radius: 10px;
 }
-
+.info-card p {
+    line-height: 35px;
+    font-size: 18px;
+    font-weight: 600;
+}
 .info-card hr {
     height: 25px;
     margin: 0 35px;
@@ -335,4 +336,127 @@ i.solid.circle-check::before {
 .table-actions .btn-save {
     color: #fff;
     background: #1768F7;
+}
+
+.main{
+    width: 100%;
+
+}
+@media (min-width: 541px) and (max-width: 1024px) {
+   
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+    .info-card span {
+        display: block;
+    }
+    .row-bottom {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 20px
+    }
+    .table-paging {
+        width: 100%;
+        order: 2;
+        display: flex;
+        justify-content: center;
+    }
+    .category-mapping-table td {
+        padding: 0 10px;
+    }
+    .category-mapping-table select {
+        padding-right: 35px;
+    }
+    td.row-actions {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        height: inherit;
+    }
+    .category-mapping-table input {
+        width: 135px;
+    }
+}
+@media (max-width: 540px) {
+    .table-info-top {
+        flex-wrap: wrap;
+        justify-content: unset;
+    }
+    .content {
+        padding: 26px !important;
+    }
+    .notification span {
+        font-size: 14px;
+    }
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+    .table-sync-setting {
+        padding: 16px;
+    }
+    .sync-title {
+        width: 30%;
+    }
+    .category-mapping-table thead {
+        display: none;
+    }
+    .category-mapping-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: auto;
+        padding: 16px 0;
+    }
+    .category-mapping-table td {
+        width: auto !important;
+        text-align: unset !important;
+        font-size: 14px;
+        padding: 0;
+    }
+    .category-mapping-table td::before {
+        padding-right: 10px;
+        content: attr(data-th) ': ';
+        color: #000000;
+        font-weight: 700;
+    }
+    .sync-items {
+        gap: 6px;
+    }
+    .sync-item {
+        padding: 6px;
+    }
+    .row-bottom {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 20px
+    }
+    .table-paging {
+        width: 100%;
+        order: 2;
+        display: flex;
+        justify-content: center;
+    }
+}
+@media (max-width: 450px) {
+    .info-card span {
+        display: block;
+        font-size: 12px;
+    }
+    .info-card p {
+        font-size: 14px;
+    }
+    .table-wrapper {
+        padding: 26px
+    }
+    .category-mapping-table select, .category-mapping-table td input {
+        margin-top: 6px;
+    }
 }
