@@ -153,7 +153,7 @@ li.tab-item:hover {
 
 .content {
     flex-grow: 1;
-    padding: 33px 20px;
+    padding: 33px;
     background: #F8F8F9;
 }
 
