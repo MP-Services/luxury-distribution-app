@@ -327,10 +327,12 @@ i.solid.circle-check::before {
     height: 40px;
     padding: 8px 20px;
     color: #1768F7;
-    font-weight: 700;
     background: #fff;
     border: 1px solid #1768F7;
     border-radius: 10px;
+}
+.table-actions button span {
+    font-weight: 700;
 }
 
 .table-actions .btn-save {
@@ -458,5 +460,15 @@ i.solid.circle-check::before {
     }
     .category-mapping-table select, .category-mapping-table td input {
         margin-top: 6px;
+    }
+    .table-actions button span {
+        display: none;
+    }
+    .table-actions button::before {
+        content: attr(data-th);
+        font-weight: 700;
+    }
+    .table-paging button i {
+        margin-right: 0;
     }
 }

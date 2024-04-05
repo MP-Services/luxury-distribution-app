@@ -84,7 +84,7 @@ i.solid.gear::before {
 .main {
     display: flex;
     flex-direction: column;
-    width: calc(100% - 345px);
+    /* width: calc(100% - 345px); */
     /* height: 100%; */
     overflow-y: scroll;
     border-left: 2px solid #EBEBEB;
@@ -156,4 +156,32 @@ i.solid.gear::before {
     font-weight: 500;
     line-height: 26px;
     color: #6A6A6A;
+}
+
+@media (max-width: 1024px) {
+    .setting-option {
+        min-width: auto;
+        max-width: calc(50% - 10px);
+    }
+    .main {
+        width: 100%;
+    }
+}
+@media (max-width: 540px) {
+    .content {
+        padding: 26px;
+    }
+    .setting-options {
+        flex-direction: column;
+    }
+    .setting-option {
+        padding: 26px 20px;
+        max-width: calc(90% - 10px);
+    }
+    .setting-option .setting-option-icon {
+        margin-bottom: 20px;
+    }
+    .setting-option .setting-option-text h2 {
+        font-size: 18px;
+    }
 }
