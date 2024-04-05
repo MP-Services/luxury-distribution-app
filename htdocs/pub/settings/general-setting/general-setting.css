@@ -78,9 +78,7 @@ button.checksave-btn {
 .price-rouding {
     margin-top: 20px;
 }
-.form-check-wrapper .info-card span {
-    display: block;
-}
+
 @media (max-width: 912px) {
     .tab-sidebar {
         display: none;
@@ -95,6 +93,7 @@ button.checksave-btn {
     }
     .table-info-top {
         flex-wrap: wrap;
+        gap: 14px
     }
     .main .content p.info-url {
         font-size: 14px !important;
@@ -110,5 +109,8 @@ button.checksave-btn {
     .checkbox-item label.customer-title, .form-note {
         width: 100% !important;
         margin-left: 0!important;
+    }
+    .customer-email {
+        padding: 35px 0 0 0;
     }
 }

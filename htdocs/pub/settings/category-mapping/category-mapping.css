@@ -471,4 +471,27 @@ i.solid.circle-check::before {
     .table-paging button i {
         margin-right: 0;
     }
+    .row-middle {
+        margin-bottom: 24px;
+    }
+}
+@media (max-width: 390px) {
+    .table-paging .pagination span {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+        border-radius: 6px;
+        padding: 0;
+    }
+    .table-paging .pagination {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+    .table-paging button {
+        padding: 4px 6px;
+    }
+    .table-actions button {
+        height: 36px;
+        padding: 0 16px;
+    }
 }

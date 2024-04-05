@@ -323,6 +323,7 @@ button.select-btn-item, .select-wrapper i {
         }
         .pagi-item {
             padding: 0px 8px;
+            border-radius: 6px;
         }
         .pg-sm {
             display: none !important;
