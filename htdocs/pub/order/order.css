@@ -233,6 +233,7 @@ button.select-btn-item, .select-wrapper i {
     .opacity {
         background: #000000;
         opacity: 0.5;
+        pointer-events: none;
     }
 
     @media (max-width: 1440px) {
