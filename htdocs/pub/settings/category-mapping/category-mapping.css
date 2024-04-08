@@ -420,7 +420,7 @@ i.solid.circle-check::before {
     .category-mapping-table td {
         width: auto !important;
         text-align: unset !important;
-        font-size: 14px;
+        font-size: 12px;
         padding: 0;
     }
     .category-mapping-table td::before {

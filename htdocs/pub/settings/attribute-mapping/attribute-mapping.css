@@ -197,8 +197,7 @@ i.solid.plus::before {
 
 .attribute-mapping-table {
     width: 100%;
-    font-size: 14px;
-    font-weight: 500;
+    
     border-collapse: collapse;
 }
 
@@ -215,15 +214,22 @@ i.solid.plus::before {
     height: 60px;
     border-bottom: 1px solid #EBEBEB;
 }
-
+.attribute-mapping-table th {
+    font-size: 14px;
+    font-weight: 700;
+}
+ .attribute-mapping-table td {
+    font-size: 14px;
+    font-weight: 500;
+ }
 .attribute-mapping-table td:first-child {
     width: 75px;
     text-align: center;
 }
 
-.attribute-mapping-table td:nth-child(2) {
+/* .attribute-mapping-table td:nth-child(2) {
     width: 370px;
-}
+} */
 
 .attribute-mapping-table select {
     padding: 10px 50px 10px 12px;
@@ -292,4 +298,36 @@ i.solid.plus::before {
 .table-actions .btn-save {
     color: #fff;
     background: #1768F7;
+}
+@media (max-width: 912px) {
+    .attribute-mapping-table td:first-child {
+        width: 50px;
+    }
+}
+@media (max-width: 540px) {
+    .attribute-mapping-table thead {
+        display: none;
+    }
+    .attribute-mapping-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: auto;
+        padding: 16px 0;
+    }
+    .attribute-mapping-table td {
+        width: auto !important;
+        text-align: unset !important;
+        font-size: 12px;
+        padding: 0;
+    }
+    .attribute-mapping-table td::before {
+        padding-right: 10px;
+        content: attr(data-th) ': ';
+        color: #000000;
+        font-weight: 700;
+    }
+    .attribute-mapping-table .option-mapping {
+        float: none;
+    }
 }
