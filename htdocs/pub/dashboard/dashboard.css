@@ -182,7 +182,7 @@ i.solid.trash-can::before {
     line-height: 26px;
 }
 
-.card-footer .info-cell .cell-bottom {
+.card-footer .info-cell .cell-bottom p {
     font-size: 40px;
     font-weight: 600;
     line-height: 50px;
