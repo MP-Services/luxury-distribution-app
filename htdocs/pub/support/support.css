@@ -53,6 +53,9 @@
     .contact-wrapper {
         width: 60%;
     }
+    .support-content {
+        padding: 26px;
+    }
     .icon-info, .icon-info img{
         width: 45px;
         height: 45px;
