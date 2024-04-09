@@ -1,0 +1,48 @@
+{
+  "private": true,
+  "name": "@avada/app",
+  "description": "An AVADA application for Shopify written in Nodejs",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "deploy": "./node_modules/.bin/firebase deploy",
+    "serve": "./node_modules/.bin/firebase serve",
+    "shell": "./node_modules/.bin/firebase functions:shell",
+    "start": "avada app:serve",
+    "logs": "./node_modules/.bin/firebase functions:log",
+    "emulators": "./node_modules/.bin/firebase emulators:start --only hosting,functions,pubsub",
+    "predeploy": "yarn workspace @avada/assets run production && yarn workspace @avada/functions run production",
+    "eslint-fix": "npm --prefix packages/assets/ run eslint-fix && npm --prefix packages/functions/ run eslint-fix",
+    "start-dev-embed": "npm run timeout && echo 'backend build running...' && concurrently \"yarn workspace @avada/functions run watch\"",
+    "start-dev": "concurrently \"yarn workspace @avada/assets run watch\" \"yarn workspace @avada/functions run watch\"",
+    "dev": "shopify app dev --skip-dependencies-installation",
+    "dev-reset": "shopify app dev --skip-dependencies-installation --reset",
+    "info": "shopify app info",
+    "update-app-local-url": "shopify app update-url --app-url https://localhost:3000/authSa/shopify --redirect-urls=https://localhost:3000/auth/shopify/callback,https://localhost:3000/authSa/shopify/callback,https://localhost:3000/auth/shopify/embed/callback",
+    "app-url": "shopify app update-url",
+    "extension-create": "shopify app generate extension",
+    "deploy-shopify": "shopify app deploy",
+    "deploy-shopify-reset": "shopify app deploy --reset",
+    "make:ssl": "avada make:ssl",
+    "update-localhost-runtime": "node ./scripts/updateLocalUrl.js",
+    "timeout": "delay 3"
+  },
+  "devDependencies": {
+    "babel-jest": "^24.9.0",
+    "eslint": "^6.3.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.2.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-react": "^7.16.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "delay-cli": "2.0.0",
+    "firebase-tools": "^12.9.1"
+  },
+  "dependencies": {
+    "concurrently": "^7.6.0",
+    "@avada/shopify-app": "3.48.1",
+    "@avada/shopify-cli": "3.48.0"
+  }
+}
