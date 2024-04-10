@@ -129,7 +129,7 @@
       </span>
     </div>
 
-    <div class="wrapper">
+    <div class="wrapper" id="luxury-distribution-login-wrapper">
       <div class="content-left">
         <div class="signup-header">
           <div class="logo">
@@ -190,51 +190,6 @@
           .html(message);
       }
 
-      const handleGoogleLogin = e => {
-        e.preventDefault();
-        if (!firebase.auth().currentUser) {
-          const googleProvider = new firebase.auth.GoogleAuthProvider();
-          firebase
-            .auth()
-            .signInWithPopup(googleProvider)
-            .then(function(result) {
-              const user = result.user;
-              const {email, displayName, uid, vendor, domain} = user;
-              document.querySelector('#PreLoading').style.display = 'flex';
-              if (user) {
-                fetch('/shop/create', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    uid,
-                    email,
-                    vendor: vendor || 'others',
-                    name: displayName,
-                    domain: domain || '',
-                    login: true
-                  })
-                })
-                  .then(response => {
-                    return response.json();
-                  })
-                  .then(myJson => {
-                    const {shop} = myJson;
-                    user.getIdToken(false).then(token => {
-                      window.location.replace(`/apiSa/switch/${shop}?token=${token}`);
-                    });
-                  });
-              }
-            })
-            .catch(function(error) {
-              console.error(error);
-            });
-        } else {
-          firebase.auth().signOut();
-        }
-      };
-
       const handleManualLogin = (event, setSubmitting) => {
         event.preventDefault();
         setSubmitting(true);
@@ -289,12 +244,29 @@
       function LoginForm({platform, setStep}) {
         const [submiting, setSubmiting] = useState(false);
         const [shopifyURL, setShopifyURL] = useState('');
+        const [input, setInput] = useState([]);
         const [forward, setForward] = useState('');
 
-        useEffect(() => {
-          const url = new URL(window.location.href);
-          setForward(url.searchParams.get('forward') || '');
-        }, []);
+        const handleChangeInput = (key , value) => {
+          setInput(preInput => ({
+            ...preInput,
+            [key]: value
+          }));
+        };
+
+        // useEffect(() => {
+        //   console.log('loginForm');
+        //   fetch('/authSa/shopify', {
+        //     method: 'GET',
+        //     headers: {
+        //       'Content-Type': 'application/json'
+        //     },
+        //   })
+        //     .then(response => response.json())
+        //     .then(respData => {
+        //       console.log(respData);
+        //     });
+        // }, []);
 
         const handleChange = event => {
           const val = event.target.value;
@@ -307,27 +279,28 @@
           }
         };
 
+
         return (
-          <form className="signup-form" method="GET" action="/authSa/shopify">
+          <form className="signup-form" action="#">
             <div className="signup-form-header">
               <h2>Sign up</h2>
             </div>
             <div className="signup-form-body">
               <div className="form-group">
                 <label htmlFor="provider">Provider</label>
-                <input type="text" className="form-control" id="provider" placeholder="Dropshipper" disabled />
+                <input name="dropshipper" type="text" className="form-control" id="provider" placeholder="Dropshipper" disabled />
               </div>
               <div className="form-group">
                 <label htmlFor="shopify-url">Shopify Url</label>
-                <input value={shopifyURL} type="text" className="form-control" id="shopify-url" placeholder="Enter URL" />
+                <input name="shopify-url" value={input.shopifyURL}  type="text" className="form-control" id="shopify-url" placeholder="Enter URL" />
               </div>
               <div className="form-group">
                 <label htmlFor="username">User Name <span>(from client service platform)</span></label>
-                <input type="password" className="form-control" id="username" placeholder="Enter username" />
+                <input name="username" value={input.username} type="text" className="form-control" id="username" placeholder="Enter username" />
               </div>
               <div className="form-group">
                 <label htmlFor="password">Password <span>(from client service platform)</span></label>
-                <input type="password" className="form-control" id="password" placeholder="Enter password" />
+                <input name="password" value={input.password} type="password" className="form-control" id="password" placeholder="Enter password" />
               </div>
             </div>
             <div className="signup-form-actions">
