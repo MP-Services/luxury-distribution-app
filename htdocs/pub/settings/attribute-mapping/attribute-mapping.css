@@ -11,6 +11,13 @@ button {
     cursor: pointer;
 }
 
+button.btn-primary {
+    color: #fff;
+    background: #1768F7;
+    border: 1px solid #1768F7;
+    border-radius: 5px;
+}
+
 i {
     margin-right: 6px;
     vertical-align: middle;
@@ -49,25 +56,41 @@ i.solid.circle-check::before {
 }
 
 i.solid.plus::before {
+    
+}
+
+/*
+    Clearable text inputs
+*/
+.clearable{
+    background: #fff url(https://i.stack.imgur.com/mJotv.gif) no-repeat right -10px center;
+    border: 1px solid #999;
+    padding: 3px 25px 3px 4px; /* Use the same right padding (18) in jQ! */
+    border-radius: 3px;
+    transition: background 0.4s;
+  }
+  .clearable.x  { background-position: right 15px center; } /* (jQ) Show icon */
+  .clearable.onX{ cursor: pointer; } /* (jQ) hover cursor style */
+  .clearable::-ms-clear {display: none; width:0; height:0;} /* Remove IE default X */
+
+.hidden {
+    display: none !important;
 }
 
 .wrapper {
     display: flex;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
 }
 
 .main {
     display: flex;
     flex-direction: column;
-    /* width: calc(100% - 345px); */
-    /* height: 100%; */
-    overflow-y: scroll;
+    width: 100%;
+    min-width: 550px;
     border-left: 2px solid #EBEBEB;
 }
-.main .content {
-    width: 100%;
-}
+
 .header {
     display: flex;
     align-items: center;
@@ -130,8 +153,10 @@ i.solid.plus::before {
 
 .table-info-top {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 30px;
+    font-size: 14px;
+    line-height: 28px;
     padding-bottom: 20px;
     border-bottom: 1px solid #EBEBEB;
 }
@@ -141,14 +166,13 @@ i.solid.plus::before {
     align-items: center;
     flex-grow: 1;
     padding: 10px 22px;
-    line-height: 35px;
-    font-size: 18px;
     font-weight: 600;
     background: #F8F8F9;
     border-radius: 10px;
 }
 
 .info-card hr {
+    display: none;
     height: 25px;
     margin: 0 35px;
     width: 1px;
@@ -157,7 +181,15 @@ i.solid.plus::before {
     border-top: none;
 }
 
+.info-card .info-url {
+    width: 80%;
+    border-right: 1px solid #000;
+    padding-right: 5px;
+    margin-right: 5px;
+}
+
 .info-card span {
+    display: block;
     font-size: 15px;
     font-weight: 500;
     color: #6A6A6A;
@@ -194,42 +226,55 @@ i.solid.plus::before {
     margin-bottom: 33px;
 }
 
+/* Grid table */
 
-.attribute-mapping-table {
-    width: 100%;
-    
-    border-collapse: collapse;
+.cell {
+    height: 60px;
+    padding: 22px 0;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    line-height: 1.2;
 }
 
-.attribute-mapping-table thead {
-    height: 50px;
+
+.cell.header-cell {
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
     background: #F1F5FF;
 }
 
-.attribute-mapping-table thead th:not(:first-child) {
-    text-align: left;
+.cell.actions {
+    position: absolute;
+    right: 0;
 }
 
-.attribute-mapping-table tr {
-    height: 60px;
-    border-bottom: 1px solid #EBEBEB;
-}
-.attribute-mapping-table th {
-    font-size: 14px;
-    font-weight: 700;
-}
- .attribute-mapping-table td {
-    font-size: 14px;
-    font-weight: 500;
- }
-.attribute-mapping-table td:first-child {
-    width: 75px;
+.header-cell:first-child {
     text-align: center;
 }
 
-/* .attribute-mapping-table td:nth-child(2) {
-    width: 370px;
-} */
+.row-header, .row-body {
+    display: contents;
+}
+
+.mapping-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr;
+    position: relative;
+}
+
+.mapping-row .cell:first-child {
+    justify-content: center;
+}
+
+.attribute-mapping-table .mapping-row {
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.attribute-mapping-table .row-header {
+    margin-bottom: 20px;
+}
 
 .attribute-mapping-table select {
     padding: 10px 50px 10px 12px;
@@ -248,27 +293,67 @@ i.solid.plus::before {
 }
 
 .attribute-mapping-table input {
+    max-width: 70%;
     padding: 10px 12px;
     font-size: 14px;
     font-weight: 500;
-    background: #fff;
+    /* background: #fff; */
     border: 1px solid #EBEBEB;
     border-radius: 5px;
 }
 
-.attribute-mapping-table .option-mapping {
-    float: right;
-    color: #fff;
-    padding-right: 15px;
+.btn.option-mapping {
+    display: block;
+    height: 38px;
+    margin-left: auto;
+    padding: 10px 35px 10px 15px;
     font-weight: 700;
-    background: #1768F7;
-    background-image: initial;
+    background-image: url('/media/icon/others/Layer_1-6_white.svg');
+    background-repeat: no-repeat;
+    background-position: top 50% right 50%;
     appearance: auto;
 }
 
-.attribute-mapping-table .row-actions i {
-    margin: 0;
+.btn.option-mapping span {
+    display: none;
 }
+
+.option-mapping-table.css-grid-table {
+    display: none;
+    grid-column: 1 / 5;
+    width: 100%;
+    margin-left: auto;
+    border-collapse: collapse;
+}
+
+.option-mapping-table .header-cell {
+    height: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666666;
+}
+
+.option-mapping-table .cell {
+    height: 40px;
+    font-size: 13px;
+}
+
+.option-mapping-table input {
+    max-width: 100%;
+    padding: 5px 12px;
+}
+
+.option-mapping-table .mapping-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr;
+    border-bottom: none;
+}
+
+.option-mapping-table .cell {
+    padding: 10px 0;
+}
+
+/* Bottom */
 
 .row-bottom {
     display: flex;
@@ -283,10 +368,8 @@ i.solid.plus::before {
 .table-actions button{
     height: 40px;
     padding: 8px 20px;
-    color: #1768F7;
     font-weight: 700;
     background: #fff;
-    border: 1px solid #1768F7;
     border-radius: 10px;
 }
 
@@ -299,35 +382,41 @@ i.solid.plus::before {
     color: #fff;
     background: #1768F7;
 }
-@media (max-width: 912px) {
-    .attribute-mapping-table td:first-child {
-        width: 50px;
+
+@media screen and (min-width: 768px) {
+    .main .content {
+        padding: 33px;
     }
 }
-@media (max-width: 540px) {
-    .attribute-mapping-table thead {
-        display: none;
-    }
-    .attribute-mapping-table tbody tr {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        height: auto;
-        padding: 16px 0;
-    }
-    .attribute-mapping-table td {
-        width: auto !important;
-        text-align: unset !important;
-        font-size: 12px;
-        padding: 0;
-    }
-    .attribute-mapping-table td::before {
+
+@media screen and (min-width: 1024px) {
+    .info-card .info-url {
+        width: 70%;
         padding-right: 10px;
-        content: attr(data-th) ': ';
-        color: #000000;
-        font-weight: 700;
+        margin-right: 10px;
     }
-    .attribute-mapping-table .option-mapping {
-        float: none;
+    .info-card span {
+        display: inline;
+    }
+    .cell.actions {
+        position: unset;
+    }
+    .mapping-row {
+        grid-template-columns: 50px 1fr 1fr 1fr;
+    }
+    .option-mapping-table.css-grid-table {
+        grid-column: 3 / 5;
+    }
+    .btn.option-mapping {
+        background-position: top 50% right 12px;
+    }
+    .btn.option-mapping span {
+        display: inline;
+    }
+}
+
+@media screen and (min-width: 1440px) {
+    .option-mapping-table.css-grid-table {
+        grid-column: 4 / 5;
     }
 }
