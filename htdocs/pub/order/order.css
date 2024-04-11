@@ -200,133 +200,133 @@ button.select-btn-item, .select-wrapper i {
     display: flex;
     justify-content: space-between;
     padding: 20px 40px;
+}
+.previous-btn, .next-btn, .pagination-items {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.previous-btn, .next-btn {
+    border: 1px solid #EBEBEB;
+    border-radius: 10px;
+    color: #606060;
+    padding: 6px 11px;
+}
+.previous-btn i, .next-btn i {
+    color: #606060;
+} 
+span.pre-label, span.next-label, .pagi-item  {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    cursor: pointer;
+}
+.pagi-item {
+    color: #B8B8B8;
+    padding: 6px 14px;
+    border-radius: 10px;
+}
+.pagination-items .pagi-active, .pagi-item:hover {
+    background-color: #1768F7;
+    color: #FFFFFF;
+}
+.opacity {
+    background: #000000;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+@media (max-width: 1440px) {
+    .main-sidebar {
+        padding: 75px 20px 0 20px!important;
     }
-    .previous-btn, .next-btn, .pagination-items {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    
+}
+@media(min-width: 913px) and (max-width:1024px) {
+    .orders-table-content thead th {
+        padding: 8px 26px;
     }
-    .previous-btn, .next-btn {
-        border: 1px solid #EBEBEB;
-        border-radius: 10px;
-        color: #606060;
-        padding: 6px 11px;
+    .orders-detail .table-header, .orders-table-content tbody td {
+        padding: 16px 30px;
     }
-    .previous-btn i, .next-btn i {
-        color: #606060;
-    } 
-    span.pre-label, span.next-label, .pagi-item  {
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 24px;
-        cursor: pointer;
+    .content .orders-detail {
+        height: 100vh;
+    }
+}
+@media (max-width: 912px) {
+    .toggle-menu i {
+        display: block;
+    }
+    .tab-sidebar {
+        position: fixed;
+        left: -345px;
+        max-width: initial;
+        width: 320px;
+        z-index: 11;
+        transition: all 0.5s ease;
+    }
+    .content {
+        width: 100%;
+    }
+    .menu-active {
+        left: 0;
+    }
+    .toggle-menu.active-toggle i {
+        position: fixed;
+        left: 350px;
+        transition: all 0.5s ease;
+    }
+    .orders-table-content tbody td {
+        font-size: 12px;
+    }
+    .content .orders-detail {
+        height: 100vh;
+    }
+}
+@media screen and (max-width: 540px) {
+    .tab-sidebar {
+        width: 250px;
+    }
+    .content .orders-detail {
+        padding: 26px;
+    }
+    .orders-detail .table-header, .pagination-wrapper  {
+        padding: 16px 26px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .orders-table-content thead {
+        display: none;
+    }
+    .orders-table-content tbody tr {
+        display: flex;
+        flex-direction: column;
+        border-bottom: 1px solid #EBEBEB;
+    }
+    .orders-table-content tbody tr:first-child {
+        border-top: 1px solid #EBEBEB;
+    }
+    .orders-table-content tbody td {
+        padding: 16px 30px;
+        border: none;
+    }
+    .orders-table-content tbody td:before {
+        padding-right: 10px;
+        content: attr(data-th) ': ';
+        color: #000000;
+        font-weight: 700
+    }
+    .order-status {
+        text-align: unset;
+    }
+    span.pre-label, span.next-label {
+        display: none;
     }
     .pagi-item {
-        color: #B8B8B8;
-        padding: 6px 14px;
-        border-radius: 10px;
+        padding: 0px 8px;
+        border-radius: 6px;
     }
-    .pagination-items .pagi-active, .pagi-item:hover {
-        background-color: #1768F7;
-        color: #FFFFFF;
+    .pg-sm {
+        display: none !important;
     }
-    .opacity {
-        background: #000000;
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    @media (max-width: 1440px) {
-        .main-sidebar {
-            padding: 75px 20px 0 20px!important;
-        }
-        
-    }
-    @media(min-width: 913px) and (max-width:1024px) {
-        .orders-table-content thead th {
-            padding: 8px 26px;
-        }
-        .orders-detail .table-header, .orders-table-content tbody td {
-            padding: 16px 30px;
-        }
-        .content .orders-detail {
-            height: 100vh;
-        }
-    }
-    @media (max-width: 912px) {
-        .toggle-menu i {
-            display: block;
-        }
-        .tab-sidebar {
-            position: fixed;
-            left: -345px;
-            max-width: initial;
-            width: 320px;
-            z-index: 11;
-            transition: all 0.5s ease;
-        }
-        .content {
-            width: 100%;
-        }
-        .menu-active {
-            left: 0;
-        }
-        .toggle-menu.active-toggle i {
-            position: fixed;
-            left: 350px;
-            transition: all 0.5s ease;
-        }
-        .orders-table-content tbody td {
-            font-size: 12px;
-        }
-        .content .orders-detail {
-            height: 100vh;
-        }
-    }
-    @media screen and (max-width: 540px) {
-        .tab-sidebar {
-            width: 250px;
-        }
-        .content .orders-detail {
-            padding: 26px;
-        }
-        .orders-detail .table-header, .pagination-wrapper  {
-            padding: 16px 26px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .orders-table-content thead {
-            display: none;
-        }
-        .orders-table-content tbody tr {
-            display: flex;
-            flex-direction: column;
-            border-bottom: 1px solid #EBEBEB;
-        }
-        .orders-table-content tbody tr:first-child {
-            border-top: 1px solid #EBEBEB;
-        }
-        .orders-table-content tbody td {
-            padding: 16px 30px;
-            border: none;
-        }
-        .orders-table-content tbody td:before {
-            padding-right: 10px;
-            content: attr(data-th) ': ';
-            color: #000000;
-            font-weight: 700
-        }
-        .order-status {
-            text-align: unset;
-        }
-        span.pre-label, span.next-label {
-            display: none;
-        }
-        .pagi-item {
-            padding: 0px 8px;
-            border-radius: 6px;
-        }
-        .pg-sm {
-            display: none !important;
-        }
-    }
+}

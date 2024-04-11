@@ -45,8 +45,7 @@ i.solid.trash-can::before {
 .main {
     display: flex;
     flex-direction: column;
-    /* width: calc(100% - 345px); */
-    /* height: 100%; */
+    width: 100%;
     overflow-y: scroll;
     border-left: 2px solid #EBEBEB;
 }
