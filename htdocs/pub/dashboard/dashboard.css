@@ -76,7 +76,7 @@ i.solid.trash-can::before {
 
 .card {
     flex-grow: 1;
-    /* max-width: 730px; */
+    max-width: 730px;
     padding: 35px 40px;
     border-radius: 10px;
     background: #fff;
