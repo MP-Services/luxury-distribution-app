@@ -88,7 +88,7 @@ li.tab-item:hover {
 }
 
 /* responsive */
-media (max-width: 1440px) {
+@media (max-width: 1440px) {
     .main-sidebar {
         padding: 75px 20px 0 20px!important;
     }
