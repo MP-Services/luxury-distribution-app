@@ -11,6 +11,7 @@ import AppBridgeProvider from '@assets/components/AppBridgeProvider';
 import {isEmbeddedApp} from '@assets/config/app';
 import AppEmbeddedLayout from '@assets/layouts/EmbeddedLayout/AppEmbeddedLayout';
 import AppFullLayout from '@assets/layouts/FullLayout/AppFullLayout';
+import {MenuProvider} from '@assets/reducers/menuReducer';
 
 /**
  * The main endpoint of application contains all routes, settings for redux and Polaris
@@ -33,13 +34,20 @@ export default function App() {
 }
 
 const MainLayout = ({children}) => {
-  return isEmbeddedApp ? (
-    <AppBridgeProvider>
-      <AppEmbeddedLayout>{children}</AppEmbeddedLayout>
-    </AppBridgeProvider>
-  ) : (
-    <AppFullLayout>{children}</AppFullLayout>
+  return (
+    <MenuProvider>
+      <AppFullLayout>
+          {children}
+      </AppFullLayout>
+    </MenuProvider>
   );
+  // return isEmbeddedApp ? (
+  //   <AppBridgeProvider>
+  //     <AppEmbeddedLayout>{children}</AppEmbeddedLayout>
+  //   </AppBridgeProvider>
+  // ) : (
+  //   <AppFullLayout>{children}</AppFullLayout>
+  // );
 };
 
 MainLayout.propTypes = {

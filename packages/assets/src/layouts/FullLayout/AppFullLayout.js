@@ -34,17 +34,10 @@ export default function AppFullLayout({children}) {
   ].filter(Boolean);
 
   return (
-    <Frame topBar={<AppTopBar {...{isNavOpen, toggleOpenNav}} />}>
+    <Frame>
       <div className="Avada-Frame">
-        <div className={navigationClass.join(' ')}>
-          <AppNavigation />
-        </div>
-        <Scrollable className={contentClass.join(' ')}>
-          {children}
-          <Layout>
-            <Footer />
-          </Layout>
-        </Scrollable>
+        <AppNavigation />
+        {children}
       </div>
       {loading && <Loading />}
       {toast && <Toast onDismiss={() => closeToast(dispatch)} {...toast} />}

@@ -37,6 +37,11 @@ declare interface IStoreReducer {
   dispatch: Function;
 }
 
+declare interface IMenuReducer {
+  isActiveMenu: boolean;
+  setIsActiveMenu: Function;
+}
+
 declare interface IStoreState {
   loading: boolean;
   user: any;

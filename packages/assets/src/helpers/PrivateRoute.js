@@ -6,7 +6,7 @@ const PrivateRoute = (props) => {
   // const {currentUser} = userContext(AuthContext);
   const {component: Component, children, render, ...rest} = props;
   // const auth = userAuth();
-  const auth = false;
+  const auth = true;
 
   return (
     <Route {...rest}>
