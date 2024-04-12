@@ -397,6 +397,11 @@ li.tab-item:hover {
     content: '';
 }
 
+.table-actions {
+    display: flex;
+    gap: 55px;
+}
+
 .table-actions button{
     height: 40px;
     padding: 8px 20px;
