@@ -1,7 +1,7 @@
 * {
     font-family: "Montserrat", sans-serif;
-    /*font-size: 16px;
-    font-weight: 400;*/
+    font-size: 16px;
+    font-weight: 400;
     margin: 0;
     padding: 0;
 }
@@ -231,7 +231,6 @@ span.pre-label, span.next-label, .pagi-item  {
     color: #FFFFFF;
 }
 .opacity {
-    background: #000000;
     opacity: 0.5;
     pointer-events: none;
 }

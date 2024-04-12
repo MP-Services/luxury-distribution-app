@@ -1,3 +1,15 @@
+* {
+    font-family: 'Montserrat', sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+}
 i {
     margin-right: 6px;
     vertical-align: middle;
@@ -82,50 +94,6 @@ i.solid.circle-check::before {
 .main{
     width: 100%;
 
-}
-@media (min-width: 541px) and (max-width: 1024px) {
-   
-    .info-card {
-        flex-direction: column;
-        align-items: normal;
-    }
-    .info-card hr {
-        display: none;
-    }
-    .info-card span {
-        display: block;
-    }
-}
-@media (max-width: 540px) {
-    .table-info-top {
-        flex-wrap: wrap;
-        justify-content: unset;
-    }
-    .content {
-        padding: 26px !important;
-    }
-    .notification span {
-        font-size: 14px;
-    }
-    .info-card {
-        flex-direction: column;
-        align-items: normal;
-    }
-    .info-card hr {
-        display: none;
-    }
-}
-@media (max-width: 450px) {
-    .info-card span {
-        display: block;
-        font-size: 12px;
-    }
-    .info-card p {
-        font-size: 14px;
-    }
-    .table-wrapper {
-        padding: 26px
-    }
 }
 /* dash board*/
 .wrapper {
@@ -231,10 +199,60 @@ button.checksave-btn {
     flex-direction: column;
     gap: 6px;
 }
+.language-select i {
+    font-size: 14px; 
+    color: #6A6A6A;
+}
 .price-rouding {
     margin-top: 20px;
 }
-
+.checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 20px;
+}
+.checkbox-item {
+    display: inline-flex;
+    align-items: center;
+}
+.form-note {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    width: 70%;
+    margin-left: 10%;
+    margin-top: 10px;
+}
+.checkbox-item .form-note input {
+    width: 20px;
+    height: 20px;
+}
+.checkbox-item label.customer-title {
+    width: 30%;
+    max-width: 264px;
+}
+.form-note i {
+    font-size: 14px;
+    color: #6A6A6A;
+    width:100%;
+}
+.customer-title span {
+    color: #E53A3A;
+}
+@media (min-width: 541px) and (max-width: 1024px) {
+   
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+    .info-card span {
+        display: block;
+    }
+}
 @media (max-width: 912px) {
     .tab-sidebar {
         display: none;
@@ -268,5 +286,34 @@ button.checksave-btn {
     }
     .customer-email {
         padding: 35px 0 0 0;
+    }
+    .table-info-top {
+        flex-wrap: wrap;
+        justify-content: unset;
+    }
+    .content {
+        padding: 26px !important;
+    }
+    .notification span {
+        font-size: 14px;
+    }
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+}
+@media (max-width: 450px) {
+    .info-card span {
+        display: block;
+        font-size: 12px;
+    }
+    .info-card p {
+        font-size: 14px;
+    }
+    .table-wrapper {
+        padding: 26px
     }
 }

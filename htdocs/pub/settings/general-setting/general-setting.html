@@ -6,7 +6,6 @@
     <title>General Setting</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
-    <link rel="stylesheet" href="../category-mapping/category-mapping.css">
     <link rel="stylesheet" href="../general-setting/general-setting.css">
 </head>
 <body>
@@ -114,7 +113,7 @@
                         <div class="customer-email">
                             <form action="" class="check-customer">
                                 <label class="customer-title" for="email">
-                                    Customer Email<span style="color: #E53A3A"> *</span>
+                                    Customer Email<span> *</span>
                                 </label>
                                 <input type="text" name="email" placeholder="Email">
                                 <button name="check-email-btn" class="checksave-btn">Run Check & Save</button>
@@ -139,16 +138,16 @@
                                 <div class="language-currency">
                                     <div class="language-select">
                                         <label class="customer-title" for="language">
-                                            Language<span style="color: #E53A3A"> *</span>
+                                            Language<span> *</span>
                                         </label>
                                         <select name="language" id="dropshipper_category">
                                             <option value="0">English</option>
                                         </select>
-                                        <i style="font-size: 14px; color: #6A6A6A">Language for products.</i>
+                                        <i>Language for products.</i>
                                     </div>
                                     <div class="currency-select">
                                         <label class="customer-title" for="currency">
-                                            Currency<span style="color: #E53A3A"> *</span>
+                                            Currency<span> *</span>
                                         </label>
                                         <select name="currency" id="dropshipper_category">
                                             <option value="0">EUR</option>
@@ -157,7 +156,7 @@
                                 </div>
                                 <div class="price-rouding">
                                     <label class="customer-title" for="price">
-                                        Price Rounding<span style="color: #E53A3A"> *</span>
+                                        Price Rounding<span> *</span>
                                     </label>
                                     <select name="price" id="dropshipper_category">
                                         <option value="0">XXX9.00</option>
@@ -214,7 +213,7 @@
                             <form action="" class="check-customer">
                                 
                                 <label class="customer-title" for="token">
-                                    Access Token<span style="color: #E53A3A"> *</span>
+                                    Access Token<span> *</span>
                                 </label>
                                 <input type="text" name="token" placeholder="token">
                                 <button name="check-token-btn" class="checksave-btn">Run Check & Save</button>
@@ -226,37 +225,4 @@
         </div>
     </div>
 </body>
-<style>
-    .checkboxes {
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-        margin-top: 20px;
-    }
-   .checkbox-item {
-        display: inline-flex;
-        align-items: center;
-    }
-    .form-note {
-        display: inline-flex;
-        align-items: flex-start;
-        gap: 6px;
-        width: 70%;
-        margin-left: 10%;
-        margin-top: 10px;
-    }
-    .checkbox-item .form-note input {
-        width: 20px;
-        height: 20px;
-    }
-    .checkbox-item label.customer-title {
-        width: 30%;
-        max-width: 264px;
-    }
-    .form-note i {
-        font-size: 14px;
-        color: #6A6A6A;
-        width:100%;
-    }
-</style>
 </html>

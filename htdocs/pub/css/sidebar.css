@@ -107,7 +107,7 @@ li.tab-item:hover {
 }
 @media (max-width: 912px) {
     .toggle-menu i {
-        display: block;
+        display: block !important;
     }
     .tab-sidebar {
         position: fixed;
