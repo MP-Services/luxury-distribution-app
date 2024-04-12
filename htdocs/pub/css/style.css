@@ -16,9 +16,9 @@ button {
 }
 
 button.btn-primary {
-    color: #fff;
-    background: #1768F7;
-    border: 1px solid #1768F7;
+    color: #fff !important;
+    background: #1768F7 !important;
+    border: 1px solid #1768F7 !important;
     border-radius: 5px;
 }
 

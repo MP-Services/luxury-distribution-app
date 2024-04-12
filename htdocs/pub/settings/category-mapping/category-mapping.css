@@ -41,11 +41,6 @@
     width: 275px;
 }
 
-.category-mapping-table td:last-child {
-    text-align: center;
-    width: 150px;
-}
-
 .category-mapping-table select {
     padding: 10px 50px 10px 12px;
     font-size: 14px;
@@ -114,8 +109,12 @@
     border-radius: 10px;
 }
 
+.table-paging button i {
+    margin-right: 0;
+}
+
 .table-paging .pagination {
-    margin: 0 31px;
+    margin: 0 auto;
 }
 
 .table-paging .pagination span{
@@ -139,38 +138,17 @@
     gap: 10px;
 }
 
-.table-actions button{
-    height: 40px;
-    padding: 8px 20px;
-    color: #1768F7;
-    background: #fff;
-    border: 1px solid #1768F7;
-    border-radius: 10px;
-}
-.table-actions button span {
-    font-weight: 700;
-}
-
-.table-actions .btn-save {
-    color: #fff;
-    background: #1768F7;
-}
-
-@media (max-width: 1440px) {
-    .row-bottom {
-        font-size: 13px;
-    }
-}
-
 @media (max-width: 1024px) {
+    .tab-sidebar {
+        position: fixed;
+        left: -345px;
+        max-width: initial;
+        width: 320px;
+        z-index: 11;
+    }
     .row-bottom {
         flex-direction: column;
-        align-items: flex-end;
         gap: 20px
-    }
-    .table-actions {
-        width: 100%;
-        justify-content: center;
     }
     .table-paging {
         width: 100%;
@@ -178,38 +156,25 @@
         display: flex;
         justify-content: center;
     }
-    .category-mapping-table td {
+    .table-paging button {
         padding: 0 10px;
     }
-    .category-mapping-table select {
-        padding-right: 35px;
+    .table-actions {
+        width: 100%;
+        justify-content: center;
     }
-    td.row-actions {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        height: inherit;
+    .table-actions button::before {
+        content: attr(data-th);
+        font-weight: 700;
     }
-    .category-mapping-table input {
-        width: 135px;
+    .table-actions button span {
+        display: none;
     }
 }
-@media (max-width: 768px) {
-    .table-info-top {
-        flex-wrap: wrap;
-        justify-content: unset;
-    }
-    .content {
-        padding: 26px !important;
-    }
-    .notification span {
-        font-size: 14px;
-    }
-    .table-sync-setting {
-        padding: 16px;
-    }
-    .sync-title {
-        width: 30%;
+
+@media screen and (max-width: 767px) {
+    .table-wrapper {
+        padding: 26px
     }
     .category-mapping-table thead {
         display: none;
@@ -233,65 +198,53 @@
         color: #000000;
         font-weight: 700;
     }
-    .sync-items {
-        gap: 6px;
-    }
-    .sync-item {
-        padding: 6px;
-    }
-    .row-bottom {
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 20px
-    }
-    .table-paging {
-        width: 100%;
-        order: 2;
-        display: flex;
-        justify-content: center;
+    .row-top {
+        margin: 0;
     }
 }
-@media (max-width: 450px) {
-    .table-wrapper {
-        padding: 26px
+
+@media screen and (min-width: 768px) {
+    .table-actions button::before {
+        content: none
     }
-    .category-mapping-table select, .category-mapping-table td input {
-        margin-top: 6px;
+    .table-wrapper {
+        padding: 44px 33px;
     }
     .table-actions button span {
-        display: none;
+        display: initial;
     }
-    .table-actions button::before {
-        content: attr(data-th);
-        font-weight: 700;
+    .table-paging button span {
+        display: initial;
     }
-    .table-paging button {
-        padding: 0;
+    .category-mapping-table td {
+        padding: 0 10px;
     }
-    .table-paging button i {
-        margin-right: 0;
+    .category-mapping-table select {
+        padding-right: 35px;
     }
-    .row-middle {
-        margin-bottom: 24px;
+    td.row-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: inherit;
+    }
+    .category-mapping-table input {
+        width: 135px;
     }
 }
-@media (max-width: 390px) {
-    .table-paging .pagination span {
-        width: 24px;
-        height: 24px;
-        font-size: 14px;
-        border-radius: 6px;
-        padding: 0;
+
+@media screen and (min-width: 1024px){
+    .table-paging button span {
+        display: none;
     }
-    .table-paging .pagination {
-        margin-top: auto;
-        margin-bottom: auto;
+}
+
+@media screen and (min-width: 1440px) {
+    .table-paging button span {
+        display: initial;
     }
-    .table-paging button {
-        padding: 4px 6px;
-    }
-    .table-actions button {
-        height: 36px;
-        padding: 0 16px;
+    .pagination.paging-option {
+        margin: 0 30px;
     }
 }
