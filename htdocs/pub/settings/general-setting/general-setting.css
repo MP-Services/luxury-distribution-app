@@ -1,3 +1,159 @@
+i {
+    margin-right: 6px;
+    vertical-align: middle;
+}
+i.arrow-left::before {
+    content: url('/media/icon/others/Layer_33.svg');
+}
+i.solid.arrow-left::before {
+    content: url('/media/icon/Group 67.svg');
+}
+
+i.solid.circle-check::before {
+    content: url('/media/icon/others/Capa_223.svg');
+}
+
+
+.notification {
+    padding: 20px;
+    background: #F6F0CE;
+    border: 2px solid #CFC786;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.notification p {
+    display: table;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 26px;
+    color: #6A6A6A;
+}
+
+.notification i {
+    display: table-cell;
+    font-size: 16px;
+    padding-right: 10px;
+    color: #CFC786;
+}
+
+.table-wrapper {
+    padding: 44px 33px;
+    background: #fff;
+    border-radius: 10px;
+}
+
+.table-info-top {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.info-card {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding: 10px 22px;
+    background: #F8F8F9;
+    border-radius: 10px;
+}
+.info-card p {
+    line-height: 35px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.info-card hr {
+    height: 25px;
+    margin: 0 35px;
+    width: 1px;
+    color: #C3C3C3;
+    border-style: solid;
+    border-top: none;
+}
+
+.info-card span {
+    font-size: 15px;
+    font-weight: 500;
+    color: #6A6A6A;
+}
+
+.main{
+    width: 100%;
+
+}
+@media (min-width: 541px) and (max-width: 1024px) {
+   
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+    .info-card span {
+        display: block;
+    }
+}
+@media (max-width: 540px) {
+    .table-info-top {
+        flex-wrap: wrap;
+        justify-content: unset;
+    }
+    .content {
+        padding: 26px !important;
+    }
+    .notification span {
+        font-size: 14px;
+    }
+    .info-card {
+        flex-direction: column;
+        align-items: normal;
+    }
+    .info-card hr {
+        display: none;
+    }
+}
+@media (max-width: 450px) {
+    .info-card span {
+        display: block;
+        font-size: 12px;
+    }
+    .info-card p {
+        font-size: 14px;
+    }
+    .table-wrapper {
+        padding: 26px
+    }
+}
+/* dash board*/
+.wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-y: scroll;
+    border-left: 2px solid #EBEBEB;
+}
+
+.content {
+    width: 100%;
+    flex-grow: 1;
+    padding: 50px 33px;
+    background: #F8F8F9;
+}
+@media screen and (min-width: 1024px)  {
+    .main {
+        width: 85%;
+        max-width: 1575px;
+    }
+}
 .main .content, .main {
     width: 100%;
 }

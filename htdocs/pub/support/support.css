@@ -1,7 +1,70 @@
+* {
+    font-family: "Montserrat", sans-serif;
+    /*font-size: 16px;
+    font-weight: 400;*/
+    margin: 0;
+    padding: 0;
+}
+div {
+    display: block;
+}
+button {
+    border: none;
+    background: none;
+}
+.page-wrapper {
+    display: inline-flex;
+    width: 100%;
+}
+/* content orders */
+.content {
+    width: 85%;
+    max-width: 1575px;
+}
+.content-title {
+    position: sticky;
+    top: 0;
+    background: #FFFFFF;
+    padding-left: 35px;
+    z-index: 10;
+    border-bottom: 2px solid #EBEBEB;
+}
+.content-title h2.title-detail {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 50px;
+}
+.content-title .header-title {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    padding: 38px 0 37px 0;
+}
+.toggle-menu i{
+    font-size: 26px;
+    cursor: pointer;
+    display:none;
+}
+.opacity {
+    background: #000000;
+    opacity: 0.5;
+    pointer-events: none;
+}
 .support-content, .helpdesk-content {
     background: #F8F8F9;
     height: 100vh;
     padding: 50px 0 50px 35px;
+}
+.support-remind {
+    width: 80%;
+    max-width: 857px;
+}
+.support-remind .remind-label {
+    font-size: 24px;
+    font-weight: 500; 
+    line-height: 34px; 
+    color: #000000;
 }
 .info-contact {
     width: 100%;

@@ -118,7 +118,7 @@ li.tab-item:hover {
         transition: all 0.5s ease;
     }
     .content {
-        width: 100%;
+        width: 100% !important;
     }
     .menu-active {
         left: 0;
