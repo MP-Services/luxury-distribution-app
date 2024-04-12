@@ -393,10 +393,6 @@ li.tab-item:hover {
     align-items: center;
 }
 
-.row-bottom::before {
-    content: '';
-}
-
 .table-actions {
     display: flex;
     gap: 55px;
