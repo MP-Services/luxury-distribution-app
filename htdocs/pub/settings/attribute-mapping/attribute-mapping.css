@@ -157,17 +157,6 @@
 }
 
 @media screen and (min-width: 768px) {
-    .info-card .info-url {
-        width: 70%;
-        padding-right: 10px;
-        margin-right: 10px;
-    }
-    .info-card span {
-        display: inline;
-    }
-    .main .content {
-        padding: 33px;
-    }
     .option-mapping-table.css-grid-table {
         grid-column: 2 / 4;
     }
@@ -188,18 +177,6 @@
     }
     .btn.option-mapping span {
         display: inline;
-    }
-}
-
-@media screen and (min-width: 1440px) {
-    .info-card .info-url {
-        width: unset;
-        border-right: none;
-        padding-right: 0;
-        margin-right: 0;
-    }
-    .info-card hr {
-        display: initial;
     }
 }
 
