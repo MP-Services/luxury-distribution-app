@@ -312,9 +312,12 @@ li.tab-item:hover {
     align-items: center;
     flex-grow: 1;
     padding: 10px 22px;
-    font-weight: 600;
     background: #F8F8F9;
     border-radius: 10px;
+}
+
+.info-card p {
+    font-weight: 600;
 }
 
 .info-card hr {
@@ -368,8 +371,50 @@ li.tab-item:hover {
     border-radius: 5px;
 }
 
+.row-top {
+    margin: 24px 0 35px 0;
+}
+
+.row-top .table-message {
+    display: table;
+}
+
+.row-top .table-message svg {
+    display: table-cell;
+}
+
 .row-middle {
     margin-bottom: 33px;
+}
+
+.row-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.row-bottom::before {
+    content: '';
+}
+
+.table-actions button{
+    height: 40px;
+    padding: 8px 20px;
+    color: #1768F7;
+    font-weight: 700;
+    background: #fff;
+    border: 1px solid #1768F7;
+    border-radius: 10px;
+}
+
+.table-actions .btn-add {
+    color: #fff;
+    background: #1768F7;
+}
+
+.table-actions .btn-save {
+    color: #fff;
+    background: #1768F7;
 }
 
 @media screen and (min-width: 768px) {
