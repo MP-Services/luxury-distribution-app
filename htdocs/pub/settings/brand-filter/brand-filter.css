@@ -40,3 +40,7 @@ label {
     margin-bottom: 26px;
     max-width: calc(25% - 30px);
 }
+
+.row-bottom::before {
+    content: '';
+}
