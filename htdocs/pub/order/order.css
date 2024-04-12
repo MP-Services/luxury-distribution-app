@@ -12,70 +12,9 @@ button {
     border: none;
     background: none;
 }
-.page-wrapper {
-    display: inline-flex;
+.wrapper {
+    display: flex;
     width: 100%;
-}
-/* side */
-.tab-sidebar {
-    max-width: 345px;
-    width: 20%;
-    height: 100vh;
-    background: #FFFFFF;
-    position: sticky;
-    top: 0;
-}
-.main-sidebar {
-    width: auto;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    border-right: 2px solid #EBEBEB;
-    padding: 73px 50px 0 50px;
-}
-ul.tabs-content {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    list-style: none;
-}
-.logo-site, li.tab-item a {
-    padding-left: 23px !important;
-}
-.tabs-wrapper {
-    margin-top: 66px;
-}
-.logo-site .logo-content a img {
-    width: 108px;
-    height: 50px;
-}
-ul.tabs-content li a {
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: auto;
-    color: #666666;
-}
-ul.tabs-content li.tab-active a {
-    color: #1768F7;
-}
-li.tab-active {
-    background: #F1F5FF;
-}
-li.tab-active svg path {
-    fill: #1768F7;
-}
-li.tab-item {
-    border-radius: 6px;
-}
-li.tab-item a {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    padding: 15px 0;
-}
-li.tab-item:hover {
-    background: #F8F8F9;
 }
 /* content orders */
 .content {

@@ -1,7 +1,7 @@
 * {
     font-family: "Montserrat", sans-serif;
-    /*font-size: 16px;
-    font-weight: 400;*/
+    font-size: 16px;
+    font-weight: 400;
     margin: 0;
     padding: 0;
 }
@@ -12,8 +12,8 @@ button {
     border: none;
     background: none;
 }
-.page-wrapper {
-    display: inline-flex;
+.wrapper {
+    display: flex;
     width: 100%;
 }
 /* content orders */
@@ -52,8 +52,11 @@ button {
     pointer-events: none;
 }
 .helpdesk-content {
-    height: auto;
+    background: #F8F8F9;
+    padding: 50px 0 50px 35px;
+    height: 120vh;
     padding-right: 50px;
+    
 }
 .frequently-questions {
     background: #FFFFFF;
