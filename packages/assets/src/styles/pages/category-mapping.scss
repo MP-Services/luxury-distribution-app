@@ -29,42 +29,42 @@ i {
 }
 i.check {
   &::before {
-    content: url('/media/icon/Capa_1.svg');
+    content: url('../../resources/icons/Capa_1.svg');
   }
 }
 i.edit {
   &::before {
-    content: url('/media/icon/Capa_2.svg');
+    content: url('../../resources/icons/Capa_2.svg');
   }
 }
 i.trash-can {
   &::before {
-    content: url('/media/icon/others/Layer_1-5.svg');
+    content: url('../../resources/icons/others/Layer_1-5.svg');
   }
 }
 i.xmark {
   &::before {
-    content: url('/media/icon/others/Capa_1.svg');
+    content: url('../../resources/icons/others/Capa_1.svg');
   }
 }
 i.arrow-left {
   &::before {
-    content: url('/media/icon/others/Layer_33.svg');
+    content: url('../../resources/icons/others/Layer_33.svg');
   }
 }
 i.arrow-right {
   &::before {
-    content: url('/media/icon/others/Layer_1-4.svg');
+    content: url('../../resources/icons/others/Layer_1-4.svg');
   }
 }
 i.solid.arrow-left {
   &::before {
-    content: url('/media/icon/Group 67.svg');
+    content: url('../../resources/icons/Group 67.svg');
   }
 }
 i.solid.circle-check {
   &::before {
-    content: url('/media/icon/others/Capa_223.svg');
+    content: url('../../resources/icons/others/Capa_223.svg');
   }
 }
 .wrapper {
@@ -228,7 +228,7 @@ i.solid.circle-check {
     font-size: 14px;
     font-weight: 500;
     background-color: $background-color_1;
-    background-image: url('/media/icon/others/Layer_1-6.svg');
+    background-image: url('../../resources/icons/others/Layer_1-6.svg');
     background-repeat: no-repeat;
     background-position: top 50% right 12px;
     border: 1px solid #EBEBEB;

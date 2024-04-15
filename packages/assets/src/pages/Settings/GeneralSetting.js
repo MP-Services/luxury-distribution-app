@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
-import '../../styles/pages/general-settings.scss'
+import '../../styles/pages/general-setting.scss'
 import '../../styles/pages/category-mapping.scss'
 import '../../styles/pages/orders.scss'
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
@@ -12,7 +12,7 @@ import {useMenu} from "@assets/reducers/menuReducer";
  * @return {React.ReactElement}
  * @constructor
  */
-export default function MainSettings() {
+export default function GeneralSetting() {
   const [enabled, setEnabled] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();

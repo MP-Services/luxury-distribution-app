@@ -134,7 +134,7 @@ li.tab-active {
 @media (max-width: 912px) {
   .toggle-menu {
     i {
-      display: block;
+      display: block !important;
     }
   }
   .tab-sidebar {
@@ -146,7 +146,7 @@ li.tab-active {
     transition: all 0.5s ease;
   }
   .content {
-    width: 100%;
+    width: 100% !important;
   }
   .menu-active {
     left: 0;

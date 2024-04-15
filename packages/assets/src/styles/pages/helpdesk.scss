@@ -1,8 +1,67 @@
 $color_1: #000000;
+$font-family_1: "Montserrat", sans-serif;
 
+/* content orders */
+* {
+  font-family: $font-family_1;
+  margin: 0;
+  padding: 0;
+}
+div {
+  display: block;
+}
+button {
+  border: none;
+  background: none;
+}
+.page-wrapper {
+  display: inline-flex;
+  width: 100%;
+}
+.content {
+  width: 85%;
+  max-width: 1575px;
+}
+.content-title {
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  padding-left: 35px;
+  z-index: 10;
+  border-bottom: 2px solid #EBEBEB;
+  h2.title-detail {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 50px;
+  }
+  .header-title {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    padding: 38px 0 37px 0;
+  }
+}
+.toggle-menu {
+  i {
+    font-size: 26px;
+    cursor: pointer;
+    display: none;
+  }
+}
+.opacity {
+  background: #000000;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.helpdesk-content {
+  height: auto;
+  padding-right: 50px;
+}
 .frequently-questions {
   background: #FFFFFF;
   padding: 45px 60px;
+  padding-top: 27px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;

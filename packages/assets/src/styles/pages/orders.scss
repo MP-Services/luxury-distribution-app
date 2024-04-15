@@ -1,20 +1,19 @@
-$color_1: #666666;
-$color_2: #1768F7;
-$color_3: #606060;
-$color_4: #6A6A6A;
-$color_5: #000000;
-$color_6: #7CC741;
-$color_7: #B8B8B8;
-$color_8: #FFFFFF;
+$color_1: #606060;
+$color_2: #6A6A6A;
+$color_3: #000000;
+$color_4: #7CC741;
+$color_5: #B8B8B8;
+$color_6: #FFFFFF;
 $font-family_1: "Montserrat", sans-serif;
 $background-color_1: #FFFFFF;
 $background-color_2: #1768F7;
 $border-color_1: #EBEBEB;
 
-/* side */
 /* content orders */
 * {
   font-family: $font-family_1;
+  font-size: 16px;
+  font-weight: 400;
   margin: 0;
   padding: 0;
 }
@@ -25,80 +24,9 @@ button {
   border: none;
   background: none;
 }
-.page-wrapper {
-  display: inline-flex;
+.wrapper {
+  display: flex;
   width: 100%;
-}
-.tab-sidebar {
-  max-width: 345px;
-  width: 20%;
-  height: 100vh;
-  background: #FFFFFF;
-  position: sticky;
-  top: 0;
-}
-.main-sidebar {
-  width: auto;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  border-right: 2px solid #EBEBEB;
-  padding: 73px 50px 0 50px;
-}
-ul.tabs-content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  list-style: none;
-  li {
-    a {
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: auto;
-      color: $color_1;
-    }
-  }
-  li.tab-active {
-    a {
-      color: $color_2;
-    }
-  }
-}
-.logo-site {
-  padding-left: 23px !important;
-  .logo-content {
-    a {
-      img {
-        width: 108px;
-        height: 50px;
-      }
-    }
-  }
-}
-li.tab-item {
-  a {
-    padding-left: 23px !important;
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    padding: 15px 0;
-  }
-  border-radius: 6px;
-  &:hover {
-    background: #F8F8F9;
-  }
-}
-.tabs-wrapper {
-  margin-top: 66px;
-}
-li.tab-active {
-  background: #F1F5FF;
-  svg {
-    path {
-      fill: #1768F7;
-    }
-  }
 }
 .content {
   width: 85%;
@@ -155,14 +83,14 @@ span.span-table-title {
 }
 .select-wrapper {
   font-size: 14px;
-  color: $color_3;
+  color: $color_1;
   padding: 9px 14px;
   background: #F4F4F4;
   border: 1px solid #EBEBEB;
   border-radius: 10px;
   cursor: pointer;
   i {
-    color: $color_3;
+    color: $color_1;
     width: 18px;
     height: 18px;
     margin-left: 14px;
@@ -170,7 +98,7 @@ span.span-table-title {
 }
 ul.select-content {
   font-size: 14px;
-  color: $color_3;
+  color: $color_1;
   padding: 9px 14px;
   background: #F4F4F4;
   border: 1px solid #EBEBEB;
@@ -191,7 +119,7 @@ ul.select-content {
   }
 }
 button.select-btn-item {
-  color: $color_3;
+  color: $color_1;
 }
 .dropdown-active {
   display: flex !important;
@@ -203,7 +131,7 @@ button.select-btn-item {
       font-size: 14px;
       line-height: 26px;
       font-weight: 700;
-      color: $color_4;
+      color: $color_2;
       background: #F6F6F6;
       padding: 15px 40px;
       border-width: 1px 0;
@@ -216,11 +144,11 @@ button.select-btn-item {
       padding: 25px 40px;
       font-size: 16px;
       font-weight: 500;
-      color: $color_5;
+      color: $color_3;
       border-bottom: 1px solid #EBEBEB;
     }
     td.order-status {
-      color: $color_6;
+      color: $color_4;
     }
   }
 }
@@ -250,10 +178,10 @@ button.select-btn-item {
   gap: 6px;
   border: 1px solid #EBEBEB;
   border-radius: 10px;
-  color: $color_3;
+  color: $color_1;
   padding: 6px 11px;
   i {
-    color: $color_3;
+    color: $color_1;
   }
 }
 .next-btn {
@@ -262,10 +190,10 @@ button.select-btn-item {
   gap: 6px;
   border: 1px solid #EBEBEB;
   border-radius: 10px;
-  color: $color_3;
+  color: $color_1;
   padding: 6px 11px;
   i {
-    color: $color_3;
+    color: $color_1;
   }
 }
 .pagination-items {
@@ -274,7 +202,7 @@ button.select-btn-item {
   gap: 6px;
   .pagi-active {
     background-color: $background-color_2;
-    color: $color_8;
+    color: $color_6;
   }
 }
 span.pre-label {
@@ -294,16 +222,15 @@ span.next-label {
   font-weight: 500;
   line-height: 24px;
   cursor: pointer;
-  color: $color_7;
+  color: $color_5;
   padding: 6px 14px;
   border-radius: 10px;
   &:hover {
     background-color: $background-color_2;
-    color: $color_8;
+    color: $color_6;
   }
 }
 .opacity {
-  background: #000000;
   opacity: 0.5;
   pointer-events: none;
 }
@@ -414,7 +341,7 @@ span.next-label {
         &:before {
           padding-right: 10px;
           content: attr(data-th) ': ';
-          color: $color_5;
+          color: $color_3;
           font-weight: 700;
         }
       }

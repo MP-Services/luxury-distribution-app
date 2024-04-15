@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import '../../styles/signup.scss';
 import {useStore} from '@assets/reducers/storeReducer';
 import luxuryLogo from '../../resources/logo/luxury-logo-white.svg'
-import useFetchApi from '@assets/hooks/api/useFetchApi';
 
 /**
  * Render a home page for overview

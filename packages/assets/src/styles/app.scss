@@ -1,6 +1,7 @@
-@import "colors";
-@import 'scrollbar';
-@import "components";
+//@import "colors";
+//@import 'scrollbar';
+//@import "components";
+@import "styles";
 
 body[data-lock-scrolling] {
   overflow: auto hidden;

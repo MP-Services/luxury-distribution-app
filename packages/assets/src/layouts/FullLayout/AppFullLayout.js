@@ -3,10 +3,9 @@ import {Frame, Layout, Loading, Scrollable, Toast} from '@shopify/polaris';
 import PropTypes from 'prop-types';
 import {useStore} from '@assets/reducers/storeReducer';
 import {closeToast} from '@assets/actions/storeActions';
-import AppTopBar from '@assets/layouts/AppLayout/AppTopBar';
 import AppNavigation from '@assets/layouts/AppLayout/AppNavigation';
 import {isEmbeddedApp} from '@assets/config/app';
-import Footer from '@assets/components/Footer/Footer';
+import {useLocation} from "react-router-dom";
 
 /**
  * Render an app layout
@@ -32,10 +31,18 @@ export default function AppFullLayout({children}) {
     'Avada-Frame__Content',
     isNavOpen && 'Avada-Frame__Content--isExpanded'
   ].filter(Boolean);
+  const location = useLocation();
+  if(location.pathname === '/embed/signup' || location.pathname === '/signup') {
+    return (
+      <React.Fragment>
+        {children}
+      </React.Fragment>
+    );
+  }
 
   return (
     <Frame>
-      <div className="Avada-Frame">
+      <div className="wrapper Avada-Frame">
         <AppNavigation />
         {children}
       </div>

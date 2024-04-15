@@ -1,0 +1,199 @@
+$color_1: #666666;
+$color_2: #fff;
+$background-color_1: #fff;
+
+/* Grid table */
+/* Bottom */
+.cell {
+  height: 60px;
+  padding: 22px 0;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  line-height: 1.2;
+}
+.cell.header-cell {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+  background: #F1F5FF;
+}
+.cell.actions {
+  position: absolute;
+  right: 0;
+}
+.header-cell {
+  &:first-child {
+    text-align: center;
+  }
+}
+.row-header {
+  display: contents;
+}
+.row-body {
+  display: contents;
+}
+.mapping-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr;
+  position: relative;
+  .cell {
+    &:first-child {
+      justify-content: center;
+    }
+  }
+}
+.attribute-mapping-table {
+  .mapping-row {
+    border-bottom: 1px solid #EBEBEB;
+  }
+  .row-header {
+    margin-bottom: 20px;
+  }
+  select.retailer-attribute-name {
+    width: 70%;
+    padding: 10px 50px 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: $background-color_1;
+    background-image: url('../../resources/icons/others/Layer_1-6.svg');
+    background-repeat: no-repeat;
+    background-position: top 50% right 12px;
+    border: 1px solid #EBEBEB;
+    border-radius: 5px;
+    cursor: pointer;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input.dropshipper-attribute-name {
+    width: 70%;
+    padding: 10px 30px 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #EBEBEB;
+    border-radius: 5px;
+  }
+}
+.btn.option-mapping {
+  display: block;
+  height: 38px;
+  margin-left: auto;
+  padding: 10px 35px 10px 15px;
+  font-weight: 700;
+  background-image: url('../../resources/icons/others/Layer_1-6_white.svg');
+  background-repeat: no-repeat;
+  background-position: top 50% right 50%;
+  appearance: auto;
+  span {
+    display: none;
+  }
+}
+.option-mapping-table.css-grid-table {
+  grid-column: 1 / 5;
+  width: 100%;
+  margin-left: auto;
+  border-collapse: collapse;
+}
+.option-mapping-table {
+  .header-cell {
+    height: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $color_1;
+  }
+  .cell {
+    height: 40px;
+    font-size: 13px;
+    padding: 10px 0;
+  }
+  input.dropshipper-option-name {
+    width: 100%;
+    padding: 5px 30px 5px 12px;
+  }
+  .mapping-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr;
+    border-bottom: none;
+  }
+}
+.row-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  &::before {
+    content: '';
+  }
+}
+.table-actions {
+  button {
+    height: 40px;
+    padding: 8px 20px;
+    font-weight: 700;
+    background: #fff;
+    border-radius: 10px;
+  }
+  .btn-add {
+    color: $color_2;
+    background: #1768F7;
+  }
+  .btn-save {
+    color: $color_2;
+    background: #1768F7;
+  }
+}
+@media screen and (min-width: 768px) {
+  .info-card {
+    .info-url {
+      width: 70%;
+      padding-right: 10px;
+      margin-right: 10px;
+    }
+    span {
+      display: inline;
+    }
+  }
+  .main {
+    .content {
+      padding: 33px;
+    }
+  }
+  .option-mapping-table.css-grid-table {
+    grid-column: 2 / 4;
+  }
+}
+@media screen and (min-width: 1024px) {
+  .cell.actions {
+    position: unset;
+  }
+  .mapping-row {
+    grid-template-columns: 50px 1fr 1fr 1fr;
+  }
+  .option-mapping-table.css-grid-table {
+    grid-column: 3 / 5;
+  }
+  .btn.option-mapping {
+    background-position: top 50% right 12px;
+    span {
+      display: inline;
+    }
+  }
+}
+@media screen and (min-width: 1440px) {
+  .info-card {
+    .info-url {
+      width: unset;
+      border-right: none;
+      padding-right: 0;
+      margin-right: 0;
+    }
+    hr {
+      display: initial;
+    }
+  }
+}
+@media screen and (min-width: 1920px) {
+  .option-mapping-table.css-grid-table {
+    grid-column: 4 / 5;
+  }
+}

@@ -12,50 +12,12 @@ $font-family_1: 'Montserrat', sans-serif;
 }
 button {
   cursor: pointer;
+  border: none;
+  background: none;
 }
 i {
   margin-right: 6px;
   vertical-align: middle;
-}
-i.check {
-  &::before {
-    content: url('../../resources/icons/Capa_1.svg');
-  }
-}
-i.edit {
-  &::before {
-    content: url('../../resources/icons/Capa_2.svg');
-  }
-}
-i.trash-can {
-  &::before {
-    content: url('../../resources/icons/others/Layer_1-5.svg');
-  }
-}
-i.xmark {
-  &::before {
-    content: url('../../resources/icons/others/Capa_1.svg');
-  }
-}
-i.arrow-left {
-  &::before {
-    content: url('../../resources/icons/others/Layer_33.svg');
-  }
-}
-i.arrow-right {
-  &::before {
-    content: url('../../resources/icons/others/Layer_1-4.svg');
-  }
-}
-i.solid.arrow-left {
-  &::before {
-    content: url('../../resources/icons/Group67.svg');
-  }
-}
-i.solid.circle-check {
-  &::before {
-    content: url('../../resources/icons/others/Capa_223.svg');
-  }
 }
 i.solid.grid {
   &::before {
@@ -121,6 +83,10 @@ i.solid.gear {
   padding: 50px 50px 50px 33px;
   background: #F8F8F9;
 }
+.opacity {
+  opacity: 0.5;
+  pointer-events: none;
+}
 .setting-options {
   display: flex;
   flex-wrap: wrap;
@@ -151,6 +117,12 @@ i.solid.gear {
       line-height: 26px;
       color: $color_3;
     }
+  }
+}
+@media screen and (min-width: 1024px) {
+  .main {
+    width: 85%;
+    max-width: 1575px;
   }
 }
 @media (max-width: 1024px) {

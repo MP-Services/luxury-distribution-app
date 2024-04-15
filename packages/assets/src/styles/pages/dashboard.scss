@@ -1,73 +1,7 @@
 $color_1: #fff;
 $color_2: #6A6A6A;
-$font-family_1: 'Montserrat', sans-serif;
 $background-color_1: #1768F7;
 
-@import "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap";
-* {
-  font-family: $font-family_1;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-button {
-  cursor: pointer;
-}
-i {
-  margin-right: 6px;
-  vertical-align: middle;
-}
-i.refresh {
-  &::before {
-    content: url('../../resources/icons/others/Frame.svg');
-    vertical-align: bottom;
-  }
-}
-i.solid.file-plus {
-  &::before {
-    content: url('../../resources/icons/others/Layer_1.svg');
-    vertical-align: bottom;
-  }
-}
-i.solid.rotate {
-  &::before {
-    content: url('../../resources/icons/others/Layer_1-1.svg');
-    vertical-align: bottom;
-  }
-}
-i.solid.trash-can {
-  &::before {
-    content: url('../../resources/icons/others/Layer_1-2.svg');
-    vertical-align: bottom;
-  }
-}
-.wrapper {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-}
-.main {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  overflow-y: scroll;
-  border-left: 2px solid #EBEBEB;
-}
-.header {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  font-size: 40px;
-  font-weight: 700;
-  padding: 38px 35px;
-  border-bottom: 2px solid #EBEBEB;
-}
-.content {
-  width: 100%;
-  flex-grow: 1;
-  padding: 50px 33px;
-  background: #F8F8F9;
-}
 .cards-wrapper {
   display: flex;
   flex-wrap: wrap;
