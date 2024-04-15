@@ -35,3 +35,8 @@ label {
     max-width: calc(25% - 30px);
   }
 }
+.row-bottom {
+  &::before {
+    content: '';
+  }
+}

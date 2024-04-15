@@ -42,7 +42,7 @@ export default function AppFullLayout({children}) {
 
   return (
     <Frame>
-      <div className="wrapper Avada-Frame">
+      <div className="page-wrapper wrapper Avada-Frame">
         <AppNavigation />
         {children}
       </div>

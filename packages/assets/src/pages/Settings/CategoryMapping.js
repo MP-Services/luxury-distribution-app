@@ -114,7 +114,7 @@ export default function CategoryMapping() {
                 </thead>
                 <tbody>
                 <tr>
-                  <td data-th="STT">1</td>
+                  <td data-th="#">1</td>
                   <td data-th="Retailer Category">
                     <select name="retailer_category" id="retailer_category">
                       <option value="0">men > accessories</option>
@@ -126,7 +126,7 @@ export default function CategoryMapping() {
                     </select>
                   </td>
                   <td data-th="Margin">
-                    <input type="number" name="margin" step="0.1" />
+                    <input type="number" name="margin" step="0.1" value="1.5" />
                   </td>
                   <td data-th="Action" className="row-actions">
                     <button type="button" className="action cancel">
@@ -138,7 +138,7 @@ export default function CategoryMapping() {
                   </td>
                 </tr>
                 <tr>
-                  <td data-th="STT">2</td>
+                  <td data-th="#">2</td>
                   <td data-th="Retailer Category">
                     men > bags
                   </td>
@@ -158,7 +158,7 @@ export default function CategoryMapping() {
                   </td>
                 </tr>
                 <tr>
-                  <td data-th="STT">3</td>
+                  <td data-th="#">3</td>
                   <td data-th="Retailer Category">
                     men > bags
                   </td>
@@ -178,7 +178,7 @@ export default function CategoryMapping() {
                   </td>
                 </tr>
                 <tr>
-                  <td data-th="STT">4</td>
+                  <td data-th="#">4</td>
                   <td data-th="Retailer Category">
                     men > bags
                   </td>
@@ -226,7 +226,7 @@ export default function CategoryMapping() {
                 <button type="button" data-th="Reset">
                   <span> Reset Mapping</span>
                 </button>
-                <button type="button" className="btn-save" data-th="Save">
+                <button type="button" className="btn btn-primary" data-th="Save">
                   <span>Save</span>
                 </button>
               </div>

@@ -1,199 +1,152 @@
-$color_1: #fff;
-$color_2: #6A6A6A;
-$color_3: #9C9C9C;
-$font-family_1: 'Montserrat', sans-serif;
+$color_1: #000000;
+$color_2: #FFFFFF;
+$color_3: #6A6A6A;
+$font-family_1: "Montserrat", sans-serif;
 
-@import "https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap";
+/* content orders */
 * {
   font-family: $font-family_1;
-  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 400;
   margin: 0;
   padding: 0;
 }
-button {
-  cursor: pointer;
+div {
+  display: block;
 }
-i {
-  margin-right: 6px;
+button {
+  border: none;
+  background: none;
 }
 .wrapper {
   display: flex;
-  flex-wrap: wrap;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
 }
-.content-left {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-  height: 100%;
-  background: #000;
+.content {
+  width: 85%;
+  max-width: 1575px;
 }
-.signup-header {
-  width: 485px;
-  .logo {
-    display: block;
-    text-align: left;
-    margin-bottom: 60px;
-    img {
-      width: 190px;
-      height: 88px;
-    }
-  }
-  p {
-    color: $color_1;
-    font-size: 25px;
+.content-title {
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  padding-left: 35px;
+  z-index: 10;
+  border-bottom: 2px solid #EBEBEB;
+  h2.title-detail {
+    font-size: 40px;
     font-weight: 700;
+    line-height: 50px;
   }
-}
-.content-right {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-grow: 1;
-  height: 100%;
-  .signup-form-wrapper {
-    width: 400px;
-    height: 550px;
-    .signup-form {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: 100%;
-      height: 100%;
-      .signup-form-header {
-        text-align: center;
-      }
-      .signup-form-body {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        width: 100%;
-        height: 100%;
-        padding: 40px 0;
-        .form-group {
-          margin-bottom: 15px;
-          label {
-            display: block;
-            width: 100%;
-            font-weight: 600;
-            margin-bottom: 10px;
-            >span {
-              color: $color_2;
-              font-weight: 400;
-            }
-          }
-          input {
-            display: block;
-            width: 100%;
-            height: 52px;
-            font-size: 16px;
-            padding: 13px 23px;
-            border: 1px solid #e6e6e6;
-            border-radius: 10px;
-          }
-          input#provider {
-            font-weight: 700;
-            color: $color_3;
-          }
-        }
-      }
-      .signup-form-actions {
-        .singup-action-submit {
-          width: 100%;
-          height: 52px;
-          color: $color_1;
-          font-size: 16px;
-          font-weight: 700;
-          background: #F37021;
-          border: none;
-          border-radius: 10px;
-        }
-      }
-    }
-  }
-}
-@media screen and (min-width: 320px) {
-  .content-left {
-    height: auto;
-  }
-  .signup-header {
+  .header-title {
     width: 100%;
-    .logo {
-      display: flex;
-      justify-content: center;
-      margin: 15px 0;
-      img {
-        width: 95px;
-        height: 44px;
-      }
-    }
-    p {
-      display: none;
-    }
-  }
-  .content-right {
-    height: auto;
-    width: 100vw;
-    padding: 30px 0;
-    .signup-form-wrapper {
-      width: 300px;
-      margin: 0 auto;
-      font-size: 14px;
-    }
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    padding: 38px 0 37px 0;
   }
 }
-@media screen and (min-width: 768px) {
-  .content-left {
-    width: 40%;
+.toggle-menu {
+  i {
+    font-size: 26px;
+    cursor: pointer;
+    display: none;
+  }
+}
+.opacity {
+  background: #000000;
+  opacity: 0.5;
+  pointer-events: none;
+}
+.support-content {
+  background: #F8F8F9;
+  height: 100vh;
+  padding: 50px 0 50px 35px;
+}
+.helpdesk-content {
+  background: #F8F8F9;
+  height: 100vh;
+  padding: 50px 0 50px 35px;
+}
+.support-remind {
+  width: 80%;
+  max-width: 857px;
+  .remind-label {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 34px;
+    color: $color_1;
+  }
+}
+.info-contact {
+  width: 100%;
+  padding-top: 34px;
+  display: inline-flex;
+  gap: 30px;
+}
+.contact-wrapper {
+  width: 35%;
+  max-width: 568px;
+  padding: 60px 50px;
+  display: inline-flex;
+  gap: 26px;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 10px;
+}
+.icon-info {
+  background: #1768F7;
+  height: 67px;
+  border-radius: 50%;
+  i {
+    color: $color_2;
+    font-size: 28px;
+  }
+}
+.info-title {
+  span.title-label {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 35px;
+  }
+}
+.email-info {
+  span {
+    margin-top: 4px;
     font-size: 15px;
+    font-weight: 500;
+    color: $color_3;
   }
-  .signup-header {
-    width: 70%;
-    .logo {
-      display: flex;
-      justify-content: start;
-      img {
-        width: 130px;
-        height: 60px;
-      }
-    }
-    p {
-      display: block;
-      margin: 0 auto;
-      font-size: inherit;
-    }
+}
+.website-info {
+  span {
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    color: $color_3;
   }
-  .content-right {
+}
+@media (max-width: 1024px) {
+  .contact-wrapper {
+    padding: 50px 40px;
+  }
+  .info-contact {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 540px) {
+  .contact-wrapper {
     width: 60%;
-    font-size: 14px;
-    .signup-form-wrapper {
-      width: 320px;
+  }
+  .support-content {
+    padding: 26px;
+  }
+  .icon-info {
+    width: 45px;
+    height: 45px;
+    img {
+      width: 45px;
+      height: 45px;
     }
-  }
-}
-@media screen and (min-width: 1024px) {
-  .content-left {
-    font-size: 20px;
-  }
-  .signup-header {
-    .logo {
-      img {
-        width: 190px;
-        height: 88px;
-      }
-    }
-  }
-  .content-right {
-    font-size: 16px;
-    .signup-form-wrapper {
-      width: 400px;
-    }
-  }
-}
-@media screen and (min-width: 1440px) {
-  .content-left {
-    font-size: 25px;
   }
 }
