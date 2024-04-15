@@ -5,6 +5,7 @@ import '../../styles/pages/category-mapping.scss'
 import '../../styles/pages/orders.scss'
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
 import {useMenu} from "@assets/reducers/menuReducer";
+import {useHistory} from 'react-router-dom';
 
 /**
  * Render a home page for overview
@@ -16,6 +17,7 @@ export default function GeneralSetting() {
   const [enabled, setEnabled] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+  const history = useHistory();
 
   return (
     <div className="wrapper">
@@ -23,8 +25,8 @@ export default function GeneralSetting() {
         <div className="content-title">
           <div className="header-title">
             <ToggleMenu />
-            <a href="../settings/settings.html">
-              <i className="solid arrow-left"></i>
+            <a href="#" onClick={() => history.push('/settings')}>
+            <i className="solid arrow-left"></i>
             </a>
             <h2 className="title-detail">General Settings</h2>
           </div>

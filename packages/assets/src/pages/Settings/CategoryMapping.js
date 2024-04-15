@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/category-mapping.scss'
 import {useMenu} from "@assets/reducers/menuReducer";
+import {useHistory} from 'react-router-dom';
 
 /**
  * Render a home page for overview
@@ -13,13 +14,14 @@ export default function CategoryMapping() {
   const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+  const history = useHistory();
 
   return (
     <div className="main">
       <div className="content-title">
         <div className="header-title">
-          <a href="/settings/settings/settings.html">
-            <i className="solid arrow-left"></i>
+          <a href="#" onClick={() => history.push('/settings')}>
+          <i className="solid arrow-left"></i>
           </a>
           <h2 className="title-detail">Category Mapping</h2>
         </div>
@@ -126,7 +128,7 @@ export default function CategoryMapping() {
                     </select>
                   </td>
                   <td data-th="Margin">
-                    <input type="number" name="margin" step="0.1" value="1.5" />
+                    <input type="number" name="margin" step="0.1" />
                   </td>
                   <td data-th="Action" className="row-actions">
                     <button type="button" className="action cancel">

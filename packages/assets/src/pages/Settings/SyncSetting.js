@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/sync-setting.scss'
 import {useMenu} from "@assets/reducers/menuReducer";
+import {useHistory} from 'react-router-dom';
 
 /**
  * Render a home page for overview
@@ -13,13 +14,14 @@ export default function SyncSetting() {
   const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+  const history = useHistory();
 
   return (
     <div className="main">
       <div className="content-title">
         <div className="header-title">
-          <a href="/settings/settings/settings.html">
-            <i className="solid arrow-left"></i>
+          <a href="#" onClick={() => history.push('/settings')}>
+          <i className="solid arrow-left"></i>
           </a>
           <h2 className="title-detail">Sync Settings</h2>
         </div>
