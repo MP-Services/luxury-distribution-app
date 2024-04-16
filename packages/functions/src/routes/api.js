@@ -14,7 +14,8 @@ export default function apiRouter(isEmbed = false) {
   router.get('/shops', shopController.getUserShops);
   router.get('/subscription', subscriptionController.getSubscription);
   router.get('/appNews', appNewsController.getList);
-  router.post('/signup', jsonType, signUpController.signUp )
+  router.get('/luxuryInfos', shopController.luxuryInfos)
+  router.post('/signup', jsonType, signUpController.signUp)
 
   return router;
 }

@@ -15,8 +15,8 @@ export const useStore = () => useContext(StoreReducer);
  * @return {JSX.Element}
  * @constructor
  */
-export const StoreProvider = ({children, user, activeShop: shop}) => {
-  const initState = {user, shop};
+export const StoreProvider = ({children, user, activeShop: shop, luxuryInfos}) => {
+  const initState = {user, shop, luxuryInfos};
   const [state, dispatch] = useReducer(reducer, initState);
   const handleDispatch = (type, payload = undefined) => dispatch({type, payload});
 

@@ -7,10 +7,13 @@ export const storeTypes = {
   SET_TOAST: 'SET_TOAST',
   CLOSE_TOAST: 'CLOSE_TOAST',
   SET_SHOP: 'SET_SHOP',
-  SET_SUBSCRIPTION: 'SET_SUBSCRIPTION'
+  SET_SUBSCRIPTION: 'SET_SUBSCRIPTION',
+  SET_LUXURY_INFOS: 'SET_LUXURY_INFOS'
 };
 
 export const reducer = (state, {type, payload}) => {
+  console.log(state);
+  console.log(payload);
   switch (type) {
     case storeTypes.SET_USER:
       return {...state, user: payload};
@@ -24,6 +27,8 @@ export const reducer = (state, {type, payload}) => {
       return {...state, shop: payload};
     case storeTypes.SET_SUBSCRIPTION:
       return {...state, loading: false, subscription: payload};
+    case storeTypes.SET_LUXURY_INFOS:
+      return {...state, luxuryInfos: payload};
     default:
       return state;
   }
@@ -55,6 +60,10 @@ export async function logout(dispatch) {
 
 export function setSubscription(dispatch, payload = null) {
   dispatch(storeTypes.SET_SUBSCRIPTION, payload);
+}
+
+export function setLuxuryInfos(dispatch, payload = null) {
+  dispatch(storeTypes.SET_LUXURY_INFOS, payload);
 }
 
 export async function getSubscription(dispatch) {

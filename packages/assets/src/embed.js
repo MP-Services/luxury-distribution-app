@@ -10,6 +10,7 @@ import '@shopify/polaris/build/esm/styles.css';
 
 (async () => {
   const {shop, shopInfo} = await api('/shops');
+  const {luxuryInfos} = await api('/luxuryInfos');
   const [activeShop, user] = isEmpty(shop)
     ? []
     : [
@@ -29,7 +30,7 @@ import '@shopify/polaris/build/esm/styles.css';
   const container = document.getElementById('app');
   const root = createRoot(container);
   root.render(
-    <StoreProvider {...{user, activeShop}}>
+    <StoreProvider {...{user, activeShop, luxuryInfos}}>
       <App />
     </StoreProvider>
   );
