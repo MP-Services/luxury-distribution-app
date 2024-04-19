@@ -34,20 +34,19 @@ export default function App() {
 }
 
 const MainLayout = ({children}) => {
-  return (
+  return isEmbeddedApp ? (
+    <AppBridgeProvider>
+      <AppEmbeddedLayout>
+        <MenuProvider>
+          <AppFullLayout>{children}</AppFullLayout>
+        </MenuProvider>
+      </AppEmbeddedLayout>
+    </AppBridgeProvider>
+  ) : (
     <MenuProvider>
-      <AppFullLayout>
-          {children}
-      </AppFullLayout>
+      <AppFullLayout>{children}</AppFullLayout>
     </MenuProvider>
   );
-  // return isEmbeddedApp ? (
-  //   <AppBridgeProvider>
-  //     <AppEmbeddedLayout>{children}</AppEmbeddedLayout>
-  //   </AppBridgeProvider>
-  // ) : (
-  //   <AppFullLayout>{children}</AppFullLayout>
-  // );
 };
 
 MainLayout.propTypes = {

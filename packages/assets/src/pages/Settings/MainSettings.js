@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
-import '../../styles/pages/settings.scss'
+import '../../styles/pages/settings.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
-import {useMenu} from "@assets/reducers/menuReducer";
-import {NavLink} from "react-router-dom";
+import {useMenu} from '@assets/reducers/menuReducer';
+import {NavLink} from 'react-router-dom';
 
 /**
  * Render a home page for overview

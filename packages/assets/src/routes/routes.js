@@ -14,22 +14,22 @@ import Support from '@assets/loadables/Support/Support';
 import Helpdesk from '@assets/loadables/Helpdesk/Helpdesk';
 import {routePrefix} from '@assets/config/app';
 import Loading from '@assets/components/Loading';
-import PrivateRoute from "@assets/helpers/PrivateRoute";
+import PrivateRoute from '@assets/helpers/PrivateRoute';
 
 // eslint-disable-next-line react/prop-types
 const Routes = ({prefix = routePrefix}) => (
   <Suspense fallback={<Loading />}>
     <Switch>
-      <PrivateRoute exact path={prefix + '/'} component={Dashboard}/>
-      <PrivateRoute exact path={prefix + '/orders'} component={Orders}/>
-      <PrivateRoute exact path={prefix + '/settings'} component={MainSettings}/>
-      <PrivateRoute exact path={prefix + '/setting/categorymapping'} component={CategoryMapping}/>
-      <PrivateRoute exact path={prefix + '/setting/general'} component={GeneralSetting}/>
-      <PrivateRoute exact path={prefix + '/setting/attribute'} component={AttributeMapping}/>
-      <PrivateRoute exact path={prefix + '/setting/brandfilter'} component={BrandFilter}/>
-      <PrivateRoute exact path={prefix + '/setting/sync'} component={SyncSetting}/>
-      <PrivateRoute exact path={prefix + '/support'} component={Support}/>
-      <PrivateRoute exact path={prefix + '/helpdesk'} component={Helpdesk}/>
+      <PrivateRoute exact path={prefix + '/'} component={Dashboard} />
+      <PrivateRoute exact path={prefix + '/orders'} component={Orders} />
+      <PrivateRoute exact path={prefix + '/settings'} component={MainSettings} />
+      <PrivateRoute exact path={prefix + '/setting/categorymapping'} component={CategoryMapping} />
+      <PrivateRoute exact path={prefix + '/setting/general'} component={GeneralSetting} />
+      <PrivateRoute exact path={prefix + '/setting/attribute'} component={AttributeMapping} />
+      <PrivateRoute exact path={prefix + '/setting/brandfilter'} component={BrandFilter} />
+      <PrivateRoute exact path={prefix + '/setting/sync'} component={SyncSetting} />
+      <PrivateRoute exact path={prefix + '/support'} component={Support} />
+      <PrivateRoute exact path={prefix + '/helpdesk'} component={Helpdesk} />
       <Route exact path={prefix + '/signup'} component={SignUp} />
       <PrivateRoute path="*" component={NotFound} />
     </Switch>

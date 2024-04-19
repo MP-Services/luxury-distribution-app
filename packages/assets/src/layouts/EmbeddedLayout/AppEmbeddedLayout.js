@@ -17,7 +17,7 @@ function AppEmbeddedLayout({children}) {
   return (
     <Frame>
       {children}
-      {loading && <Loading />}
+       <Loading />
       {toast && <Toast onDismiss={() => closeToast(dispatch)} {...toast} />}
     </Frame>
   );

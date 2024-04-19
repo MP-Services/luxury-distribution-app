@@ -12,8 +12,6 @@ export const storeTypes = {
 };
 
 export const reducer = (state, {type, payload}) => {
-  console.log(state);
-  console.log(payload);
   switch (type) {
     case storeTypes.SET_USER:
       return {...state, user: payload};
