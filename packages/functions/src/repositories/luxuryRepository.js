@@ -8,7 +8,7 @@ const luxuryInfosRef = firestore.collection('luxuryShopInfos');
 
 export async function getLuxuryToken(data) {
   try {
-    const {username, identifier, publicKey, shopifyUrl} = {...data};
+    const {username, identifier, publicKey} = {...data};
     const resp = await fetch(LUXURY_API_V1_URL + '/token', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', key: publicKey},
@@ -59,7 +59,7 @@ export async function addLuxuryShopInfo(shopId, data) {
   if (!luxuryInfos) {
     const luxuryRef = await luxuryInfosRef.add({
       ...data,
-      shopId,
+      shopifyId: shopId,
       tokenCreationTime: FieldValue.serverTimestamp()
     });
     if (luxuryRef) {

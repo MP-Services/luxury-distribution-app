@@ -19,7 +19,6 @@ export async function signUp(ctx) {
         const luxuryInfos = await addLuxuryShopInfo(shopId, {
           shopifyDomain: shop.shopifyDomain,
           token: tokenResult.token,
-          shopId,
           ...luxuryAuthInfo
         });
         if (luxuryInfos) {
