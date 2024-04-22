@@ -1,9 +1,29 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
+import fetch from 'node-fetch';
+import {LUXURY_API_V1_URL} from '@functions/const/app';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
-const syncSettingsRef = firestore.collection('syncSettings');
+const syncSettingsRef = firestore.collection('brandFilterSettings');
+
+export async function getLXBrandList(token) {
+  const resp = await fetch(LUXURY_API_V1_URL + '/brands', {
+    method: 'GET',
+    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}
+  });
+
+  const result = await resp.json();
+  if (
+    result.hasOwnProperty('custom_code') &&
+    result.hasOwnProperty('responseData') &&
+    result.custom_code === '00'
+  ) {
+    return result.responseData.data;
+  }
+
+  return false;
+}
 
 /**
  * Get shop info by given shop ID
@@ -11,7 +31,7 @@ const syncSettingsRef = firestore.collection('syncSettings');
  * @param {string} id
  * @return {Promise<FirebaseFirestore.DocumentData>}
  */
-export async function getSyncSettingShopId(id) {
+export async function getBrandSettingShopId(id) {
   const docs = await syncSettingsRef
     .where('shopifyId', '==', id)
     .limit(1)
@@ -30,7 +50,7 @@ export async function getSyncSettingShopId(id) {
  * @param data
  * @return {Promise<{success: boolean, error?: string}>}
  */
-export async function saveSyncSetting(shopId, shopifyDomain, data) {
+export async function saveBrandSetting(shopId, shopifyDomain, data) {
   try {
     const docs = await syncSettingsRef
       .where('shopifyId', '==', shopId)

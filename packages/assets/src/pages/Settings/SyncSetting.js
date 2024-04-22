@@ -3,8 +3,9 @@ import '../../styles/pages/sync-setting.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
-import {api} from "@assets/helpers";
-import {setLuxuryInfos} from "@assets/actions/storeActions";
+import {api} from '@assets/helpers';
+import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
+import syncSetting from '@avada/functions/src/const/settings/sync';
 
 /**
  * Render a home page for overview
@@ -13,7 +14,10 @@ import {setLuxuryInfos} from "@assets/actions/storeActions";
  * @constructor
  */
 export default function SyncSetting() {
-  const {data: input, setData: setInput, fetched} = useFetchApi('/setting/sync');
+  const {data: input, setData: setInput, fetched} = useFetchApi({
+    url: '/setting/sync',
+    defaultData: syncSetting
+  });
   const [loading, setLoading] = useState(false);
   const {isActiveMenu} = useMenu();
   const history = useHistory();
@@ -24,20 +28,20 @@ export default function SyncSetting() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    try{
+  const handleSubmit = async e => {
+    try {
       setLoading(true);
       e.preventDefault();
       const resp = await api('/setting/sync', {method: 'POST', body: input});
       if (resp.success) {
         return true;
       }
-    }catch (e) {
+    } catch (e) {
       console.log('error\n', e);
-    }finally {
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="main">
@@ -76,45 +80,7 @@ export default function SyncSetting() {
               </p>
             </div>
           </div>
-          <div className="table-sync-setting">
-            <div className="sync-title">
-              <p>Sync setting</p>
-            </div>
-            <div className="sync-items">
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>SKU</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Title</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Price</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Desc</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Categories</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Images</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Tags</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>EAN</span>
-              </span>
-            </div>
-          </div>
+          <SyncSettingHeader syncSettingData={input} />
           <div className="table-main">
             <div className="row-middle">
               <form id="sync-setting-form" onSubmit={handleSubmit}>
@@ -123,9 +89,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">SKU</label>
                       <input
-                        value={input.sku}
+                        checked={input.sku}
                         type="checkbox"
-                        onChange={e => handleChangeInput('sku', e.target.value)}
+                        onChange={e => handleChangeInput('sku', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -134,9 +100,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Title</label>
                       <input
-                        value={input.title}
+                        checked={input.title}
                         type="checkbox"
-                        onChange={e => handleChangeInput('title', e.target.value)}
+                        onChange={e => handleChangeInput('title', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -145,9 +111,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Price</label>
                       <input
-                        value={input.price}
+                        checked={input.price}
                         type="checkbox"
-                        onChange={e => handleChangeInput('price', e.target.value)}
+                        onChange={e => handleChangeInput('price', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -156,9 +122,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Description</label>
                       <input
-                        value={input.description}
+                        checked={input.description}
                         type="checkbox"
-                        onChange={e => handleChangeInput('description', e.target.value)}
+                        onChange={e => handleChangeInput('description', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -167,9 +133,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Categories</label>
                       <input
-                        value={input.categories}
+                        checked={input.categories}
                         type="checkbox"
-                        onChange={e => handleChangeInput('categories', e.target.value)}
+                        onChange={e => handleChangeInput('categories', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip">
@@ -184,9 +150,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Images</label>
                       <input
-                        value={input.images}
+                        checked={input.images}
                         type="checkbox"
-                        onChange={e => handleChangeInput('images', e.target.value)}
+                        onChange={e => handleChangeInput('images', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -195,9 +161,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Tags</label>
                       <input
-                        value={input.tags}
+                        checked={input.tags}
                         type="checkbox"
-                        onChange={e => handleChangeInput('tags', e.target.value)}
+                        onChange={e => handleChangeInput('tags', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>
@@ -206,9 +172,9 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">EAN</label>
                       <input
-                        value={input.ean}
+                        checked={input.ean}
                         type="checkbox"
-                        onChange={e => handleChangeInput('ean', e.target.value)}
+                        onChange={e => handleChangeInput('ean', e.target.checked)}
                       />
                     </div>
                     <div className="sync-option-tooltip"></div>

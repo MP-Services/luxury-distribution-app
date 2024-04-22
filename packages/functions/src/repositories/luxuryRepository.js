@@ -6,28 +6,57 @@ import {presentDataAndFormatDate} from '@avada/firestore-utils';
 const firestore = new Firestore();
 const luxuryInfosRef = firestore.collection('luxuryShopInfos');
 
+/**
+ *
+ * @param data
+ * @returns {Promise<any>}
+ */
+async function sendTokenRequest(data) {
+  const {publicKey, username, identifier} = {...data};
+  const resp = await fetch(LUXURY_API_V1_URL + '/token', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', key: publicKey},
+    body: JSON.stringify({credentials: {username, identifier}})
+  });
+
+  const result = await resp.json();
+  if (result.hasOwnProperty('custom_code') && result.custom_code === '00') {
+    return result.data.token;
+  }
+
+  return false;
+}
+
+/**
+ *
+ * @param data
+ * @returns {Promise<*|boolean>}
+ */
 export async function getLuxuryToken(data) {
   try {
-    const {username, identifier, publicKey} = {...data};
-    const resp = await fetch(LUXURY_API_V1_URL + '/token', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', key: publicKey},
-      body: JSON.stringify({credentials: {username, identifier}})
-    });
-    const result = await resp.json();
-    if (result.hasOwnProperty('custom_code') && result.custom_code === '00') {
-      return {
-        success: true,
-        token: result.data.token
-      };
+    const {token, tokenCreationTime} = {...data};
+    let tokenResult = '';
+    if (token && tokenCreationTime) {
+      const creationTimestamp = Date.parse(tokenCreationTime);
+      const currentTimestamp = Date.now();
+
+      if (creationTimestamp + 59 * 60 * 60000 < currentTimestamp) {
+        tokenResult = await sendTokenRequest(data);
+      } else {
+        tokenResult = token;
+      }
+    } else {
+      tokenResult = await sendTokenRequest(data);
+    }
+
+    if (tokenResult) {
+      return tokenResult;
     }
   } catch (e) {
     console.error(e);
   }
 
-  return {
-    success: false
-  };
+  return false;
 }
 
 /**

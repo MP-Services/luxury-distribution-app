@@ -12,13 +12,13 @@ export async function signUp(ctx) {
   try {
     const {shopifyDomain, ...luxuryAuthInfo} = {...ctx.req.body};
     const tokenResult = await getLuxuryToken(ctx.req.body);
-    if (tokenResult.success) {
+    if (tokenResult) {
       const shopId = getCurrentShop(ctx);
       const shop = await getShopById(shopId);
       if (shop.shopifyDomain === shopifyDomain) {
         const luxuryInfos = await addLuxuryShopInfo(shopId, {
           shopifyDomain: shop.shopifyDomain,
-          token: tokenResult.token,
+          token: tokenResult,
           ...luxuryAuthInfo
         });
         if (luxuryInfos) {
