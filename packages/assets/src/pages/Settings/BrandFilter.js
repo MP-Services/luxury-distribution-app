@@ -5,6 +5,8 @@ import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
+import {api} from '@assets/helpers';
+import {setToast, setLoader} from "@assets/actions/storeActions";
 
 /**
  * Render a home page for overview
@@ -13,22 +15,47 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
  * @constructor
  */
 export default function BrandFilter() {
-  const {data: input, setData: setInput, loading} = useFetchApi({url: '/setting/brandfilter'});
   const {data: brandLX} = useFetchApi({url: '/setting/brandlist'});
+  const {data: input, setData: setInput} = useFetchApi({url: '/setting/brandfilter'});
+  const [loading, setLoading] = useState(false);
   const {dispatch} = useStore();
+
   const {isActiveMenu} = useMenu();
   const history = useHistory();
 
+  const handleChangeInput = value => {
+    if (input.includes(value)) {
+      setInput(prevInput => prevInput.filter(item => item !== value));
+    } else {
+      setInput(prevInput => [...prevInput, value]);
+    }
+  };
 
-  const handleChangeInput = (key, value) => {
-    setInput(preInput => ({
-      ...preInput,
-      [key]: value
-    }));
+  const handleSelectAll = checked => {
+    setInput(checked ? brandLX : []);
   };
 
   const handleSave = async () => {
+    try {
+      setLoader(dispatch);
+      const resp = await api('/setting/brandfilter', {method: 'POST', body: input});
+      if (resp.success) {
+        setToast(dispatch, 'Saved successfully!');
+        return true;
+      }
+    } catch (e) {
+      setToast(dispatch, 'Something went wrong!', true);
+      console.log('error\n', e);
+    } finally {
+      setLoader(dispatch, false);
+    }
+  };
 
+  const convertBrandLabelToKey = label => {
+    const lowercaseText = label.toLowerCase();
+    const modifiedText = lowercaseText.replace(/\s/g, '_');
+
+    return modifiedText;
   };
 
   return (
@@ -77,55 +104,67 @@ export default function BrandFilter() {
               </p>
             </div>
           </div>
-          <div className="table-main">
-            <div className="row-top">
-              <div className="table-message">
-                <i className="solid info">
-                  <svg
-                    viewBox="3 3 26 26"
-                    width="16"
-                    height="16"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M16,3C8.83,3,3,8.83,3,16c0,7.17,5.83,13,13,13s13-5.83,13-13C29,8.83,23.17,3,16,3z M17,22c0,0.553-0.447,1-1,1 s-1-0.447-1-1v-8c0-0.553,0.447-1,1-1s1,0.447,1,1V22z M16,11c-0.552,0-1-0.448-1-1c0-0.552,0.448-1,1-1s1,0.448,1,1 C17,10.552,16.552,11,16,11z"
-                      style={{fill: 'rgb(106, 106, 106)'}}
-                      transform="matrix(1, 0, 0, 1, 0, -4.440892098500626e-16)"
-                    />
-                  </svg>
-                </i>
-                On this page you can exclude brands if needed. It's enough to just uncheck the
-                brands that you don't need and save
+          {brandLX.length && (
+            <div className="table-main">
+              <div className="row-top">
+                <div className="table-message">
+                  <i className="solid info">
+                    <svg
+                      viewBox="3 3 26 26"
+                      width="16"
+                      height="16"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M16,3C8.83,3,3,8.83,3,16c0,7.17,5.83,13,13,13s13-5.83,13-13C29,8.83,23.17,3,16,3z M17,22c0,0.553-0.447,1-1,1 s-1-0.447-1-1v-8c0-0.553,0.447-1,1-1s1,0.447,1,1V22z M16,11c-0.552,0-1-0.448-1-1c0-0.552,0.448-1,1-1s1,0.448,1,1 C17,10.552,16.552,11,16,11z"
+                        style={{fill: 'rgb(106, 106, 106)'}}
+                        transform="matrix(1, 0, 0, 1, 0, -4.440892098500626e-16)"
+                      />
+                    </svg>
+                  </i>
+                  On this page you can exclude brands if needed. It's enough to just uncheck the
+                  brands that you don't need and save
+                </div>
               </div>
-            </div>
-            <div className="row-middle">
-              <div className="filter-wrapper">
-                <form id="brand-filter-form" action="">
-                  <div className="filter-actions">
-                    <div className="form-group">
-                      <input type="checkbox" name="filter_select_all" id="filter_select_all" />
-                      <label htmlFor="filter_select_all">Select All</label>
-                    </div>
-                  </div>
-                  <div className="filter-options">
-                    {brandLX.map(item => (
+              <div className="row-middle">
+                <div className="filter-wrapper">
+                  <form id="brand-filter-form" action="">
+                    <div className="filter-actions">
                       <div className="form-group">
-                        <input type="checkbox" />
-                        <label>{item.brand}</label>
+                        <input
+                          type="checkbox"
+                          name="filter_select_all"
+                          id="filter_select_all"
+                          onChange={e => handleSelectAll(e.target.checked)}
+                        />
+                        <label htmlFor="filter_select_all">Select All</label>
                       </div>
-                    ))}
-                  </div>
-                </form>
+                    </div>
+                    <div className="filter-options">
+                      {brandLX.map(item => (
+                        <div className="form-group" key={convertBrandLabelToKey(item.brand)}>
+                          <input
+                            value={item.brand}
+                            type="checkbox"
+                            checked={input.includes(item.brand)}
+                            onChange={e => handleChangeInput(e.target.value)}
+                          />
+                          <label>{item.brand}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="row-bottom">
+                <div className="table-actions">
+                  <button type="button" className="btn-save" onClick={handleSave}>
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="row-bottom">
-              <div className="table-actions">
-                <button type="button" className="btn-save" onClick={handleSave}>
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

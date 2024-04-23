@@ -6,6 +6,8 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 import syncSetting from '@avada/functions/src/const/settings/sync';
+import {setToast, setLoader} from '@assets/actions/storeActions';
+import {useStore} from '@assets/reducers/storeReducer';
 
 /**
  * Render a home page for overview
@@ -18,7 +20,7 @@ export default function SyncSetting() {
     url: '/setting/sync',
     defaultData: syncSetting
   });
-  const [loading, setLoading] = useState(false);
+  const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
   const handleChangeInput = (key, value) => {
@@ -30,16 +32,18 @@ export default function SyncSetting() {
 
   const handleSubmit = async e => {
     try {
-      setLoading(true);
+      setLoader(dispatch);
       e.preventDefault();
       const resp = await api('/setting/sync', {method: 'POST', body: input});
       if (resp.success) {
+        setToast(dispatch, 'Saved Successfully!');
         return true;
       }
     } catch (e) {
+      setToast(dispatch, 'Something went wrong!', true);
       console.log('error\n', e);
     } finally {
-      setLoading(false);
+      setLoader(dispatch, false);
     }
   };
 

@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
-import '../../styles/pages/category-mapping.scss'
-import {useMenu} from "@assets/reducers/menuReducer";
+import '../../styles/pages/category-mapping.scss';
+import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
+import SyncSettingHeader from "@assets/components/SyncSettingHeader/SyncSettingHeader";
 
 /**
  * Render a home page for overview
@@ -21,7 +22,7 @@ export default function CategoryMapping() {
       <div className="content-title">
         <div className="header-title">
           <a href="#" onClick={() => history.push('/settings')}>
-          <i className="solid arrow-left"></i>
+            <i className="solid arrow-left"></i>
           </a>
           <h2 className="title-detail">Category Mapping</h2>
         </div>
@@ -30,11 +31,18 @@ export default function CategoryMapping() {
         <div className="notification">
           <p>
             <i className="solid circle-check"></i>
-            <span>For a faster import or update, configure all mappings per time and then save your changes.</span>
+            <span>
+              For a faster import or update, configure all mappings per time and then save your
+              changes.
+            </span>
           </p>
           <p>
             <i className="solid circle-check"></i>
-            <span>All parent categories can contain products of all child categories, in case there are different margins, the lowest one will be applied and in case there are different fixed shipping values, the maximum one will be applied.</span>
+            <span>
+              All parent categories can contain products of all child categories, in case there are
+              different margins, the lowest one will be applied and in case there are different
+              fixed shipping values, the maximum one will be applied.
+            </span>
           </p>
           <p>
             <i className="solid circle-check"></i>
@@ -47,158 +55,102 @@ export default function CategoryMapping() {
               <p className="info-url">
                 Retailer: <span>luxury-distribution.com</span>
               </p>
-              <hr/>
-                <p className="info-currency">
-                  Currency: <span>EUR</span>
-                </p>
+              <hr />
+              <p className="info-currency">
+                Currency: <span>EUR</span>
+              </p>
             </div>
             <div className="info-card info-dropshipper">
               <p className="info-url">
                 Retailer: <span>elixiremarketing.myshopify.com</span>
               </p>
-              <hr/>
-                <p className="info-currency">
-                  Currency: <span>EUR</span>
-                </p>
+              <hr />
+              <p className="info-currency">
+                Currency: <span>EUR</span>
+              </p>
             </div>
           </div>
-          <div className="table-sync-setting">
-            <div className="sync-title">
-              <p>Sync setting</p>
-            </div>
-            <div className="sync-items">
-                            <span className="sync-item">
-                                <i className="check"></i>
-                                <span>SKU</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Title</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Price</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Desc</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Categories</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Images</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>Tags</span>
-                            </span>
-              <span className="sync-item">
-                                <i className="check"></i>
-                                <span>EAN</span>
-                            </span>
-            </div>
-          </div>
+          <SyncSettingHeader />
           <div className="table-main">
             <div className="row-top"></div>
             <div className="row-middle">
               <table className="category-mapping-table">
                 <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Retailer Category</th>
-                  <th>Dropshipper Category</th>
-                  <th>Margin</th>
-                  <th>Action</th>
-                </tr>
+                  <tr>
+                    <th>#</th>
+                    <th>Retailer Category</th>
+                    <th>Dropshipper Category</th>
+                    <th>Margin</th>
+                    <th>Action</th>
+                  </tr>
                 </thead>
                 <tbody>
-                <tr>
-                  <td data-th="#">1</td>
-                  <td data-th="Retailer Category">
-                    <select name="retailer_category" id="retailer_category">
-                      <option value="0">men > accessories</option>
-                    </select>
-                  </td>
-                  <td data-th="Dropshipper Category">
-                    <select name="dropshipper_category" id="dropshipper_category">
-                      <option value="0">All products</option>
-                    </select>
-                  </td>
-                  <td data-th="Margin">
-                    <input type="number" name="margin" step="0.1" />
-                  </td>
-                  <td data-th="Action" className="row-actions">
-                    <button type="button" className="action cancel">
-                      <i className="xmark"></i>
-                    </button>
-                    <button type="button" className="action delete">
-                      <i className="trash-can"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td data-th="#">2</td>
-                  <td data-th="Retailer Category">
-                    men > bags
-                  </td>
-                  <td data-th="Dropshipper Category">
-                    All products
-                  </td>
-                  <td data-th="Margin">
-                    1.5
-                  </td>
-                  <td data-th="Action" className="row-actions">
-                    <button type="button" className="action edit">
-                      <i className="edit"></i>
-                    </button>
-                    <button type="button" className="action delete">
-                      <i className="trash-can"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td data-th="#">3</td>
-                  <td data-th="Retailer Category">
-                    men > bags
-                  </td>
-                  <td data-th="Dropshipper Category">
-                    All products
-                  </td>
-                  <td data-th="Margin">
-                    1.5
-                  </td>
-                  <td data-th="Action" className="row-actions">
-                    <button type="button" className="action edit">
-                      <i className="edit"></i>
-                    </button>
-                    <button type="button" className="action delete">
-                      <i className="trash-can"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td data-th="#">4</td>
-                  <td data-th="Retailer Category">
-                    men > bags
-                  </td>
-                  <td data-th="Dropshipper Category">
-                    All products
-                  </td>
-                  <td data-th="Margin">
-                    1.5
-                  </td>
-                  <td data-th="Action" className="row-actions">
-                    <button type="button" className="action edit">
-                      <i className="edit"></i>
-                    </button>
-                    <button type="button" className="action delete">
-                      <i className="trash-can"></i>
-                    </button>
-                  </td>
-                </tr>
+                  <tr>
+                    <td data-th="#">1</td>
+                    <td data-th="Retailer Category">
+                      <select name="retailer_category" id="retailer_category">
+                        <option value="0">men > accessories</option>
+                      </select>
+                    </td>
+                    <td data-th="Dropshipper Category">
+                      <select name="dropshipper_category" id="dropshipper_category">
+                        <option value="0">All products</option>
+                      </select>
+                    </td>
+                    <td data-th="Margin">
+                      <input type="number" name="margin" step="0.1" />
+                    </td>
+                    <td data-th="Action" className="row-actions">
+                      <button type="button" className="action cancel">
+                        <i className="xmark"></i>
+                      </button>
+                      <button type="button" className="action delete">
+                        <i className="trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td data-th="#">2</td>
+                    <td data-th="Retailer Category">men > bags</td>
+                    <td data-th="Dropshipper Category">All products</td>
+                    <td data-th="Margin">1.5</td>
+                    <td data-th="Action" className="row-actions">
+                      <button type="button" className="action edit">
+                        <i className="edit"></i>
+                      </button>
+                      <button type="button" className="action delete">
+                        <i className="trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td data-th="#">3</td>
+                    <td data-th="Retailer Category">men > bags</td>
+                    <td data-th="Dropshipper Category">All products</td>
+                    <td data-th="Margin">1.5</td>
+                    <td data-th="Action" className="row-actions">
+                      <button type="button" className="action edit">
+                        <i className="edit"></i>
+                      </button>
+                      <button type="button" className="action delete">
+                        <i className="trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td data-th="#">4</td>
+                    <td data-th="Retailer Category">men > bags</td>
+                    <td data-th="Dropshipper Category">All products</td>
+                    <td data-th="Margin">1.5</td>
+                    <td data-th="Action" className="row-actions">
+                      <button type="button" className="action edit">
+                        <i className="edit"></i>
+                      </button>
+                      <button type="button" className="action delete">
+                        <i className="trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -237,5 +189,5 @@ export default function CategoryMapping() {
         </div>
       </div>
     </div>
-);
+  );
 }

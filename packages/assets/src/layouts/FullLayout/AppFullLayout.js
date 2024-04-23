@@ -1,11 +1,12 @@
 import React, {useState} from 'react';
-import {Frame, Layout, Loading, Scrollable, Toast, Spinner} from '@shopify/polaris';
+import {Frame, Layout, Scrollable, Toast, Spinner, Loading} from '@shopify/polaris';
 import PropTypes from 'prop-types';
 import {useStore} from '@assets/reducers/storeReducer';
 import {closeToast} from '@assets/actions/storeActions';
 import AppNavigation from '@assets/layouts/AppLayout/AppNavigation';
 import {isEmbeddedApp} from '@assets/config/app';
 import {useLocation} from 'react-router-dom';
+import Loader from '@assets/components/Loader/Loader';
 
 /**
  * Render an app layout
@@ -16,7 +17,7 @@ import {useLocation} from 'react-router-dom';
  */
 export default function AppFullLayout({children}) {
   const {state, dispatch} = useStore();
-  const {loading, toast} = state;
+  const {loading, toast, loader} = state;
 
   const [isNavOpen, setIsNavOpen] = useState(!isEmbeddedApp);
   const toggleOpenNav = () => setIsNavOpen(prev => !prev);
@@ -42,6 +43,7 @@ export default function AppFullLayout({children}) {
         <AppNavigation />
         {children}
       </div>
+      {loader && <Loader />}
       {loading && <Loading />}
       {toast && <Toast onDismiss={() => closeToast(dispatch)} {...toast} />}
     </Frame>

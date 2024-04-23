@@ -5,6 +5,7 @@ export const storeTypes = {
   SET_USER: 'SET_USER',
   SET_LOADING: 'SET_LOADING',
   SET_TOAST: 'SET_TOAST',
+  SET_LOADER: 'SET_lOADER',
   CLOSE_TOAST: 'CLOSE_TOAST',
   SET_SHOP: 'SET_SHOP',
   SET_SUBSCRIPTION: 'SET_SUBSCRIPTION',
@@ -27,10 +28,16 @@ export const reducer = (state, {type, payload}) => {
       return {...state, loading: false, subscription: payload};
     case storeTypes.SET_LUXURY_INFOS:
       return {...state, luxuryInfos: payload};
+    case storeTypes.SET_LOADER:
+      return {...state, loader: payload};
     default:
       return state;
   }
 };
+
+export function setLoader(dispatch, payload = true) {
+  dispatch(storeTypes.SET_LOADER, payload);
+}
 
 export function setLoading(dispatch, payload = true) {
   dispatch(storeTypes.SET_LOADING, payload);

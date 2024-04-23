@@ -1,9 +1,8 @@
-import {getShopById} from '@functions/repositories/shopRepository';
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
   getBrandSettingShopId,
   getLXBrandList,
-  saveBrandSetting
+  saveBrandFilterSetting
 } from '@functions/repositories/settings/brandRepository';
 import {
   getLuxuryShopInfoByShopifyId,
@@ -19,7 +18,7 @@ import {
 export async function save(ctx) {
   const data = ctx.req.body;
   const {shopID, shopifyDomain} = getCurrentUser(ctx);
-  ctx.body = await saveSyncSetting(shopID, shopifyDomain, data);
+  ctx.body = await saveBrandFilterSetting(shopID, shopifyDomain, data);
 }
 
 export async function get(ctx) {
@@ -27,16 +26,9 @@ export async function get(ctx) {
     const shopId = getCurrentShop(ctx);
     const brandSetting = await getBrandSettingShopId(shopId);
 
-    return (ctx.body = {
-      data: brandSetting,
-      success: true
-    });
+    ctx.body = {success: true, data: brandSetting ? brandSetting.brands : []};
   } catch (e) {
-    ctx.status = 404;
-    return (ctx.body = {
-      data: {},
-      success: false
-    });
+    ctx.body = {success: false, error: e.string};
   }
 }
 

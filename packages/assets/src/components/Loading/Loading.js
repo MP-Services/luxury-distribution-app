@@ -15,7 +15,6 @@ export default function Loading({error, pastDelay = true}) {
     console.error(error);
     return <NotFound />;
   }
-
   return <div className="PreLoading PreLoading-Spinner">{pastDelay && <Spinner />}</div>;
 }
 
