@@ -14,3 +14,12 @@ export async function getShopById(id) {
   const doc = await collection.doc(id).get();
   return presentDataAndFormatDate(doc, presentShop);
 }
+
+/**
+ * @param id
+ * @returns {Promise<{Shop}>}
+ */
+export async function getShopByIdIncludeAccessToken(id) {
+  const doc = await collection.doc(id).get();
+  return presentDataAndFormatDate(doc);
+}

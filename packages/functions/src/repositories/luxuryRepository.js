@@ -1,7 +1,7 @@
-import fetch from 'node-fetch';
 import {LUXURY_API_V1_URL} from '@functions/const/app';
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
+import {api} from '@functions/helpers/api';
 
 const firestore = new Firestore();
 const luxuryInfosRef = firestore.collection('luxuryShopInfos');
@@ -13,18 +13,56 @@ const luxuryInfosRef = firestore.collection('luxuryShopInfos');
  */
 async function sendTokenRequest(data) {
   const {publicKey, username, identifier} = {...data};
-  const resp = await fetch(LUXURY_API_V1_URL + '/token', {
+  const tokenResult = await api(LUXURY_API_V1_URL + '/token', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', key: publicKey},
-    body: JSON.stringify({credentials: {username, identifier}})
+    options: {
+      headers: {key: publicKey}
+    },
+    data: {credentials: {username, identifier}}
   });
 
-  const result = await resp.json();
-  if (result.hasOwnProperty('custom_code') && result.custom_code === '00') {
-    return result.data.token;
+  if (tokenResult.hasOwnProperty('custom_code') && tokenResult.custom_code === '00') {
+    return tokenResult.data.token;
   }
 
   return false;
+}
+
+async function getLXData(url, data, key = 'data') {
+  try {
+    const token = await getLuxuryToken(data);
+    const resp = await api(url, {
+      method: 'GET',
+      options: {
+        headers: {Authorization: `Bearer ${token}`}
+      }
+    });
+
+    if (
+      resp.hasOwnProperty('custom_code') &&
+      resp.hasOwnProperty(key) &&
+      resp.custom_code === '00'
+    ) {
+      return resp[key].data;
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  return [];
+}
+
+/**
+ *
+ * @param data
+ * @returns {Promise<*|[]>}
+ */
+export async function getBrandList(data) {
+  return await getLXData(LUXURY_API_V1_URL + '/brands', data, 'responseData');
+}
+
+export async function getLuxuryStockList(data) {
+  return await getLXData(LUXURY_API_V1_URL + '/stocks', data);
 }
 
 /**

@@ -1,15 +1,17 @@
 import React, {useState} from 'react';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 export default function SyncSettingHeader({syncSettingData}) {
-  if (!syncSettingData) {
+  let syncSetting = syncSettingData;
+  if (!syncSetting) {
     const {data: syncSettingData} = useFetchApi({url: '/setting/sync'});
+    syncSetting = syncSettingData;
   }
 
-  if (!syncSettingData) {
+  if (!syncSetting) {
     return <></>;
   }
 
-  const syncSettingsDataArr = Object.entries(syncSettingData).filter(
+  const syncSettingsDataArr = Object.entries(syncSetting).filter(
     ([key, value]) => value && !['shopifyId', 'shopifyDomain', 'id'].includes(key)
   );
   if (!syncSettingsDataArr.length) {

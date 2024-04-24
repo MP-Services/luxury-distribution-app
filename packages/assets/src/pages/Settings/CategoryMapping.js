@@ -3,7 +3,8 @@ import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/category-mapping.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
-import SyncSettingHeader from "@assets/components/SyncSettingHeader/SyncSettingHeader";
+import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
+import useFetchApi from '@assets/hooks/api/useFetchApi';
 
 /**
  * Render a home page for overview
@@ -12,6 +13,8 @@ import SyncSettingHeader from "@assets/components/SyncSettingHeader/SyncSettingH
  * @constructor
  */
 export default function CategoryMapping() {
+  const {data: dropShipperCollections} = useFetchApi({url: '/setting/categorymapping/collections'});
+  const {data: retailerCategories} = useFetchApi({url: '/setting/categorymapping/retailercat'});
   const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
@@ -94,7 +97,11 @@ export default function CategoryMapping() {
                     </td>
                     <td data-th="Dropshipper Category">
                       <select name="dropshipper_category" id="dropshipper_category">
-                        <option value="0">All products</option>
+                        {dropShipperCollections.map(collection => (
+                          <option value={collection.admin_graphql_api_id}>
+                            {collection.title}
+                          </option>
+                        ))}
                       </select>
                     </td>
                     <td data-th="Margin">

@@ -1,28 +1,13 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
-import fetch from 'node-fetch';
-import {LUXURY_API_V1_URL} from '@functions/const/app';
+import {getBrandList} from "@functions/repositories/luxuryRepository";
 
 const firestore = new Firestore();
 /** @type CollectionReference */
 const brandSettingsRef = firestore.collection('brandFilterSettings');
 
-export async function getLXBrandList(token) {
-  const resp = await fetch(LUXURY_API_V1_URL + '/brands', {
-    method: 'GET',
-    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`}
-  });
-
-  const result = await resp.json();
-  if (
-    result.hasOwnProperty('custom_code') &&
-    result.hasOwnProperty('responseData') &&
-    result.custom_code === '00'
-  ) {
-    return result.responseData.data;
-  }
-
-  return false;
+export async function getLXBrandList(data) {
+  return await getBrandList(data);
 }
 
 /**

@@ -42,12 +42,9 @@ export async function getLXBrand(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
     const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    const token = await getLuxuryToken(luxuryShopInfo);
-    if (token) {
-      const lxBrandList = await getLXBrandList(token);
-      if (lxBrandList) {
-        return (ctx.body = {success: true, data: lxBrandList});
-      }
+    if (luxuryShopInfo) {
+      const lxBrandList = await getLXBrandList(luxuryShopInfo);
+      return (ctx.body = {success: true, data: lxBrandList});
     }
   } catch (e) {
     console.log(e);

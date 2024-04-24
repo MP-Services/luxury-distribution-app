@@ -5,7 +5,9 @@ import * as signUpController from '@functions/controllers/signUpController';
 import * as syncSettingController from '@functions/controllers/settings/syncController';
 import * as brandSettingController from '@functions/controllers/settings/brandController';
 import * as generalSettingController from '@functions/controllers/settings/generalController';
+import * as categorySettingController from '@functions/controllers/settings/categoryController';
 import {getApiPrefix} from '@functions/const/app';
+import {getDropShipperCategory} from "@functions/controllers/settings/categoryController";
 
 export default function apiRouter(isEmbed = false) {
   const router = new Router({prefix: getApiPrefix(isEmbed)});
@@ -20,6 +22,8 @@ export default function apiRouter(isEmbed = false) {
   router.get('/setting/brandlist', brandSettingController.getLXBrand);
   router.get('/setting/general', generalSettingController.get);
   router.post('/setting/general', jsonType, generalSettingController.save);
+  router.get('/setting/categorymapping/collections', categorySettingController.getDropShipperCategory);
+  router.get('/setting/categorymapping/retailercat', categorySettingController.getRetailerCat);
 
   return router;
 }
