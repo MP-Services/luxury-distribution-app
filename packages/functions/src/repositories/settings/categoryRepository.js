@@ -1,12 +1,19 @@
 import {Firestore} from '@google-cloud/firestore';
-import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getAllCollections, initShopify} from '@functions/services/shopifyService';
-import {getShopById, getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
+import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
+import {batchCreate} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
-const generalSettingsRef = firestore.collection('categoryMappingSettings');
+const collection = firestore.collection('categoryMappingSettings');
+
+export async function getMappingData(id, query = {}) {
+  // try {
+  //   const queriedRef = collection.where('shopifyId', '==', id);
+  //   return await paginateQ
+  // }
+}
 
 /**
  * Get shop info by given shop ID
@@ -29,27 +36,27 @@ export async function getRetailerCategory(data) {
   try {
     const stockList = await getLuxuryStockList(data);
     if (stockList.length) {
-      const retailerCats = stockList.reduce((accumulator, key) => {
+      const retailerCats = stockList.reduce((accumulator, item) => {
         const {category, sub_category, sub_sub_category} = item;
-        let catId = '';
-        let cat_name = '';
-
-        if (category) {
-          catId += category.id;
-          cat_name += category.name;
-        }
+        let catId = category.id;
+        let catName = category.name;
 
         if (sub_category) {
           catId = catId + '_' + sub_category.id;
-          cat_name = cat_name + '_' + sub_category.name;
+          catName = catName + ' > ' + sub_category.name;
         }
 
         if (sub_sub_category) {
           catId = catId + '_' + sub_sub_category.id;
-          cat_name = catId + '_' + sub_sub_category.name;
+          catName = catName + ' > ' + sub_sub_category.name;
         }
 
-        accumulator.push({catId, cat_name});
+        const hasDuplicate = accumulator.some(element => element.catId === catId);
+
+        if (!hasDuplicate) {
+          accumulator.push({catId, catName});
+        }
+
         return accumulator;
       }, []);
 
@@ -63,31 +70,25 @@ export async function getRetailerCategory(data) {
 }
 
 /**
- * Get shop info by given shop ID
  *
- * @param {string} shopId
- * @param data
- * @return {Promise<{success: boolean, error?: string}>}
+ * @param shopID
+ * @param shopifyDomain
+ * @param postData
+ * @returns {Promise<void>}
  */
-export async function saveGeneralSetting(shopId, shopifyDomain, data) {
+
+export async function saveCategoryMapping(shopID, shopifyDomain, postData) {
   try {
-    const docs = await generalSettingsRef
-      .where('shopifyId', '==', shopId)
-      .limit(1)
-      .get();
-    if (docs.empty) {
-      await generalSettingsRef.add({
-        shopifyId: shopId,
-        shopifyDomain,
-        ...data
-      });
-    } else {
-      await docs.docs[0].ref.update({...data});
-    }
+    const dataArr = postData.map(item => ({
+      shopifyId: shopID,
+      shopifyDomain,
+      ...item
+    }));
+    await batchCreate(firestore, collection, dataArr);
 
     return {success: true};
-  } catch (error) {
-    console.log(error);
-    return {success: false, error: error.message};
+  } catch (e) {
+    console.log(e);
+    return {success: false};
   }
 }

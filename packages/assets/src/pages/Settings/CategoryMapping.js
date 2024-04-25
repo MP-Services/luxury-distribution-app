@@ -5,6 +5,9 @@ import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
+import categoryMapping from '@assets/loadables/Settings/CategoryMapping';
+import {setLoader, setToast} from '@assets/actions/storeActions';
+import {api} from '@assets/helpers';
 
 /**
  * Render a home page for overview
@@ -15,10 +18,69 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
 export default function CategoryMapping() {
   const {data: dropShipperCollections} = useFetchApi({url: '/setting/categorymapping/collections'});
   const {data: retailerCategories} = useFetchApi({url: '/setting/categorymapping/retailercat'});
-  const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
+  const {data: catMappingData, setData: setCatMappingData} = useFetchApi({
+    url: '/setting/categorymapping'
+  });
+  const [addedMappingRows, setAddedMappingRows] = useState([]);
+  const [editedMappingRows, setEditedMappingRows] = useState([]);
+  const [deletedMappingRows, setDeletedMappingRows] = useState([]);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
+
+  const handleAddMappingRow = () => {
+    const newRow = {
+      id: Date.now(),
+      retailerId: retailerCategories[0].catId,
+      dropShipperId: dropShipperCollections[0].admin_graphql_api_id,
+      margin: 1
+    };
+
+    setAddedMappingRows([...addedMappingRows, newRow]);
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoader(dispatch);
+      const resp = await api('/setting/categorymapping', {method: 'POST', body: addedMappingRows});
+      if (resp.success) {
+        setToast(dispatch, 'Saved successfully!');
+        return true;
+      }
+    } catch (e) {
+      setToast(dispatch, 'Something went wrong!', true);
+      console.log('error\n', e);
+    } finally {
+      setLoader(dispatch, false);
+    }
+  };
+
+  const handleChangeInput = (key, id, value) => {
+    setAddedMappingRows(prev =>
+      prev.map(item => {
+        if (item.id === id) {
+          item[key] = value;
+        }
+      })
+    );
+  };
+
+  if (retailerCategories) {
+    retailerCategories.sort((a, b) => {
+      const nameA = a.catName.toLowerCase();
+      const nameB = b.catName.toLowerCase();
+
+      if (nameA < nameB) {
+        return -1;
+      }
+
+      return 0;
+    });
+  }
+
+  if (!retailerCategories.length || !dropShipperCollections.length) {
+    return <></>;
+  }
 
   return (
     <div className="main">
@@ -88,76 +150,74 @@ export default function CategoryMapping() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td data-th="#">1</td>
-                    <td data-th="Retailer Category">
-                      <select name="retailer_category" id="retailer_category">
-                        <option value="0">men > accessories</option>
-                      </select>
-                    </td>
-                    <td data-th="Dropshipper Category">
-                      <select name="dropshipper_category" id="dropshipper_category">
-                        {dropShipperCollections.map(collection => (
-                          <option value={collection.admin_graphql_api_id}>
-                            {collection.title}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td data-th="Margin">
-                      <input type="number" name="margin" step="0.1" />
-                    </td>
-                    <td data-th="Action" className="row-actions">
-                      <button type="button" className="action cancel">
-                        <i className="xmark"></i>
-                      </button>
-                      <button type="button" className="action delete">
-                        <i className="trash-can"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td data-th="#">2</td>
-                    <td data-th="Retailer Category">men > bags</td>
-                    <td data-th="Dropshipper Category">All products</td>
-                    <td data-th="Margin">1.5</td>
-                    <td data-th="Action" className="row-actions">
-                      <button type="button" className="action edit">
-                        <i className="edit"></i>
-                      </button>
-                      <button type="button" className="action delete">
-                        <i className="trash-can"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td data-th="#">3</td>
-                    <td data-th="Retailer Category">men > bags</td>
-                    <td data-th="Dropshipper Category">All products</td>
-                    <td data-th="Margin">1.5</td>
-                    <td data-th="Action" className="row-actions">
-                      <button type="button" className="action edit">
-                        <i className="edit"></i>
-                      </button>
-                      <button type="button" className="action delete">
-                        <i className="trash-can"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td data-th="#">4</td>
-                    <td data-th="Retailer Category">men > bags</td>
-                    <td data-th="Dropshipper Category">All products</td>
-                    <td data-th="Margin">1.5</td>
-                    <td data-th="Action" className="row-actions">
-                      <button type="button" className="action edit">
-                        <i className="edit"></i>
-                      </button>
-                      <button type="button" className="action delete">
-                        <i className="trash-can"></i>
-                      </button>
-                    </td>
-                  </tr>
+                  {catMappingData.map((catMapping, index) => (
+                    <tr key={index}>
+                      <td data-th="#">{index + 1}</td>
+                      <td data-th="Retailer Category">
+                        {
+                          retailerCategories.find(
+                            element => element.catId === catMapping.retailerId
+                          ).catName
+                        }
+                      </td>
+                      <td data-th="Dropshipper Category">
+                        {
+                          dropShipperCollections.find(
+                            element => element.admin_graphql_api_id === catMapping.dropShipperId
+                          ).title
+                        }
+                      </td>
+                      <td data-th="Margin">{catMapping.margin}</td>
+                      <td data-th="Action" className="row-actions">
+                        <button type="button" className="action edit">
+                          <i className="edit"></i>
+                        </button>
+                        <button type="button" className="action delete">
+                          <i className="trash-can"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {addedMappingRows.map(row => (
+                    <tr key={row.id}>
+                      <td data-th="#">1</td>
+                      <td data-th="Retailer Category">
+                        <select
+                          name="retailer_category"
+                          id="retailer_category"
+                          onChange={e => handleChangeInput('retailerId', row.id, e.target.value)}
+                        >
+                          {retailerCategories.map(category => (
+                            <option key={category.catId} value={category.catId}>
+                              {category.catName}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td data-th="Dropshipper Category">
+                        <select
+                          name="dropshipper_category"
+                          id="dropshipper_category"
+                          onChange={e => handleChangeInput('dropShipperId', row.id, e.target.value)}
+                        >
+                          {dropShipperCollections.map(collection => (
+                            <option key={collection.id} value={collection.admin_graphql_api_id}>
+                              {collection.title}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td data-th="Margin">
+                        <input
+                          type="number"
+                          name="margin"
+                          step="0.1"
+                          defaultValue={row.margin}
+                          onChange={e => handleChangeInput('margin', row.id, e.target.value)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -181,13 +241,18 @@ export default function CategoryMapping() {
                 </button>
               </div>
               <div className="table-actions">
-                <button type="button" data-th="Add">
+                <button type="button" data-th="Add" onClick={handleAddMappingRow}>
                   <span>Add Mapping</span>
                 </button>
-                <button type="button" data-th="Reset">
+                <button type="button" data-th="Reset" onClick={() => setMappingRows([])}>
                   <span> Reset Mapping</span>
                 </button>
-                <button type="button" className="btn btn-primary" data-th="Save">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  data-th="Save"
+                  onClick={handleSave}
+                >
                   <span>Save</span>
                 </button>
               </div>

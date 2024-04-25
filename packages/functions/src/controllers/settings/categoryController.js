@@ -1,8 +1,9 @@
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
   getShopifyCollections,
-  saveGeneralSetting,
-  getRetailerCategory
+  saveCategoryMapping,
+  getRetailerCategory,
+  getMappingData
 } from '@functions/repositories/settings/categoryRepository';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
@@ -13,9 +14,9 @@ import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryReposi
  * @returns {Promise<void>}
  */
 export async function save(ctx) {
-  const data = ctx.req.body;
+  const postData = ctx.req.body;
   const {shopID, shopifyDomain} = getCurrentUser(ctx);
-  ctx.body = await saveGeneralSetting(shopID, shopifyDomain, data);
+  ctx.body = await saveCategoryMapping(shopID, shopifyDomain, postData);
 }
 
 /**
@@ -33,12 +34,27 @@ export async function getDropShipperCategory(ctx) {
   }
 }
 
+/**
+ *
+ * @param ctx
+ * @returns {Promise<void>}
+ */
 export async function getRetailerCat(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
     const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
     const data = await getRetailerCategory(luxuryShopInfo);
     ctx.body = {success: true, data};
+  } catch (e) {
+    ctx.body = {success: false, error: e.string};
+  }
+}
+
+export async function get(ctx) {
+  try {
+    const shopId = getCurrentShop(ctx);
+    const mappingData = await getMappingData(shopId);
+    ctx.body = {success: true, data: mappingData};
   } catch (e) {
     ctx.body = {success: false, error: e.string};
   }
