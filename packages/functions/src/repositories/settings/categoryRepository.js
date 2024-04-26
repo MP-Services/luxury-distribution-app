@@ -1,18 +1,29 @@
-import {Firestore} from '@google-cloud/firestore';
+import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {getAllCollections, initShopify} from '@functions/services/shopifyService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
-import {batchCreate} from '@functions/repositories/helper';
+import {
+  batchCreate,
+  batchUpdate,
+  batchDelete,
+  getOrderBy,
+  paginateQuery
+} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
 const collection = firestore.collection('categoryMappingSettings');
 
 export async function getMappingData(id, query = {}) {
-  // try {
-  //   const queriedRef = collection.where('shopifyId', '==', id);
-  //   return await paginateQ
-  // }
+  try {
+    const queriedRef = collection.where('shopifyId', '==', id);
+    // const {sortField, direction} = getOrderBy(null);
+    // queriedRef = queriedRef.orderBy(sortField, direction);
+    return await paginateQuery({queriedRef, collection, query});
+  } catch (e) {
+    console.log(e);
+    return {data: [], count: 0, pageInfo: {hasNext: false, hasPre: false}, error: e.message};
+  }
 }
 
 /**
@@ -74,21 +85,61 @@ export async function getRetailerCategory(data) {
  * @param shopID
  * @param shopifyDomain
  * @param postData
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
-
 export async function saveCategoryMapping(shopID, shopifyDomain, postData) {
   try {
-    const dataArr = postData.map(item => ({
-      shopifyId: shopID,
-      shopifyDomain,
-      ...item
-    }));
-    await batchCreate(firestore, collection, dataArr);
+    if (postData.length) {
+      const dataArr = postData.map(item => {
+        const {id, ...data} = {...item};
+        return {
+          shopifyId: shopID,
+          shopifyDomain,
+          ...data,
+          updatedAt: FieldValue.serverTimestamp()
+        };
+      });
+      await batchCreate(firestore, collection, dataArr);
+    }
 
-    return {success: true};
+    return true;
   } catch (e) {
     console.log(e);
-    return {success: false};
+    return false;
   }
+}
+
+/**
+ *
+ * @param shopID
+ * @param shopifyDomain
+ * @param postData
+ * @returns {Promise<boolean>}
+ */
+export async function editCategoryMapping(shopID, shopifyDomain, postData) {
+  try {
+    if (postData.length) {
+      await Promise.all(
+        postData.map(data => {
+          const {id, ...updateData} = {...data};
+          return collection.doc(id).update(updateData);
+        })
+      );
+    }
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
+/**
+ *
+ * @param id
+ * @returns {Promise<boolean>}
+ */
+export async function deleteCategoryById(id) {
+  await collection.doc(id).delete();
+
+  return true;
 }

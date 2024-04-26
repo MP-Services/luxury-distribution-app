@@ -14,12 +14,13 @@ export default function useDeleteApi({url}) {
 
   /**
    * @param data
+   * @param id
    * @returns {Promise<boolean>}
    */
-  const handleDelete = async data => {
+  const handleDelete = async (data = {}, id = '') => {
     try {
       setDeleting(true);
-      const resp = await api(url, {body: {data}, method: 'DELETE'});
+      const resp = await api(id === '' ? url : `${url}/${id}`, {body: {data}, method: 'DELETE'});
       if (resp.success) {
         setToast(dispatch, resp.message || 'Deleted successfully');
         return true;

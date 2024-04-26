@@ -7,7 +7,7 @@ import * as brandSettingController from '@functions/controllers/settings/brandCo
 import * as generalSettingController from '@functions/controllers/settings/generalController';
 import * as categorySettingController from '@functions/controllers/settings/categoryController';
 import {getApiPrefix} from '@functions/const/app';
-import {getDropShipperCategory} from '@functions/controllers/settings/categoryController';
+import {getDropShipperCategory, getList} from '@functions/controllers/settings/categoryController';
 
 export default function apiRouter(isEmbed = false) {
   const router = new Router({prefix: getApiPrefix(isEmbed)});
@@ -27,8 +27,9 @@ export default function apiRouter(isEmbed = false) {
     categorySettingController.getDropShipperCategory
   );
   router.get('/setting/categorymapping/retailercat', categorySettingController.getRetailerCat);
-  router.get('/setting/categorymapping', categorySettingController.get);
+  router.get('/setting/categorymapping', categorySettingController.getList);
   router.post('/setting/categorymapping', jsonType, categorySettingController.save);
+  router.delete('/setting/categorymapping/delete/:id', jsonType, categorySettingController.deleteOne);
 
   return router;
 }
