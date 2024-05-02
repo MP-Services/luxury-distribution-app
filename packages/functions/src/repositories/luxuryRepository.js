@@ -80,11 +80,12 @@ export async function getLuxuryToken(data) {
 
       if (creationTimestamp + 59 * 60 * 60000 < currentTimestamp) {
         tokenResult = await sendTokenRequest(data);
+        if (tokenResult) {
+          await updateLuxuryToken(data, tokenResult);
+        }
       } else {
         tokenResult = token;
       }
-    } else {
-      tokenResult = await sendTokenRequest(data);
     }
 
     if (tokenResult) {
@@ -139,23 +140,23 @@ export async function addLuxuryShopInfo(shopId, data) {
 
 /**
  *
- * @param shopId
  * @param data
+ * @param updateData
  * @returns {Promise<*>}
  */
-export async function updateLuxuryToken(shopId, data) {
-  const {username, identifier, publicKey} = {...data};
+export async function updateLuxuryToken(data, updateData) {
+  const {username, identifier, publicKey, shopifyId} = {...data};
   const luxuryDocs = await luxuryInfosRef
-    .where('shopId', shopId)
-    .where('username', username)
-    .where('identifier', identifier)
-    .where('publicKey', publicKey)
+    .where('shopifyId', '==', shopifyId)
+    .where('username', '==', username)
+    .where('identifier', '==', identifier)
+    .where('publicKey', '==', publicKey)
     .limit(1)
     .get();
-  const luxuryDoc = luxuryDocs[0];
+  const luxuryDoc = luxuryDocs.docs[0];
   if (!luxuryDoc) {
-    throw new Error('No setting found');
+    throw new Error('No luxury found');
   }
 
-  return luxuryDoc.ref.update(data);
+  return luxuryDoc.ref.update({token: updateData, tokenCreationTime: FieldValue.serverTimestamp()});
 }
