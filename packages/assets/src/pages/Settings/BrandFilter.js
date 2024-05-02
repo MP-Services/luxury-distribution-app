@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/brand-filter.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
@@ -6,7 +6,7 @@ import {useHistory} from 'react-router-dom';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
-import {setToast, setLoader} from "@assets/actions/storeActions";
+import {setToast, setLoader} from '@assets/actions/storeActions';
 
 /**
  * Render a home page for overview
@@ -22,6 +22,7 @@ export default function BrandFilter() {
 
   const {isActiveMenu} = useMenu();
   const history = useHistory();
+  let brandLxConverted = [];
 
   const handleChangeInput = value => {
     if (input.includes(value)) {
@@ -32,8 +33,14 @@ export default function BrandFilter() {
   };
 
   const handleSelectAll = checked => {
-    setInput(checked ? brandLX : []);
+    setInput(checked ? brandLxConverted : []);
   };
+
+  useEffect(() => {
+    if (brandLX.length) {
+      brandLxConverted = brandLX.map(item => item.brand);
+    }
+  }, [brandLX]);
 
   const handleSave = async () => {
     try {
@@ -104,7 +111,7 @@ export default function BrandFilter() {
               </p>
             </div>
           </div>
-          {brandLX.length && (
+          {!!brandLX.length && (
             <div className="table-main">
               <div className="row-top">
                 <div className="table-message">

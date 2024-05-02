@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
 import {Layout, Page, SettingToggle, Text} from '@shopify/polaris';
 import {useStore} from '@assets/reducers/storeReducer';
-import '../../styles/pages/dashboard.scss'
+import '../../styles/pages/dashboard.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
-import {useMenu} from "@assets/reducers/menuReducer";
+import {useMenu} from '@assets/reducers/menuReducer';
+import {setLoader, setToast} from '@assets/actions/storeActions';
+import {api} from '@assets/helpers';
 
 /**
  * Render a home page for overview
@@ -15,6 +17,22 @@ export default function Dashboard() {
   const [enabled, setEnabled] = useState(false);
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+
+  const handleRefresh = async () => {
+    try {
+      setLoader(dispatch);
+      const resp = await api('/product/sync');
+      if (resp.success) {
+        setToast(dispatch, 'Refresh successfully!');
+        return true;
+      }
+    } catch (e) {
+      setToast(dispatch, 'Something went wrong!', true);
+      console.log('error\n', e);
+    } finally {
+      setLoader(dispatch, false);
+    }
+  };
 
   return (
     <div className="main">
@@ -29,7 +47,7 @@ export default function Dashboard() {
           <div className="card product-card">
             <div className="card-header">
               <h2>Products</h2>
-              <button className="btn-card-refresh">
+              <button className="btn-card-refresh" onClick={handleRefresh}>
                 <i className="refresh"></i>
                 Refresh
               </button>
@@ -57,10 +75,10 @@ export default function Dashboard() {
               <div className="card-footer-bottom">
                 <div className="info-cell">
                   <div className="cell-top">
-                                      <span>
-                                          <i className="solid file-plus"></i>
-                                          Create
-                                      </span>
+                    <span>
+                      <i className="solid file-plus"></i>
+                      Create
+                    </span>
                   </div>
                   <div className="cell-bottom">
                     <p>125</p>
@@ -68,10 +86,10 @@ export default function Dashboard() {
                 </div>
                 <div className="info-cell">
                   <div className="cell-top">
-                                      <span>
-                                          <i className="solid rotate"></i>
-                                          Update
-                                      </span>
+                    <span>
+                      <i className="solid rotate"></i>
+                      Update
+                    </span>
                   </div>
                   <div className="cell-bottom">
                     <p>95</p>
@@ -79,10 +97,10 @@ export default function Dashboard() {
                 </div>
                 <div className="info-cell">
                   <div className="cell-top">
-                                      <span>
-                                          <i className="solid trash-can"></i>
-                                          Delete
-                                      </span>
+                    <span>
+                      <i className="solid trash-can"></i>
+                      Delete
+                    </span>
                   </div>
                   <div className="cell-bottom">
                     <p>256</p>
@@ -91,7 +109,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

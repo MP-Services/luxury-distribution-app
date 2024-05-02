@@ -6,6 +6,7 @@ import * as syncSettingController from '@functions/controllers/settings/syncCont
 import * as brandSettingController from '@functions/controllers/settings/brandController';
 import * as generalSettingController from '@functions/controllers/settings/generalController';
 import * as categorySettingController from '@functions/controllers/settings/categoryController';
+import * as productController from '@functions/controllers/productController';
 import {getApiPrefix} from '@functions/const/app';
 import {getDropShipperCategory, getList} from '@functions/controllers/settings/categoryController';
 
@@ -30,6 +31,8 @@ export default function apiRouter(isEmbed = false) {
   router.get('/setting/categorymapping', categorySettingController.getList);
   router.post('/setting/categorymapping', jsonType, categorySettingController.save);
   router.delete('/setting/categorymapping/delete/:id', jsonType, categorySettingController.deleteOne);
+
+  router.get('/product/sync', productController.sync);
 
   return router;
 }
