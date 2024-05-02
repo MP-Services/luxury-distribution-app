@@ -1,7 +1,7 @@
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {getAllCollections, initShopify} from '@functions/services/shopifyService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
-import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
+import {getLuxuryStockList, getCategories} from '@functions/repositories/luxuryRepository';
 import {
   batchCreate,
   batchUpdate,
@@ -45,32 +45,35 @@ export async function getShopifyCollections(id) {
 
 export async function getRetailerCategory(data) {
   try {
-    const stockList = await getLuxuryStockList(data);
-    if (stockList.length) {
-      const retailerCats = stockList.reduce((accumulator, item) => {
-        const {category, sub_category, sub_sub_category} = item;
-        let catId = category.id;
-        let catName = category.name;
+    // const stockList = await getLuxuryStockList(data);
+    // if (stockList.length) {
+    //   const retailerCats = stockList.reduce((accumulator, item) => {
+    //     const {category, sub_category, sub_sub_category} = item;
+    //     let catId = category.id;
+    //     let catName = category.name;
+    //
+    //     if (sub_category) {
+    //       catId = catId + '_' + sub_category.id;
+    //       catName = catName + ' > ' + sub_category.name;
+    //     }
+    //
+    //     if (sub_sub_category) {
+    //       catId = catId + '_' + sub_sub_category.id;
+    //       catName = catName + ' > ' + sub_sub_category.name;
+    //     }
+    //
+    //     const hasDuplicate = accumulator.some(element => element.catId === catId);
+    //
+    //     if (!hasDuplicate) {
+    //       accumulator.push({catId, catName});
+    //     }
+    //
+    //     return accumulator;
+    //   }, []);
 
-        if (sub_category) {
-          catId = catId + '_' + sub_category.id;
-          catName = catName + ' > ' + sub_category.name;
-        }
-
-        if (sub_sub_category) {
-          catId = catId + '_' + sub_sub_category.id;
-          catName = catName + ' > ' + sub_sub_category.name;
-        }
-
-        const hasDuplicate = accumulator.some(element => element.catId === catId);
-
-        if (!hasDuplicate) {
-          accumulator.push({catId, catName});
-        }
-
-        return accumulator;
-      }, []);
-
+    const productCategories = await getCategories(data);
+    if (productCategories.length) {
+      const retailerCats = transformCategoriesData(productCategories);
       return retailerCats;
     }
   } catch (e) {
@@ -78,6 +81,20 @@ export async function getRetailerCategory(data) {
   }
 
   return [];
+}
+
+function transformCategoriesData(category, parentName = '', result = []) {
+  category.forEach(item => {
+    const name = parentName ? `${parentName} > ${item.name}` : item.name;
+    result.push({
+      catId: item.id,
+      catName: name
+    });
+    if (item.children && item.children.length > 0) {
+      transformCategoriesData(item.children, name, result);
+    }
+  });
+  return result;
 }
 
 /**

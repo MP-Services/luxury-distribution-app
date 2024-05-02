@@ -91,8 +91,13 @@ export default function CategoryMapping() {
     setEditMappingRows(prev => [...prev, row]);
   };
 
+  const handleClose = id => {
+    setIsEdits(prev => prev.filter(item => item.id !== id));
+    setEditMappingRows(prev => prev.filter(item => item.id !== id));
+  };
+
   const getCategoryName = id => {
-    const retailerCat = retailerCategories.find(element => element.catId === id);
+    const retailerCat = retailerCategories.find(element => element.catId == id);
 
     return retailerCat ? retailerCat.catName : '';
   };
@@ -144,6 +149,20 @@ export default function CategoryMapping() {
             onChange={e => handleChangeInput('margin', rowData.id, e.target.value, action)}
           />
         </td>
+        {action === 'edit' && (
+          <td data-th="Action" className="row-actions">
+            <button type="button" className="action cancel" onClick={() => handleClose(rowData.id)}>
+              <i className="xmark"></i>
+            </button>
+            <button
+              type="button"
+              className="action delete"
+              onClick={async () => handleDelete({}, rowData.id)}
+            >
+              <i className="trash-can"></i>
+            </button>
+          </td>
+        )}
       </React.Fragment>
     );
   };
@@ -180,7 +199,7 @@ export default function CategoryMapping() {
             <span>Please note that margin changes could take up to 24 hours to update.</span>
           </p>
         </div>
-        {retailerCategories.length && dropShipperCollections.length && (
+        {!!(retailerCategories.length && dropShipperCollections.length) && (
           <div className="table-wrapper">
             <div className="table-info-top">
               <div className="info-card info-retailer">
@@ -237,24 +256,24 @@ export default function CategoryMapping() {
                               {getDropShipperName(catMapping.dropShipperId)}
                             </td>
                             <td data-th="Margin">{catMapping.margin}</td>
+                            <td data-th="Action" className="row-actions">
+                              <button
+                                type="button"
+                                className="action edit"
+                                onClick={() => handleEdit(index, catMapping)}
+                              >
+                                <i className="edit"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="action delete"
+                                onClick={async () => handleDelete({}, catMapping.id)}
+                              >
+                                <i className="trash-can"></i>
+                              </button>
+                            </td>
                           </React.Fragment>
                         )}
-                        <td data-th="Action" className="row-actions">
-                          <button
-                            type="button"
-                            className="action edit"
-                            onClick={() => handleEdit(index, catMapping)}
-                          >
-                            <i className="edit"></i>
-                          </button>
-                          <button
-                            type="button"
-                            className="action delete"
-                            onClick={async () => handleDelete({}, catMapping.id)}
-                          >
-                            <i className="trash-can"></i>
-                          </button>
-                        </td>
                       </tr>
                     ))}
                     {newMappingRows.map(row => (

@@ -1,4 +1,4 @@
-import {LUXURY_API_V1_URL} from '@functions/const/app';
+import {LUXURY_API_V1_URL, LUXURY_API_V2_URL} from '@functions/const/app';
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
@@ -37,13 +37,12 @@ async function getLXData(url, data, key = 'data') {
         headers: {Authorization: `Bearer ${token}`}
       }
     });
-
     if (
       resp.hasOwnProperty('custom_code') &&
       resp.hasOwnProperty(key) &&
       resp.custom_code === '00'
     ) {
-      return resp[key].data;
+      return resp[key]?.data || resp[key];
     }
   } catch (e) {
     console.log(e);
@@ -61,8 +60,17 @@ export async function getBrandList(data) {
   return await getLXData(LUXURY_API_V1_URL + '/brands', data, 'responseData');
 }
 
+/**
+ *
+ * @param data
+ * @returns {Promise<*|[]>}
+ */
 export async function getLuxuryStockList(data) {
-  return await getLXData(LUXURY_API_V1_URL + '/stocks', data);
+  return await getLXData(LUXURY_API_V2_URL + '/stocks', data);
+}
+
+export async function getCategories(data) {
+  return await getLXData(LUXURY_API_V1_URL + '/product-category', data);
 }
 
 /**
@@ -77,8 +85,7 @@ export async function getLuxuryToken(data) {
     if (token && tokenCreationTime) {
       const creationTimestamp = Date.parse(tokenCreationTime);
       const currentTimestamp = Date.now();
-
-      if (creationTimestamp + 59 * 60 * 60000 < currentTimestamp) {
+      if (creationTimestamp + 15 * 60 * 1000 < currentTimestamp) {
         tokenResult = await sendTokenRequest(data);
         if (tokenResult) {
           await updateLuxuryToken(data, tokenResult);
@@ -87,7 +94,6 @@ export async function getLuxuryToken(data) {
         tokenResult = token;
       }
     }
-
     if (tokenResult) {
       return tokenResult;
     }
