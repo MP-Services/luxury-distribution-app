@@ -1,6 +1,6 @@
 import {getCurrentShop} from '@functions/helpers/auth';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
-import {syncProducts} from '@functions/repositories/productRepository';
+import {addProducts, syncProducts} from '@functions/repositories/productRepository';
 
 /**
  * Get current subscription of a shop

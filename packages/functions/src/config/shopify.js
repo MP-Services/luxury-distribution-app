@@ -16,6 +16,10 @@ export default {
     'write_orders',
     'read_orders',
     'write_locations',
-    'read_locations'
+    'read_locations',
+    'write_inventory',
+    'read_inventory',
+    'read_metaobjects',
+    'write_metaobjects'
   ]
 };

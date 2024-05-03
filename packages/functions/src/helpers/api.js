@@ -1,6 +1,10 @@
 import axios from 'axios';
+import {API_VERSION} from '../services/shopifyService';
+import {delay} from '@avada/utils';
 
-const client = axios.create();
+const client = axios.create({
+  timeout: 60000
+});
 
 /**
  * @param url

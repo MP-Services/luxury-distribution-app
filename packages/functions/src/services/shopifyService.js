@@ -1,5 +1,5 @@
 import Shopify from 'shopify-api-node';
-export const API_VERSION = '2024-01';
+export const API_VERSION = '2024-04';
 
 /**
  * @param {Shop} shop
