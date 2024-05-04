@@ -1,5 +1,13 @@
 import {makeGraphQlApi} from '@functions/helpers/api';
 
+export const GET_LOCATION_QUERY = `
+query location($id: ID){
+  location(id: $id) {
+     id
+  }
+}
+`;
+
 export const CREATE_PRODUCT_MUTATION = `
 mutation CreateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
   productCreate(input: $product, media: $media){
@@ -24,7 +32,7 @@ mutation CreateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
 
 export const CREATE_PRODUCT_VARIANTS_BULK_MUTATION = `
 mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-  productVariantsBulkCreate(productId: $productId, variants: $variants) {
+  productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: REMOVE_STANDALONE_VARIANT) {
     product {
       id
     }
@@ -95,6 +103,31 @@ mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!, $loc
  * @param query
  * @returns {Promise<*|string>}
  */
+export async function getLocationQuery({shop, variables, query = GET_LOCATION_QUERY}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+
+    const {location} = data;
+
+    return location.id;
+  } catch (e) {
+    console.log(e);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
 export async function runProductMutation({shop, variables, query = CREATE_PRODUCT_MUTATION}) {
   try {
     const graphqlQuery = {query, variables};
@@ -123,7 +156,11 @@ export async function runProductMutation({shop, variables, query = CREATE_PRODUC
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runProductVariantsBulkMutation({shop, variables, query = INVENTORY_ADJUST_QUANTITIES_MUTATION}) {
+export async function runProductAdjustQuantitiesMutation({
+  shop,
+  variables,
+  query = INVENTORY_ADJUST_QUANTITIES_MUTATION
+}) {
   try {
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
@@ -151,7 +188,11 @@ export async function runProductVariantsBulkMutation({shop, variables, query = I
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runProductVariantsBulkMutation({shop, variables, query = CREATE_PRODUCT_VARIANTS_BULK_MUTATION}) {
+export async function runProductVariantsBulkMutation({
+  shop,
+  variables,
+  query = CREATE_PRODUCT_VARIANTS_BULK_MUTATION
+}) {
   try {
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
@@ -171,4 +212,3 @@ export async function runProductVariantsBulkMutation({shop, variables, query = C
     return '';
   }
 }
-
