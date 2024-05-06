@@ -27,6 +27,15 @@ export async function getMappingData(id, query = {}) {
 }
 
 /**
+ *
+ * @param id
+ * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>>}
+ */
+export async function getMappingDataWithoutPaginate(id) {
+  return await collection.where('shopifyId', '==', id).get();
+}
+
+/**
  * Get shop info by given shop ID
  *
  * @param {string} id

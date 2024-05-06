@@ -33,25 +33,13 @@ export async function batchCreate(firestore, collection, createData) {
 export async function batchUpdate(firestore, docs, updateData, key) {
   const batches = [];
   const docChunks = chunk(docs, 500);
-  if (!Array.isArray(updateData)) {
-    docChunks.forEach(docChunk => {
-      const batch = firestore.batch();
-      docChunk.forEach(doc => {
-        batch.update(doc.ref, updateData);
-      });
-      batches.push(batch);
+  docChunks.forEach(docChunk => {
+    const batch = firestore.batch();
+    docChunk.forEach(doc => {
+      batch.update(doc.ref, updateData);
     });
-  } else {
-    docChunks.forEach(docChunk => {
-      const batch = firestore.batch();
-      docChunk.forEach(doc => {
-        const data = updateData.find(item => item[key] === doc.data()[key]);
-        batch.update(doc.ref, {...data});
-      });
-      batches.push(batch);
-    });
-  }
-
+    batches.push(batch);
+  });
   const batchChunks = chunk(batches, 50);
   for (const batchChunk of batchChunks) {
     await Promise.all(batchChunk.map(batch => batch.commit()));

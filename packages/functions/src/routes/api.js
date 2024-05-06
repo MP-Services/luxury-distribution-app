@@ -33,6 +33,7 @@ export default function apiRouter(isEmbed = false) {
   router.delete('/setting/categorymapping/delete/:id', jsonType, categorySettingController.deleteOne);
 
   router.get('/product/sync', productController.sync);
+  router.get('/dashboard', productController.getProductsInfo);
 
   return router;
 }

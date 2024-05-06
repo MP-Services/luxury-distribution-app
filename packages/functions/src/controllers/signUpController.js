@@ -1,4 +1,4 @@
-import {getLuxuryToken, addLuxuryShopInfo} from '@functions/repositories/luxuryRepository';
+import {sendTokenRequest, addLuxuryShopInfo} from '@functions/repositories/luxuryRepository';
 import {getShopById} from '@functions/repositories/shopRepository';
 import {getCurrentShop} from '@functions/helpers/auth';
 
@@ -11,7 +11,7 @@ import {getCurrentShop} from '@functions/helpers/auth';
 export async function signUp(ctx) {
   try {
     const {shopifyDomain, ...luxuryAuthInfo} = {...ctx.req.body};
-    const tokenResult = await getLuxuryToken(ctx.req.body);
+    const tokenResult = await sendTokenRequest(ctx.req.body);
     if (tokenResult) {
       const shopId = getCurrentShop(ctx);
       const shop = await getShopById(shopId);

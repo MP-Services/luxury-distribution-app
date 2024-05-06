@@ -1,4 +1,4 @@
-import {Firestore} from '@google-cloud/firestore';
+import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getBrandList, getLuxuryStockList} from '@functions/repositories/luxuryRepository';
 import {getBrandSettingShopId} from '@functions/repositories/settings/brandRepository';
@@ -11,33 +11,35 @@ import {
   runProductVariantsBulkMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopById, getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
+import {
+  getMappingData,
+  getMappingDataWithoutPaginate
+} from '@functions/repositories/settings/categoryRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
 const collection = firestore.collection('products');
 
-// export async function syncProducts(shopId, luxuryInfos) {
-//   try {
-//     const syncSetting = await getSyncSettingShopId(shopId);
-//     await syncProducts(shopId, luxuryInfos);
-//   } catch (e) {
-//     console.log(e);
-//   }
-//
-//   return false;
-// }
-
 /**
  *
  * @param shopId
- * @param luxuryInfos
+ * @param limit
  * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
  */
-export async function getProductsRef(shopId, luxuryInfos) {
+export async function getProducts(shopId, limit = 0, syncStatus = '') {
   try {
+    if (syncStatus) {
+      return await collection
+        .where('shopifyId', '==', shopId)
+        .where('syncStatus', '!=', syncStatus)
+        .orderBy('updatedAt')
+        .limit(limit)
+        .get();
+    }
+
     return await collection
       .where('shopifyId', '==', shopId)
-      .limit(3)
+      .limit(limit)
       .get();
   } catch (e) {
     console.log(e);
@@ -55,7 +57,8 @@ export async function getProductsRef(shopId, luxuryInfos) {
 export async function syncProducts(shopId, luxuryInfos) {
   try {
     const syncSetting = await getSyncSettingShopId(shopId);
-    const productsRef = await getProductsRef(shopId, luxuryInfos);
+    const categoryMappings = await getMappingDataWithoutPaginate(shopId);
+    const productsRef = await getProducts(shopId, 3, 'completed');
     const shop = await getShopByIdIncludeAccessToken(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
 
@@ -63,11 +66,10 @@ export async function syncProducts(shopId, luxuryInfos) {
       return [];
     }
 
-    let stockIds = [];
-    const syncProductsResult = await Promise.all(
+    await Promise.all(
       productsRef.docs.map(async doc => {
         const productData = doc.data();
-        stockIds = [...stockIds, productData.id];
+        let margin = 1;
         const productOptionsData = [
           {
             name: 'Size',
@@ -76,16 +78,13 @@ export async function syncProducts(shopId, luxuryInfos) {
         ];
         const productMediaData = productData.images.map(item => ({
           mediaContentType: 'IMAGE',
-          originalSource: item
+          originalSource: item.replace(/\s/g, '%20')
         }));
 
         const productVariables = {
           product: {
             title: productData.name,
             descriptionHtml: productData.desscription,
-            giftCard: false,
-            giftCardTemplateSuffix: '',
-            handle: '',
             metafields: [
               {
                 key: 'testproductcustom',
@@ -95,10 +94,22 @@ export async function syncProducts(shopId, luxuryInfos) {
               }
             ],
             productOptions: productOptionsData,
+            collectionsToJoin: [],
             status: 'ACTIVE'
-          }
-          // media: productMediaData
+          },
+          media: productMediaData
         };
+
+        if (!categoryMappings.empty) {
+          const categoryMapping = categoryMappings.docs.find(
+            e => e.data().retailerId == productData.categoryMapping
+          );
+
+          if (categoryMapping) {
+            productVariables.product.collectionsToJoin = [categoryMapping.shopShipperId];
+            margin = categoryMapping.margin;
+          }
+        }
 
         const productShopify = await runProductMutation({shop, variables: productVariables});
         if (productShopify) {
@@ -106,7 +117,7 @@ export async function syncProducts(shopId, luxuryInfos) {
           const productVariants = productShopify.options[0].optionValues.map(
             (optionValue, index) => ({
               sku: `${productData.sku}-${index + 1}`,
-              price: productData.selling_price,
+              price: productData.selling_price * margin,
               compareAtPrice: productData.original_price,
               optionValues: [
                 {
@@ -134,7 +145,7 @@ export async function syncProducts(shopId, luxuryInfos) {
                 locationId: defaultLocationId
               };
             });
-            const inventoryAdjustmentGroup = await runProductAdjustQuantitiesMutation({
+            await runProductAdjustQuantitiesMutation({
               shop,
               variables: {
                 locationId: defaultLocationId,
@@ -145,31 +156,19 @@ export async function syncProducts(shopId, luxuryInfos) {
                 }
               }
             });
-
-            return {
-              id: productData.id,
+            return updateProduct(doc.id, {
               productShopifyId: productShopify.id,
-              syncStatus: 'updated'
-            };
+              queueStatus: 'synced',
+              syncStatus: 'completed'
+            });
           }
         }
-
-        return {
-          id: productData.id,
+        return updateProduct(doc.id, {
           productShopifyId: '',
-          syncStatus: 'created'
-        };
+          syncStatus: 'failed'
+        });
       })
     );
-
-    if (syncProductsResult.length) {
-        console.log('syncProductResult');
-      const docs = await collection
-        .where('shopifyId', '==', shopId)
-        .where('id', 'in', stockIds)
-        .get();
-      await batchUpdate(firestore, docs, syncProductsResult, 'id');
-    }
   } catch (e) {
     console.log(e);
   }
@@ -177,9 +176,14 @@ export async function syncProducts(shopId, luxuryInfos) {
   return false;
 }
 
-export async function updateProduct(shopId, infoData, updateData) {
-  try {
-  } catch (e) {}
+/**
+ *
+ * @param id
+ * @param updateData
+ * @returns {Promise<void>}
+ */
+export async function updateProduct(id, updateData) {
+  await collection.doc(id).update({...updateData, updatedAt: FieldValue.serverTimestamp()});
 }
 
 /**
@@ -203,10 +207,13 @@ export async function addProducts(shopId, luxuryInfos) {
 
         return {
           shopifyId: shopId,
-          syncStatus: '',
+          syncStatus: 'new',
+          queueStatus: 'created',
           ...item,
           size_quantity: sizeQuantity,
-          size_quantity_delta: sizeQuantity
+          size_quantity_delta: sizeQuantity,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
         };
       });
 

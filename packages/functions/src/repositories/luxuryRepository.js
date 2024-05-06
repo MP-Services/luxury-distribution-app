@@ -11,7 +11,7 @@ const luxuryInfosRef = firestore.collection('luxuryShopInfos');
  * @param data
  * @returns {Promise<any>}
  */
-async function sendTokenRequest(data) {
+export async function sendTokenRequest(data) {
   const {publicKey, username, identifier} = {...data};
   const tokenResult = await api(LUXURY_API_V1_URL + '/token', {
     method: 'POST',
