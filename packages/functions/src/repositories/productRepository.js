@@ -6,6 +6,7 @@ import {getSyncSettingShopId} from '@functions/repositories/settings/syncReposit
 import {batchCreate, batchUpdate} from '@functions/repositories/helper';
 import {
   getLocationQuery,
+  runMetafieldDefinitionMutation,
   runProductAdjustQuantitiesMutation,
   runProductMutation,
   runProductVariantsBulkMutation
@@ -15,6 +16,8 @@ import {
   getMappingData,
   getMappingDataWithoutPaginate
 } from '@functions/repositories/settings/categoryRepository';
+import productMetafields from '@functions/const/productMetafields';
+import {prepareDoc} from './helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -26,7 +29,23 @@ const collection = firestore.collection('products');
  * @param limit
  * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
  */
-export async function getProducts(shopId, limit = 0, syncStatus = '') {
+export async function getProducts(shopId) {
+  try {
+    const {docs} = await collection.where('shopifyId', '==', shopId).get();
+    return docs.map(doc => prepareDoc({doc}));
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+/**
+ *
+ * @param shopId
+ * @param limit
+ * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
+ */
+export async function getProductsQuery(shopId, limit = 0, syncStatus = '') {
   try {
     if (syncStatus) {
       return await collection
@@ -58,7 +77,7 @@ export async function syncProducts(shopId, luxuryInfos) {
   try {
     const syncSetting = await getSyncSettingShopId(shopId);
     const categoryMappings = await getMappingDataWithoutPaginate(shopId);
-    const productsRef = await getProducts(shopId, 3, 'completed');
+    const productsRef = await getProductsQuery(shopId, 1, 'success');
     const shop = await getShopByIdIncludeAccessToken(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
 
@@ -80,19 +99,16 @@ export async function syncProducts(shopId, luxuryInfos) {
           mediaContentType: 'IMAGE',
           originalSource: item.replace(/\s/g, '%20')
         }));
+        const metafieldsData = productMetafields.map(metafield => ({
+          key: metafield.key,
+          value: productData[metafield.key]
+        }));
 
         const productVariables = {
           product: {
             title: productData.name,
             descriptionHtml: productData.desscription,
-            metafields: [
-              {
-                key: 'testproductcustom',
-                namespace: 'custom',
-                type: 'single_line_text_field',
-                value: 'test product custom metafields'
-              }
-            ],
+            metafields: metafieldsData,
             productOptions: productOptionsData,
             collectionsToJoin: [],
             status: 'ACTIVE'
@@ -159,7 +175,7 @@ export async function syncProducts(shopId, luxuryInfos) {
             return updateProduct(doc.id, {
               productShopifyId: productShopify.id,
               queueStatus: 'synced',
-              syncStatus: 'completed'
+              syncStatus: 'success'
             });
           }
         }
@@ -172,8 +188,6 @@ export async function syncProducts(shopId, luxuryInfos) {
   } catch (e) {
     console.log(e);
   }
-
-  return false;
 }
 
 /**
@@ -184,6 +198,20 @@ export async function syncProducts(shopId, luxuryInfos) {
  */
 export async function updateProduct(id, updateData) {
   await collection.doc(id).update({...updateData, updatedAt: FieldValue.serverTimestamp()});
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<void>}
+ */
+export async function createMetafields(shopId) {
+  const shop = await getShopByIdIncludeAccessToken(shopId);
+  await Promise.all(
+    productMetafields.map(metafield =>
+      runMetafieldDefinitionMutation({shop, variables: {definition: metafield}})
+    )
+  );
 }
 
 /**

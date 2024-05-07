@@ -8,6 +8,21 @@ query location($id: ID){
 }
 `;
 
+export const CREATE_METAFIELD_DEFINITION_MUTATION = `
+mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+  metafieldDefinitionCreate(definition: $definition) {
+    createdDefinition {
+      id
+      name
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
 export const CREATE_PRODUCT_MUTATION = `
 mutation CreateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
   productCreate(input: $product, media: $media){
@@ -117,6 +132,34 @@ export async function getLocationQuery({shop, variables, query = GET_LOCATION_QU
     return location.id;
   } catch (e) {
     console.log(e);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runMetafieldDefinitionMutation({shop, variables, query = CREATE_METAFIELD_DEFINITION_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {createdDefinition, userErrors} = data.metafieldDefinitionCreate;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return createdDefinition;
+  } catch (error) {
+    console.error(error);
     return '';
   }
 }

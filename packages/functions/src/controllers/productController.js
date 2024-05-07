@@ -24,15 +24,21 @@ export async function sync(ctx) {
   };
 }
 
+/**
+ *
+ * @param ctx
+ * @returns {Promise<void>}
+ */
 export async function getProductsInfo(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
     const products = await getProducts(shopId);
-
+    if (products) {
+      return (ctx.body = {success: true, data: products});
+    }
   } catch (e) {
-    ctx.body = {
-      success: false
-    };
     console.error(e);
   }
+
+  ctx.body = {success: false};
 }

@@ -6,6 +6,7 @@ import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {setLoader, setToast} from '@assets/actions/storeActions';
 import {api} from '@assets/helpers';
+import useFetchApi from '@assets/hooks/api/useFetchApi';
 
 /**
  * Render a home page for overview
@@ -15,8 +16,28 @@ import {api} from '@assets/helpers';
  */
 export default function Dashboard() {
   const [enabled, setEnabled] = useState(false);
+  const {data: productsData} = useFetchApi({url: '/dashboard'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+
+  const getProductCount = type => {
+    if (productsData.length) {
+      switch (type) {
+        case 'created':
+          return productsData.filter(product => product.queueStatus === 'created').length;
+        case 'updated':
+          return productsData.filter(product => product.queueStatus === 'updated').length;
+        case 'deleted':
+          return productsData.filter(product => product.queueStatus === 'deleted').length;
+        default:
+          return productsData.filter(
+            product => product.queueStatus !== 'deleted' && product.syncStatus === 'success'
+          ).length;
+      }
+    }
+
+    return 0;
+  };
 
   const handleRefresh = async () => {
     try {
@@ -65,7 +86,7 @@ export default function Dashboard() {
               </div>
               <div className="card-body-bottom">
                 <p className="title">Total Products</p>
-                <p className="value">14,274</p>
+                <p className="value">{getProductCount()}</p>
               </div>
             </div>
             <div className="card-footer">
@@ -81,7 +102,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>125</p>
+                    <p>{getProductCount('created')}</p>
                   </div>
                 </div>
                 <div className="info-cell">
@@ -92,7 +113,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>95</p>
+                    <p>{getProductCount('updated')}</p>
                   </div>
                 </div>
                 <div className="info-cell">
@@ -103,7 +124,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>256</p>
+                    <p>{getProductCount('deleted')}</p>
                   </div>
                 </div>
               </div>
