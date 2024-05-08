@@ -16,24 +16,7 @@ $font-family_1: 'Montserrat', sans-serif;
 /* (jQ) Show icon */
 /* (jQ) hover cursor style */
 /* Remove IE default X */
-/*
-* End General
-*/
-/*
-* Sidebar
-*/
-/*
-* Sidebar Responsive
-*/
-/*
-* End Sidebar
-*/
-/*
-* Content
-*/
-/*
-* End Content
-*/
+
 * {
   font-family: $font-family_1;
   box-sizing: border-box;
@@ -146,22 +129,9 @@ i.solid.trash-can {
 .hidden {
   display: none !important;
 }
-.tab-sidebar {
-  max-width: 345px;
-  width: 20%;
-  height: 100%;
-  background: #FFFFFF;
-  position: sticky;
-  top: 0;
-  transition: all 0.5s ease;
-}
 .main-sidebar {
-  width: auto;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-right: 2px solid #EBEBEB;
-  padding: 73px 50px 0 50px;
+  width: 0;
+  //transition: width 0.5s ease;
 }
 ul.tabs-content {
   display: flex;
@@ -196,11 +166,15 @@ ul.tabs-content {
 }
 li.tab-item {
   a {
-    padding-left: 23px !important;
+    padding: 15px 23px;
     display: flex;
     gap: 14px;
     align-items: center;
-    padding: 15px 0;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
   }
   border-radius: 6px;
   &:hover {
@@ -216,13 +190,6 @@ li.tab-active {
     path {
       fill: #1768F7;
     }
-  }
-}
-.toggle-menu {
-  i {
-    font-size: 26px;
-    cursor: pointer;
-    display: none;
   }
 }
 .content-title {
@@ -247,7 +214,6 @@ li.tab-active {
 }
 .wrapper {
   display: flex;
-  height: 100%;
 }
 .main {
   display: flex;
@@ -390,10 +356,17 @@ li.tab-active {
     background: #1768F7;
   }
 }
-@media (max-width: 1440px) {
-  .main-sidebar {
-    padding: 75px 20px 0 20px !important;
+.toggle-menu {
+  i {
+    width: 18px;
+    cursor: pointer;
+    display: none;
   }
+}
+.opacity {
+  background: #000000;
+  opacity: 0.5;
+  pointer-events: none;
 }
 @media (max-width: 912px) {
   .toggle-menu {
@@ -401,18 +374,13 @@ li.tab-active {
       display: block;
     }
   }
-  .tab-sidebar {
-    position: fixed;
-    left: -345px;
-    max-width: initial;
-    width: 320px;
-    z-index: 11;
-  }
   .content {
     width: 100%;
   }
   .menu-active {
-    left: 0;
+    width: auto;
+    padding: 75px 20px 0 20px;
+    background: #FFFFFF;
   }
   .toggle-menu.active-toggle {
     i {
@@ -422,6 +390,20 @@ li.tab-active {
     }
   }
 }
+
+@media screen and (min-width: 912px) {
+  .main-sidebar {
+    position: sticky;
+    top: 0;
+    width: 20%;
+    max-width: 345px;
+    display: flex;
+    flex-direction: column;
+    padding: 75px 20px 0 20px;
+    background: #FFFFFF;
+  }
+}
+
 @media screen and (max-width: 540px) {
   .tab-sidebar {
     width: 250px;
@@ -445,6 +427,9 @@ li.tab-active {
   }
 }
 @media screen and (min-width: 1440px) {
+  .main-sidebar {
+    padding: 75px 50px;
+  }
   .info-card {
     .info-url {
       width: unset;
