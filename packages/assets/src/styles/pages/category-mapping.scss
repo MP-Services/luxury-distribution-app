@@ -132,13 +132,6 @@ $background-color_4: #E53A3A;
   gap: 10px;
 }
 @media (max-width: 1024px) {
-  .tab-sidebar {
-    position: fixed;
-    left: -345px;
-    max-width: initial;
-    width: 320px;
-    z-index: 11;
-  }
   .row-bottom {
     flex-direction: column;
     gap: 20px;

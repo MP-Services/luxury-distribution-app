@@ -150,12 +150,14 @@ export default function BrandFilter() {
                     <div className="filter-options">
                       {brandLX.map(item => (
                         <div className="form-group" key={convertBrandLabelToKey(item.brand)}>
-                          <input
-                            value={item.brand}
-                            type="checkbox"
-                            checked={input.includes(item.brand)}
-                            onChange={e => handleChangeInput(e.target.value)}
-                          />
+                          <div>
+                            <input
+                              value={item.brand}
+                              type="checkbox"
+                              checked={input.includes(item.brand)}
+                              onChange={e => handleChangeInput(e.target.value)}
+                            />
+                          </div>
                           <label>{item.brand}</label>
                         </div>
                       ))}

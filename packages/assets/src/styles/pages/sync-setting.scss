@@ -21,37 +21,39 @@ $color_1: #6A6A6A;
   font-weight: 500;
   background: #fff;
 }
-.sync-options {
-  display: flex;
-  flex-wrap: wrap;
-  font-weight: 500;
-  font-size: 14px;
-  padding-top: 22px;
-  .form-group {
-    display: table;
-    width: 100%;
-    padding: 22px;
-    border-bottom: 1px solid #EBEBEB;
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-  .sync-option {
-    display: table-cell;
-    width: 180px;
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      float: right;
-      vertical-align: middle;
-    }
-  }
-  .sync-option-tooltip {
-    padding-left: 44px;
-    font-size: 14px;
+#sync-setting-form {
+  .sync-options {
+    display: flex;
+    flex-wrap: wrap;
     font-weight: 500;
-    line-height: 24px;
-    color: $color_1;
+    font-size: 14px;
+    padding-top: 22px;
+    .form-group {
+      display: table;
+      width: 100%;
+      padding: 22px;
+      border-bottom: 1px solid #EBEBEB;
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    .sync-option {
+      display: table-cell;
+      width: 180px;
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        float: right;
+        vertical-align: middle;
+      }
+    }
+    .sync-option-tooltip {
+      padding-left: 44px;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 24px;
+      color: $color_1;
+    }
   }
 }
 .sync-actions {

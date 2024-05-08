@@ -111,14 +111,6 @@ button.checksave-btn {
   flex-direction: column;
   gap: 6px;
 }
-@media (max-width: 912px) {
-  .tab-sidebar {
-    display: none;
-  }
-  .main {
-    width: 100%;
-  }
-}
 @media (max-width: 540px) {
   .table-wrapper {
     padding: 20px;
