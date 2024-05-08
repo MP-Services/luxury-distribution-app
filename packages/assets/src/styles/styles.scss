@@ -138,6 +138,7 @@ i.solid.trash-can {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
   height: 100vh;
+  padding: 75px 20px 0 20px;
   ::-webkit-scrollbar {
     display: none; /* for Chrome, Safari and Opera */
   }
@@ -163,7 +164,8 @@ ul.tabs-content {
   }
 }
 .logo-site {
-  padding-left: 23px !important;
+  padding-left: 23px;
+  margin-bottom: 60px;
   .logo-content {
     a {
       img {
@@ -191,7 +193,7 @@ li.tab-item {
   }
 }
 .tabs-wrapper {
-  margin: 66px -20px 0 -20px;
+  margin: 0 -20px;
   padding: 0 20px;
   overflow-y: scroll;
 }
@@ -206,6 +208,7 @@ li.tab-active {
 .content-title {
   position: sticky;
   top: 0;
+  max-height: 127px;
   background: #FFFFFF;
   padding-left: 35px;
   z-index: 10;
@@ -235,7 +238,7 @@ li.tab-active {
   border-left: 2px solid #EBEBEB;
 }
 .content {
-  height: 100vh;
+  height: calc(100vh - 127px);
   overflow-y: scroll;
   padding: 33px;
   background: #F8F8F9;
@@ -276,13 +279,19 @@ li.tab-active {
 }
 .info-card {
   display: flex;
+  gap: 35px;
   align-items: center;
   flex-grow: 1;
   padding: 10px 22px;
   background: #F8F8F9;
   border-radius: 10px;
-  p {
+  .info-currency {
+    display: flex;
+    gap: 0.25em;
+    font-size: 18px;
     font-weight: 600;
+    padding-left: 35px;
+    border-left: 1px solid #C3C3C3;
   }
   hr {
     display: none;
@@ -392,11 +401,10 @@ li.tab-active {
   }
   .menu-active {
     min-width: 200px;
-    padding: 75px 20px 0 20px;
     background: #FFFFFF;
   }
   .tabs-wrapper {
-    height: 55vh;
+    height: calc(100vh - 200px);
   }
   .toggle-menu.active-toggle {
     i {
@@ -416,7 +424,6 @@ li.tab-active {
     max-width: 345px;
     display: flex;
     flex-direction: column;
-    padding: 75px 20px 0 20px;
     background: #FFFFFF;
   }
 }
@@ -445,7 +452,7 @@ li.tab-active {
 }
 @media screen and (min-width: 1440px) {
   .main-sidebar {
-    padding: 75px 50px;
+    padding: 75px 50px 0 50px;
   }
   .info-card {
     .info-url {
