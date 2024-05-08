@@ -149,7 +149,7 @@ i.solid.trash-can {
 .tab-sidebar {
   max-width: 345px;
   width: 20%;
-  height: 100vh;
+  height: 100%;
   background: #FFFFFF;
   position: sticky;
   top: 0;
@@ -157,7 +157,7 @@ i.solid.trash-can {
 }
 .main-sidebar {
   width: auto;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   border-right: 2px solid #EBEBEB;
@@ -179,7 +179,7 @@ ul.tabs-content {
   }
   li.tab-active {
     a {
-      color: $color_3;
+      color: $color_2;
     }
   }
 }
