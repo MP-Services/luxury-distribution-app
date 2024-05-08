@@ -22,7 +22,7 @@ export default function Support() {
           <h2 className="title-detail">Support</h2>
         </div>
       </div>
-      <div className="support-content">
+      <div className="content">
         <div className="support-remind">
           <span className="remind-label">
             We encourage you to contact us with any questions and inquiries and our team will get

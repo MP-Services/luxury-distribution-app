@@ -20,7 +20,7 @@ export default function Helpdesk() {
           <h2 className="title-detail">Helpdesk</h2>
         </div>
       </div>
-      <div className="helpdesk-content">
+      <div className="content">
         <div className="frequently-questions">
           <div className="questions-answer">
             <div className="question-item">

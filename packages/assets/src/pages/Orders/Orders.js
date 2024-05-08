@@ -20,7 +20,7 @@ export default function Orders() {
           <h2 className="title-detail">Orders</h2>
         </div>
       </div>
-      <div className="orders-detail">
+      <div className="content">
         <div className="orders-detail-table">
           <div className="table-header">
             <span className="span-table-title">Data table</span>
