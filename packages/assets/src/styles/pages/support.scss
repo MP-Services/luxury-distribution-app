@@ -4,16 +4,6 @@ $color_3: #6A6A6A;
 $font-family_1: "Montserrat", sans-serif;
 
 /* support */
-.support-content {
-  background: #F8F8F9;
-  height: 100vh;
-  padding: 50px 0 50px 35px;
-}
-.helpdesk-content {
-  background: #F8F8F9;
-  height: 100vh;
-  padding: 50px 0 50px 35px;
-}
 .support-remind {
   width: 80%;
   max-width: 857px;
@@ -83,9 +73,6 @@ $font-family_1: "Montserrat", sans-serif;
 @media (max-width: 540px) {
   .contact-wrapper {
     width: 60%;
-  }
-  .support-content {
-    padding: 26px;
   }
   .icon-info {
     width: 45px;

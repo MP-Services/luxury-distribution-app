@@ -11,12 +11,6 @@ $border-color_1: #EBEBEB;
 
 /* main orders */
 .main {
-  .orders-detail {
-    padding: 26px;
-    background: #F8F8F9;
-    height: auto;
-    overflow-y: auto;
-  }
   .orders-detail-table {
     background-color: $background-color_1;
     border-radius: 10px;
@@ -27,7 +21,7 @@ span.span-table-title {
   font-weight: 700;
   line-height: 35px;
 }
-.orders-detail {
+.content {
   .table-header {
     display: flex;
     justify-content: space-between;

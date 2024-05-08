@@ -4,18 +4,10 @@ $background-color_1: #fff;
 
 .main {
   .content {
-    width: 100%;
     p.info-url {
       font-size: 18px !important;
       font-weight: 600 !important;
     }
-  }
-  width: 100%;
-  .header {
-    background: #FFFFFF;
-    position: sticky;
-    top: 0;
-    z-index: 10;
   }
 }
 .info-card {

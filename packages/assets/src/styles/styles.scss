@@ -23,6 +23,9 @@ $font-family_1: 'Montserrat', sans-serif;
   margin: 0;
   padding: 0;
 }
+body {
+  overflow-y: hidden;
+}
 button {
   cursor: pointer;
 }
@@ -131,7 +134,13 @@ i.solid.trash-can {
 }
 .main-sidebar {
   width: 0;
-  //transition: width 0.5s ease;
+  overflow-y: hidden;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  height: 100vh;
+  ::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari and Opera */
+  }
 }
 ul.tabs-content {
   display: flex;
@@ -182,7 +191,9 @@ li.tab-item {
   }
 }
 .tabs-wrapper {
-  margin-top: 66px;
+  margin: 66px -20px 0 -20px;
+  padding: 0 20px;
+  overflow-y: scroll;
 }
 li.tab-active {
   background: #F1F5FF;
@@ -219,11 +230,13 @@ li.tab-active {
   display: flex;
   flex-direction: column;
   width: 100%;
+  margin-right: -17px;
   min-width: 550px;
   border-left: 2px solid #EBEBEB;
 }
 .content {
-  flex-grow: 1;
+  height: 100vh;
+  overflow-y: scroll;
   padding: 33px;
   background: #F8F8F9;
 }
@@ -378,9 +391,12 @@ li.tab-active {
     width: 100%;
   }
   .menu-active {
-    width: auto;
+    min-width: 200px;
     padding: 75px 20px 0 20px;
     background: #FFFFFF;
+  }
+  .tabs-wrapper {
+    height: 55vh;
   }
   .toggle-menu.active-toggle {
     i {
@@ -396,6 +412,7 @@ li.tab-active {
     position: sticky;
     top: 0;
     width: 20%;
+    min-width: 200px;
     max-width: 345px;
     display: flex;
     flex-direction: column;

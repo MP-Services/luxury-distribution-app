@@ -2,10 +2,6 @@ $color_1: #000000;
 $font-family_1: "Montserrat", sans-serif;
 
 /* helpdesk */
-.helpdesk-content {
-  height: auto;
-  padding-right: 50px;
-}
 .frequently-questions {
   background: #FFFFFF;
   padding: 45px 60px;
@@ -52,7 +48,7 @@ button.action-btn {
   .frequently-questions {
     padding: 30px;
   }
-  .helpdesk-content {
+  .content {
     height: auto !important;
     padding: 26px !important;
   }
