@@ -49,6 +49,7 @@ $background-color_1: #1768F7;
   .info-cell {
     h3 {
       font-size: 18px;
+      font-weight: 600;
       line-height: 35px;
     }
     p {
@@ -63,6 +64,7 @@ $background-color_1: #1768F7;
     align-items: center;
     width: 100%;
     padding: 10px 0;
+    line-height: 1;
     .title {
       font-size: 16px;
       font-weight: 600;
@@ -85,6 +87,9 @@ $background-color_1: #1768F7;
     font-size: 25px;
     font-weight: 600;
     line-height: 35px;
+    p {
+      font-weight: 600;
+    }
   }
   .card-footer-bottom {
     display: flex;
@@ -96,7 +101,7 @@ $background-color_1: #1768F7;
   .info-cell {
     max-width: calc(50% - 5px);
     .cell-top {
-      font-size: 16;
+      font-size: 16px;
       font-weight: 500;
       color: $color_2;
       line-height: 26px;
@@ -120,13 +125,6 @@ $background-color_1: #1768F7;
   }
 }
 @media screen and (min-width: 1024px) {
-  .sidebar {
-    display: block;
-  }
-  .main {
-    width: 85%;
-    max-width: 1575px;
-  }
   .card-footer {
     .card-footer-bottom {
       gap: 20px;
