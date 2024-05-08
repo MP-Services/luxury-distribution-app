@@ -35,7 +35,6 @@ i {
   .logo {
     display: block;
     text-align: left;
-    margin-bottom: 60px;
     img {
       width: 190px;
       height: 88px;
@@ -64,6 +63,8 @@ i {
       height: 100%;
       .signup-form-header {
         text-align: center;
+        font-size: 35px;
+        font-weight: 700;
       }
       .signup-form-body {
         display: flex;
@@ -179,6 +180,7 @@ i {
   }
   .signup-header {
     .logo {
+      margin-bottom: 60px;
       img {
         width: 190px;
         height: 88px;
