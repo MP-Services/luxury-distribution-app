@@ -9,28 +9,8 @@ $background-color_1: #FFFFFF;
 $background-color_2: #1768F7;
 $border-color_1: #EBEBEB;
 
-/* content orders */
-* {
-  font-family: $font-family_1;
-  font-size: 16px;
-  font-weight: 400;
-  margin: 0;
-  padding: 0;
-}
-div {
-  display: block;
-}
-button {
-  border: none;
-  background: none;
-}
-.wrapper {
-  display: flex;
-  width: 100%;
-}
-.content {
-  width: 85%;
-  max-width: 1575px;
+/* main orders */
+.main {
   .orders-detail {
     padding: 48px 50px 80px 35px;
     background: #F8F8F9;
@@ -40,33 +20,6 @@ button {
   .orders-detail-table {
     background-color: $background-color_1;
     border-radius: 10px;
-  }
-}
-.content-title {
-  position: sticky;
-  top: 0;
-  background: #FFFFFF;
-  padding-left: 35px;
-  z-index: 10;
-  border-bottom: 2px solid #EBEBEB;
-  h2.title-detail {
-    font-size: 40px;
-    font-weight: 700;
-    line-height: 50px;
-  }
-  .header-title {
-    width: 100%;
-    display: inline-flex;
-    align-items: center;
-    gap: 24px;
-    padding: 38px 0 37px 0;
-  }
-}
-.toggle-menu {
-  i {
-    font-size: 26px;
-    cursor: pointer;
-    display: none;
   }
 }
 span.span-table-title {
@@ -257,7 +210,7 @@ span.next-label {
     padding: 16px 30px;
   }
 }
-.content {
+.main {
   .orders-detail {
     height: 100vh;
   }
@@ -277,7 +230,7 @@ span.next-label {
     z-index: 11;
     transition: all 0.5s ease;
   }
-  .content {
+  .main {
     width: 100%;
     .orders-detail {
       height: 100vh;
@@ -305,7 +258,7 @@ span.next-label {
   .tab-sidebar {
     width: 250px;
   }
-  .content {
+  .main {
     .orders-detail {
       padding: 26px;
     }

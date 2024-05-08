@@ -1,6 +1,6 @@
 import React from 'react';
-import ToggleMenu from "@assets/components/ToogleMenu/ToggleMenu";
-import {useMenu} from "../../reducers/menuReducer";
+import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
+import {useMenu} from '../../reducers/menuReducer';
 import '../../styles/pages/orders.scss';
 
 /**
@@ -13,10 +13,10 @@ export default function Orders() {
   const {isActiveMenu} = useMenu();
 
   return (
-    <div className={`content ${isActiveMenu ? 'opacity' : ''}`}>
+    <div className={`main ${isActiveMenu ? 'opacity' : ''}`}>
       <div className="content-title">
         <div className="header-title">
-          <ToggleMenu/>
+          <ToggleMenu />
           <h2 className="title-detail">Orders</h2>
         </div>
       </div>
@@ -24,7 +24,7 @@ export default function Orders() {
         <div className="orders-detail-table">
           <div className="table-header">
             <span className="span-table-title">Data table</span>
-            <div className="items-per-page" style={{position: "relative"}}>
+            <div className="items-per-page" style={{position: 'relative'}}>
               <div className="select-wrapper">
                 <button className="select-btn-item">08 items per page</button>
                 <i className="fa-solid fa-chevron-down"></i>
@@ -37,64 +37,80 @@ export default function Orders() {
             </div>
           </div>
           <div className="orders-table-content">
-            <table className="table" style={{width: "100%", textAlign: "left", borderSpacing: 0}}>
+            <table className="table" style={{width: '100%', textAlign: 'left', borderSpacing: 0}}>
               <thead>
-              <tr>
-                <th className="col-nb-1">Retailer Order ID</th>
-                <th className="col-nb-2">Dropshipper Order ID</th>
-                <th className="order-status col-nb-3">Successful</th>
-                <th className="col-nb-4">Created By</th>
-              </tr>
+                <tr>
+                  <th className="col-nb-1">Retailer Order ID</th>
+                  <th className="col-nb-2">Dropshipper Order ID</th>
+                  <th className="order-status col-nb-3">Successful</th>
+                  <th className="col-nb-4">Created By</th>
+                </tr>
               </thead>
               <tbody>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Successfull</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
-              <tr>
-                <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                <td data-th="Successful" className="order-status">Processing</td>
-                <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-              </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Successfull
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
+                <tr>
+                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
+                  <td data-th="Successful" className="order-status">
+                    Processing
+                  </td>
+                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
+                </tr>
               </tbody>
             </table>
           </div>
