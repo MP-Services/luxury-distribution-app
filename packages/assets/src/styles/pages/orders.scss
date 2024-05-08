@@ -12,7 +12,7 @@ $border-color_1: #EBEBEB;
 /* main orders */
 .main {
   .orders-detail {
-    padding: 48px 50px 80px 35px;
+    padding: 26px;
     background: #F8F8F9;
     height: auto;
     overflow-y: auto;
@@ -31,62 +31,27 @@ span.span-table-title {
   .table-header {
     display: flex;
     justify-content: space-between;
-    padding: 26px 40px;
+    padding: 26px;
+    flex-wrap: wrap;
   }
 }
-.select-wrapper {
-  font-size: 14px;
-  color: $color_1;
-  padding: 9px 14px;
-  background: #F4F4F4;
+.per-page-select {
+  padding: 6px 15px;
   border: 1px solid #EBEBEB;
   border-radius: 10px;
   cursor: pointer;
-  i {
-    color: $color_1;
-    width: 18px;
-    height: 18px;
-    margin-left: 14px;
-  }
-}
-ul.select-content {
-  font-size: 14px;
-  color: $color_1;
-  padding: 9px 14px;
-  background: #F4F4F4;
-  border: 1px solid #EBEBEB;
-  border-radius: 10px;
-  cursor: pointer;
-  list-style: none;
-  display: none;
-  flex-direction: column;
-  margin-top: 10px;
-  padding: 0 !important;
-  position: absolute;
-  width: 100%;
-  li {
-    padding: 9px 14px;
-    &:hover {
-      background: #ececec;
-    }
-  }
-}
-button.select-btn-item {
-  color: $color_1;
-}
-.dropdown-active {
-  display: flex !important;
 }
 .orders-table-content {
   thead {
     border-top: 1px solid #EBEBEB;
     th {
+      display: none;
       font-size: 14px;
       line-height: 26px;
       font-weight: 700;
       color: $color_2;
       background: #F6F6F6;
-      padding: 15px 40px;
+      //padding: 15px 40px;
       border-width: 1px 0;
       border-style: solid;
       border-color: $border-color_1;
@@ -94,7 +59,7 @@ button.select-btn-item {
   }
   tbody {
     td {
-      padding: 25px 40px;
+      //padding: 25px 40px;
       font-size: 16px;
       font-weight: 500;
       color: $color_3;
@@ -105,48 +70,21 @@ button.select-btn-item {
     }
   }
 }
-.col-nb-1 {
-  width: 24%;
-}
-.col-nb-3 {
-  width: 24%;
-}
-.col-nb-4 {
-  width: 26%;
-}
-.col-nb-2 {
-  width: 26%;
-}
-.order-status {
-  text-align: center;
-}
 .pagination-wrapper {
   display: flex;
   justify-content: space-between;
   padding: 20px 40px;
 }
-.previous-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.paging-option {
+  padding: 6px 11px;
   border: 1px solid #EBEBEB;
   border-radius: 10px;
   color: $color_1;
-  padding: 6px 11px;
-  i {
-    color: $color_1;
-  }
-}
-.next-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid #EBEBEB;
-  border-radius: 10px;
-  color: $color_1;
-  padding: 6px 11px;
-  i {
-    color: $color_1;
+  background: $color_6;
+  span {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
   }
 }
 .pagination-items {
@@ -157,18 +95,6 @@ button.select-btn-item {
     background-color: $background-color_2;
     color: $color_6;
   }
-}
-span.pre-label {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  cursor: pointer;
-}
-span.next-label {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 24px;
-  cursor: pointer;
 }
 .pagi-item {
   font-size: 14px;
@@ -187,97 +113,13 @@ span.next-label {
   opacity: 0.5;
   pointer-events: none;
 }
-@media (max-width: 1440px) {
-  .main-sidebar {
-    padding: 75px 20px 0 20px !important;
-  }
-}
-@media (min-width: 913px) and (max-width:1024px) {
-.orders-table-content {
-  thead {
-    th {
-      padding: 8px 26px;
-    }
-  }
-  tbody {
-    td {
-      padding: 16px 30px;
-    }
-  }
-}
-.orders-detail {
-  .table-header {
-    padding: 16px 30px;
-  }
-}
-.main {
-  .orders-detail {
-    height: 100vh;
-  }
-}
-}
-@media (max-width: 912px) {
-  .toggle-menu {
-    i {
-      display: block;
-    }
-  }
-  .tab-sidebar {
-    position: fixed;
-    left: -345px;
-    max-width: initial;
-    width: 320px;
-    z-index: 11;
-    transition: all 0.5s ease;
-  }
-  .main {
-    width: 100%;
-    .orders-detail {
-      height: 100vh;
-    }
-  }
-  .menu-active {
-    left: 0;
-  }
-  .toggle-menu.active-toggle {
-    i {
-      position: fixed;
-      left: 350px;
-      transition: all 0.5s ease;
-    }
-  }
-  .orders-table-content {
-    tbody {
-      td {
-        font-size: 12px;
-      }
-    }
-  }
-}
+
 @media screen and (max-width: 540px) {
-  .tab-sidebar {
-    width: 250px;
-  }
-  .main {
-    .orders-detail {
-      padding: 26px;
-    }
-  }
-  .orders-detail {
-    .table-header {
-      padding: 16px 26px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-  }
-  .pagination-wrapper {
-    padding: 16px 26px;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
   .orders-table-content {
     thead {
-      display: none;
+      th {
+        padding: 15px 40px;
+      }
     }
     tbody {
       tr {
@@ -300,20 +142,38 @@ span.next-label {
       }
     }
   }
-  .order-status {
-    text-align: unset;
+}
+
+@media screen and (min-width: 540px) {
+  .orders-table-content {
+    thead {
+      th {
+        display: table-cell;
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
+    tbody {
+      td {
+        padding: 25px 10px;
+        font-size: 14px;
+      }
+    }
   }
-  span.pre-label {
-    display: none;
-  }
-  span.next-label {
-    display: none;
-  }
-  .pagi-item {
-    padding: 0px 8px;
-    border-radius: 6px;
-  }
-  .pg-sm {
-    display: none !important;
+}
+
+@media screen and (min-width: 1024px) {
+  .orders-table-content {
+    thead {
+      th {
+        padding: 25px;
+        font-size: 16px;
+      }
+    }
+    tbody {
+      td {
+        padding: 25px 25px;
+      }
+    }
   }
 }
