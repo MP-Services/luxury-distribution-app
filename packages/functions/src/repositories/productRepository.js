@@ -1,9 +1,11 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
-import {presentDataAndFormatDate} from '@avada/firestore-utils';
-import {getBrandList, getLuxuryStockList} from '@functions/repositories/luxuryRepository';
+import {
+  getLuxuryShopInfoByShopifyId,
+  getLuxuryStockList
+} from '@functions/repositories/luxuryRepository';
 import {getBrandSettingShopId} from '@functions/repositories/settings/brandRepository';
 import {getSyncSettingShopId} from '@functions/repositories/settings/syncRepository';
-import {batchCreate, batchUpdate} from '@functions/repositories/helper';
+import {batchCreate, batchDelete} from '@functions/repositories/helper';
 import {
   getLocationQuery,
   runMetafieldDefinitionMutation,
@@ -11,11 +13,8 @@ import {
   runProductMutation,
   runProductVariantsBulkMutation
 } from '@functions/services/shopify/graphqlService';
-import {getShopById, getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
-import {
-  getMappingData,
-  getMappingDataWithoutPaginate
-} from '@functions/repositories/settings/categoryRepository';
+import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
+import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
 import productMetafields from '@functions/const/productMetafields';
 import {prepareDoc} from './helper';
 
@@ -26,7 +25,6 @@ const collection = firestore.collection('products');
 /**
  *
  * @param shopId
- * @param limit
  * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
  */
 export async function getProducts(shopId) {
@@ -70,17 +68,15 @@ export async function getProductsQuery(shopId, limit = 0, syncStatus = '') {
 /**
  *
  * @param shopId
- * @param luxuryInfos
  * @returns {Promise<*[]>}
  */
-export async function syncProducts(shopId, luxuryInfos) {
+export async function syncProducts(shopId) {
   try {
     const syncSetting = await getSyncSettingShopId(shopId);
     const categoryMappings = await getMappingDataWithoutPaginate(shopId);
-    const productsRef = await getProductsQuery(shopId, 1, 'success');
+    const productsRef = await getProductsQuery(shopId, 3, 'success');
     const shop = await getShopByIdIncludeAccessToken(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
-
     if (productsRef.empty || !defaultLocationId) {
       return [];
     }
@@ -88,6 +84,7 @@ export async function syncProducts(shopId, luxuryInfos) {
     await Promise.all(
       productsRef.docs.map(async doc => {
         const productData = doc.data();
+        console.log(productData.id);
         let margin = 1;
         const productOptionsData = [
           {
@@ -101,22 +98,23 @@ export async function syncProducts(shopId, luxuryInfos) {
         }));
         const metafieldsData = productMetafields.map(metafield => ({
           key: metafield.key,
-          value: productData[metafield.key]
+          value: productData[metafield.key],
+          type: metafield.type
         }));
 
         const productVariables = {
           product: {
             title: productData.name,
-            descriptionHtml: productData.desscription,
+            descriptionHtml: syncSetting.description ? productData.desscription : '',
             metafields: metafieldsData,
             productOptions: productOptionsData,
             collectionsToJoin: [],
             status: 'ACTIVE'
           },
-          media: productMediaData
+          media: syncSetting.images ? productMediaData : []
         };
 
-        if (!categoryMappings.empty) {
+        if (!categoryMappings.empty && syncSetting.categories) {
           const categoryMapping = categoryMappings.docs.find(
             e => e.data().retailerId == productData.categoryMapping
           );
@@ -217,16 +215,21 @@ export async function createMetafields(shopId) {
 /**
  *
  * @param shopId
- * @param luxuryInfos
  * @returns {Promise<boolean>}
  */
 
-export async function addProducts(shopId, luxuryInfos) {
+export async function addProducts(shopId) {
   try {
-    const stockList = await getLuxuryStockList(luxuryInfos);
+    const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    const getStockIds = await getStockIdsToSync(shopId);
+    const stockList = await getLuxuryStockList(luxuryShopInfo);
     const brandFilter = await getBrandSettingShopId(shopId);
     const products = stockList
-      .filter(stockItem => brandFilter.brands.includes(stockItem.brand))
+      .filter(
+        stockItem =>
+          brandFilter.brands.includes(stockItem.brand) &&
+          (!getStockIds || (getStockIds && !getStockIds.includes(stockItem.id)))
+      )
       .map(item => {
         let sizeQuantity = [];
         if (item.hasOwnProperty('size_quantity')) {
@@ -253,4 +256,104 @@ export async function addProducts(shopId, luxuryInfos) {
   }
 
   return false;
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<{data: {deleteQueueProductCount: number, updateQueueProductCount: number, createQueueProductCount: number, totalsProductCount: number}, success: boolean}>}
+ */
+export async function getProductCounts(shopId) {
+  try {
+    const [totalProduct, createdQueue, updatedQueue, deletedQueue] = await Promise.all([
+      collection
+        .where('shopifyId', '==', shopId)
+        .where('queueStatus', '!=', 'deleted')
+        .where('syncStatus', '==', 'success')
+        .count()
+        .get(),
+      collection
+        .where('shopifyId', '==', shopId)
+        .where('queueStatus', '==', 'created')
+        .count()
+        .get(),
+      collection
+        .where('shopifyId', '==', shopId)
+        .where('queueStatus', '==', 'updated')
+        .count()
+        .get(),
+      collection
+        .where('shopifyId', '==', shopId)
+        .where('queueStatus', '==', 'deleted')
+        .count()
+        .get()
+    ]);
+
+    return {
+      success: true,
+      data: {
+        totalsProductCount: totalProduct.data().count,
+        createQueueProductCount: createdQueue.data().count,
+        updateQueueProductCount: updatedQueue.data().count,
+        deleteQueueProductCount: deletedQueue.data().count
+      }
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      success: true,
+      data: {
+        totalsProductCount: 0,
+        createQueueProductCount: 0,
+        updateQueueProductCount: 0,
+        deleteQueueProductCount: 0
+      }
+    };
+  }
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<{shopId: *}[]>}
+ */
+export async function getStockIdsToSync(shopId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .where('syncStatus', '==', 'new')
+    .get();
+
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs.map(doc => ({shopId: doc.data().id}));
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<boolean>}
+ */
+
+export async function deleteProductsInQueue(shopId) {
+  try {
+    const brandFilterData = await getBrandSettingShopId(shopId);
+    if (brandFilterData) {
+      const brands = brandFilterData.brands;
+      const docsQuery = collection
+        .where('shopifyId', '==', shopId)
+        .where('syncStatus', '==', 'new');
+      if (Array.isArray(brands) && brands.length) {
+        docsQuery.where('brand', 'not-in', brandFilterData.brands);
+      }
+      const docs = await docsQuery.get();
+      await batchDelete(firestore, docs.docs);
+    }
+
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
 }

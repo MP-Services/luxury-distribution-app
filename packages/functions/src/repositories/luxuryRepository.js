@@ -28,6 +28,13 @@ export async function sendTokenRequest(data) {
   return false;
 }
 
+/**
+ *
+ * @param url
+ * @param data
+ * @param key
+ * @returns {Promise<*|*[]>}
+ */
 async function getLXData(url, data, key = 'data') {
   try {
     const token = await getLuxuryToken(data);
@@ -120,6 +127,19 @@ export async function getLuxuryShopInfoByShopifyId(id) {
 
   const [doc] = docs.docs;
   return presentDataAndFormatDate(doc);
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShops() {
+  const docs = await luxuryInfosRef.get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs.map(doc => ({id: doc.id, ...doc.data()}));
 }
 
 /**

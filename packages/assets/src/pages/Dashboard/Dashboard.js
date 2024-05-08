@@ -16,43 +16,15 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
  */
 export default function Dashboard() {
   const [enabled, setEnabled] = useState(false);
-  const {data: productsData} = useFetchApi({url: '/dashboard'});
+  const {data: productsData, fetchApi} = useFetchApi({url: '/dashboard'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
 
-  const getProductCount = type => {
-    if (productsData.length) {
-      switch (type) {
-        case 'created':
-          return productsData.filter(product => product.queueStatus === 'created').length;
-        case 'updated':
-          return productsData.filter(product => product.queueStatus === 'updated').length;
-        case 'deleted':
-          return productsData.filter(product => product.queueStatus === 'deleted').length;
-        default:
-          return productsData.filter(
-            product => product.queueStatus !== 'deleted' && product.syncStatus === 'success'
-          ).length;
-      }
-    }
-
-    return 0;
-  };
-
   const handleRefresh = async () => {
-    try {
-      setLoader(dispatch);
-      const resp = await api('/product/sync');
-      if (resp.success) {
-        setToast(dispatch, 'Refresh successfully!');
-        return true;
-      }
-    } catch (e) {
-      setToast(dispatch, 'Something went wrong!', true);
-      console.log('error\n', e);
-    } finally {
+    setLoader(dispatch);
+    fetchApi().then(() => {
       setLoader(dispatch, false);
-    }
+    });
   };
 
   return (
@@ -86,7 +58,7 @@ export default function Dashboard() {
               </div>
               <div className="card-body-bottom">
                 <p className="title">Total Products</p>
-                <p className="value">{getProductCount()}</p>
+                <p className="value">{productsData.totalsProductCount}</p>
               </div>
             </div>
             <div className="card-footer">
@@ -102,7 +74,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>{getProductCount('created')}</p>
+                    <p>{productsData.createQueueProductCount}</p>
                   </div>
                 </div>
                 <div className="info-cell">
@@ -113,7 +85,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>{getProductCount('updated')}</p>
+                    <p>{productsData.updateQueueProductCount}</p>
                   </div>
                 </div>
                 <div className="info-cell">
@@ -124,7 +96,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="cell-bottom">
-                    <p>{getProductCount('deleted')}</p>
+                    <p>{productsData.deleteQueueProductCount}</p>
                   </div>
                 </div>
               </div>

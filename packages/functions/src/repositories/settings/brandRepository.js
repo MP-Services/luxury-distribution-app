@@ -1,6 +1,7 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
-import {getBrandList} from "@functions/repositories/luxuryRepository";
+import {getBrandList} from '@functions/repositories/luxuryRepository';
+import publishTopic from '../../helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -47,8 +48,10 @@ export async function saveBrandFilterSetting(shopId, shopifyDomain, data) {
         shopifyDomain,
         brands: data
       });
+      await publishTopic('brandFilterCreateHandling', {shopId});
     } else {
       await docs.docs[0].ref.update({brands: data});
+      await publishTopic('brandFilterUpdateHandling', {shopId});
     }
 
     return {success: true};

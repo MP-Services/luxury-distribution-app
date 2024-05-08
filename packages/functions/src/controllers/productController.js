@@ -1,6 +1,6 @@
 import {getCurrentShop} from '@functions/helpers/auth';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
-import {addProducts, getProducts, syncProducts} from '@functions/repositories/productRepository';
+import {addProducts, createMetafields, syncProducts} from '@functions/repositories/productRepository';
 
 /**
  * Get current subscription of a shop
@@ -11,8 +11,8 @@ import {addProducts, getProducts, syncProducts} from '@functions/repositories/pr
 export async function sync(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
-    const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    await syncProducts(shopId, luxuryShopInfo);
+    // await addProducts(shopId);
+    // await syncProducts(shopId, luxuryShopInfo);
     ctx.body = {
       success: true
     };
@@ -22,23 +22,4 @@ export async function sync(ctx) {
   ctx.body = {
     success: false
   };
-}
-
-/**
- *
- * @param ctx
- * @returns {Promise<void>}
- */
-export async function getProductsInfo(ctx) {
-  try {
-    const shopId = getCurrentShop(ctx);
-    const products = await getProducts(shopId);
-    if (products) {
-      return (ctx.body = {success: true, data: products});
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  ctx.body = {success: false};
 }

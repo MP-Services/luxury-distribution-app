@@ -19,7 +19,7 @@ const productMetafields = [
     key: 'color_detail',
     name: 'Color Detail',
     namespace: 'luxury',
-    type: 'single_line_text_field',
+    type: 'multi_line_text_field',
     ownerType: 'PRODUCT',
     description: 'This metafield is created by Luxury App'
   },
@@ -35,7 +35,7 @@ const productMetafields = [
     key: 'material',
     name: 'Material',
     namespace: 'luxury',
-    type: 'single_line_text_field',
+    type: 'multi_line_text_field',
     ownerType: 'PRODUCT',
     description: 'This metafield is created by Luxury App'
   },
@@ -43,7 +43,7 @@ const productMetafields = [
     key: 'size_info',
     name: 'Size Info',
     namespace: 'luxury',
-    type: 'single_line_text_field',
+    type: 'multi_line_text_field',
     ownerType: 'PRODUCT',
     description: 'This metafield is created by Luxury App'
   },
@@ -51,7 +51,7 @@ const productMetafields = [
     key: 'size_and_fit',
     name: 'Size and Fit',
     namespace: 'luxury',
-    type: 'single_line_text_field',
+    type: 'multi_line_text_field',
     ownerType: 'PRODUCT',
     description: 'This metafield is created by Luxury App'
   }
