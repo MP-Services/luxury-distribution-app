@@ -8,6 +8,7 @@ import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingH
 import syncSetting from '@avada/functions/src/const/settings/sync';
 import {setToast, setLoader} from '@assets/actions/storeActions';
 import {useStore} from '@assets/reducers/storeReducer';
+import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 
 /**
  * Render a home page for overview
@@ -51,13 +52,14 @@ export default function SyncSetting() {
     <div className="main">
       <div className="content-title">
         <div className="header-title">
+          <ToggleMenu />
           <a href="#" onClick={() => history.push('/settings')}>
             <i className="solid arrow-left"></i>
           </a>
           <h2 className="title-detail">Sync Settings</h2>
         </div>
       </div>
-      <div className={`content ${isActiveMenu ? 'opacity' : ''}`}>
+      <div className={`content sync-settings ${isActiveMenu ? 'opacity' : ''}`}>
         <div className="notification">
           <p>
             <i className="solid circle-check"></i>

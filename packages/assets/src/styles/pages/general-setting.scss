@@ -2,25 +2,65 @@ $color_1: #6A6A6A;
 $color_2: #FFFFFF;
 $background-color_1: #fff;
 
-.main {
-  .content {
-    p.info-url {
-      font-size: 18px !important;
-      font-weight: 600 !important;
+.general-settings {
+  .info-card {
+    flex: unset;
+    .info-url {
+      width: auto;
+      padding: 0;
+      margin: 0;
+      border-right: none;
+    }
+    hr {
+      display: none;
+    }
+    span {
+      font-size: 15px;
+      font-weight: 500;
+      color: $color_1;
+    }
+  }
+  .checksave-btn {
+    border: none;
+  }
+  .checkboxes {
+    margin-top: 20px;
+  }
+  .customer-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 35px;
+  }
+  .checkbox-item {
+    display: table;
+    height: 35px;
+    margin-bottom: 30px;
+    .customer-title {
+      display: table-cell;
+      width: 410px;
+    }
+    .form-note {
+      display: table;
+      input[type='checkbox'] {
+        display: table-cell;
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        vertical-align: bottom;
+      }
+      label {
+        display: table-cell;
+      }
     }
   }
 }
 .customer-email {
   padding: 35px 20px 0 20px;
 }
-.customer-title {
-  font-weight: 600;
-  line-height: 35px;
-}
 .check-customer {
   display: flex;
   flex-direction: column;
-  input {
+  input:not([type='checkbox']) {
     padding: 13px 25px;
     color: $color_1;
     line-height: 26px;
@@ -100,45 +140,12 @@ button.checksave-btn {
   flex-direction: column;
   gap: 6px;
 }
-@media (max-width: 540px) {
-  .table-wrapper {
-    padding: 20px;
-  }
-  .table-info-top {
-    flex-wrap: wrap;
-    gap: 14px;
-  }
-  .main {
-    .content {
-      p.info-url {
-        font-size: 14px !important;
-        line-height: 26px;
+@media (max-width: 768px) {
+  .general-settings {
+    .checkbox-item {
+      .customer-title {
+        width: 150px;
       }
     }
-  }
-  .form-check-wrapper {
-    .info-card {
-      span {
-        font-size: 12px;
-      }
-    }
-  }
-  .form-note {
-    i {
-      font-size: 12px;
-    }
-    width: 100% !important;
-    margin-left: 0 !important;
-  }
-  .checkbox-item {
-    flex-direction: column;
-    align-items: normal !important;
-    label.customer-title {
-      width: 100% !important;
-      margin-left: 0 !important;
-    }
-  }
-  .customer-email {
-    padding: 35px 0 0 0;
   }
 }

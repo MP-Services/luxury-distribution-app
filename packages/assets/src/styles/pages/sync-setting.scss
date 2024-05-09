@@ -1,19 +1,22 @@
 $color_1: #6A6A6A;
 
-.info-card {
-  .info-url {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    border-right: none;
-  }
-  hr {
-    display: none;
-  }
-  span {
-    font-size: 15px;
-    font-weight: 500;
-    color: $color_1;
+.sync-settings {
+  .info-card {
+    flex: unset;
+    .info-url {
+      width: auto;
+      padding: 0;
+      margin: 0;
+      border-right: none;
+    }
+    hr {
+      display: none;
+    }
+    span {
+      font-size: 15px;
+      font-weight: 500;
+      color: $color_1;
+    }
   }
 }
 .sync-setting-wrapper {

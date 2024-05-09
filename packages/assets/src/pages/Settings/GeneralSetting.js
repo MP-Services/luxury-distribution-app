@@ -89,7 +89,7 @@ export default function GeneralSetting() {
           <h2 className="title-detail">General Settings</h2>
         </div>
       </div>
-      <div className={`content ${isActiveMenu ? 'opacity' : ''}`}>
+      <div className={`content general-settings ${isActiveMenu ? 'opacity' : ''}`}>
         <div className="notification">
           <p>
             <i className="solid circle-check"></i>
@@ -127,7 +127,7 @@ export default function GeneralSetting() {
                 onSubmit={e => handleSave(e, 'customerEmail')}
               >
                 <label className="customer-title" htmlFor="email">
-                  Customer Email<span> *</span>
+                  Customer Email<span className="required-asterisk"> *</span>
                 </label>
                 <input
                   value={input.customerEmail ? input.customerEmail : ''}
@@ -166,7 +166,7 @@ export default function GeneralSetting() {
                 <div className="language-currency">
                   <div className="language-select">
                     <label className="customer-title" htmlFor="language">
-                      Language<span> *</span>
+                      Language<span className="required-asterisk"> *</span>
                     </label>
                     <select
                       defaultValue={input.language ? input.language : 'en'}
@@ -179,7 +179,7 @@ export default function GeneralSetting() {
                   </div>
                   <div className="currency-select">
                     <label className="customer-title" htmlFor="currency">
-                      Currency<span> *</span>
+                      Currency<span className="required-asterisk"> *</span>
                     </label>
                     <select
                       defaultValue={input.currency ? input.currency : 'eur'}
@@ -192,7 +192,7 @@ export default function GeneralSetting() {
                 </div>
                 <div className="price-rouding">
                   <label className="customer-title" htmlFor="price">
-                    Price Rounding<span> *</span>
+                    Price Rounding<span className="required-asterisk"> *</span>
                   </label>
                   <select
                     defaultValue={input.pricesRounding ? input.pricesRounding : 'xxx9.00'}
@@ -213,12 +213,15 @@ export default function GeneralSetting() {
                         checked={input.deleteOutStock}
                         type="checkbox"
                         name="delete-out-stock"
+                        id="delete-out-stock"
                         onChange={e => handleChangeInput('deleteOutStock', e.target.checked)}
                       />
-                      <i>
-                        (This flag defines if products or product variations need to be deleted if
-                        they received out of stock status.)
-                      </i>
+                      <label htmlFor="delete-out-stock">
+                        <i>
+                          (This flag defines if products or product variations need to be deleted if
+                          they received out of stock status.)
+                        </i>
+                      </label>
                     </div>
                   </div>
                   <div className="checkbox-item">
@@ -231,13 +234,16 @@ export default function GeneralSetting() {
                         checked={input.productAsDraft}
                         type="checkbox"
                         name="product-draft"
+                        id="product-draft"
                         onChange={e => handleChangeInput('productAsDraft', e.target.checked)}
                       />
-                      <i>
-                        (When this option is enabled, all newly imported products will not be
-                        visible on the site. After importing such products, the status will need to
-                        be changed manually.)
-                      </i>
+                      <label htmlFor="product-draft">
+                        <i>
+                          (When this option is enabled, all newly imported products will not be
+                          visible on the site. After importing such products, the status will need
+                          to be changed manually.)
+                        </i>
+                      </label>
                     </div>
                   </div>
                   <div className="checkbox-item">
@@ -249,14 +255,17 @@ export default function GeneralSetting() {
                         value="include-brand"
                         type="checkbox"
                         name="include-brand"
+                        id="include-brand"
                         checked={input.includeBrand}
                         onChange={e => handleChangeInput('includeBrand', e.target.checked)}
                       />
-                      <i>
-                        (The flag defines if product name needs to contain brand name. Also, pay
-                        attention that the max length of product name for youe store is 255 symbols
-                        and product name can be cut.)
-                      </i>
+                      <label htmlFor="include-brand">
+                        <i>
+                          (The flag defines if product name needs to contain brand name. Also, pay
+                          attention that the max length of product name for your store is 255
+                          symbols symbols symbols and product name can be cut.)
+                        </i>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -286,7 +295,7 @@ export default function GeneralSetting() {
                 onSubmit={e => handleSave(e, 'shopifyToken')}
               >
                 <label className="customer-title" htmlFor="token">
-                  Access Token<span> *</span>
+                  Access Token<span className="required-asterisk"> *</span>
                 </label>
                 <input
                   value={input.shopifyToken ? input.shopifyToken : ''}

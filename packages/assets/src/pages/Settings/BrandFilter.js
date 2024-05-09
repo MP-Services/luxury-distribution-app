@@ -7,6 +7,7 @@ import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingH
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
 import {setToast, setLoader} from '@assets/actions/storeActions';
+import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 
 /**
  * Render a home page for overview
@@ -69,6 +70,7 @@ export default function BrandFilter() {
     <div className="main">
       <div className="content-title">
         <div className="header-title">
+          <ToggleMenu />
           <a href="#" onClick={() => history.push('/settings')}>
             <i className="solid arrow-left"></i>
           </a>

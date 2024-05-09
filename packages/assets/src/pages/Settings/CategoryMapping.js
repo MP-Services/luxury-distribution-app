@@ -9,6 +9,7 @@ import {setLoader, setToast} from '@assets/actions/storeActions';
 import {api} from '@assets/helpers';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import useDeleteApi from '@assets/hooks/api/useDeleteApi';
+import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 
 /**
  * Render a home page for overview
@@ -171,6 +172,7 @@ export default function CategoryMapping() {
     <div className="main">
       <div className="content-title">
         <div className="header-title">
+          <ToggleMenu />
           <a href="#" onClick={() => history.push('/settings')}>
             <i className="solid arrow-left"></i>
           </a>
