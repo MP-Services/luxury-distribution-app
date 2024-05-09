@@ -23,6 +23,18 @@ mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
 }
 `;
 
+export const DELETE_PRODUCT_MUTATION = `
+mutation DeleteProduct($product: ProductDeleteInput!) {
+  productDelete(input: $product){
+        deletedProductId
+        userErrors {
+            field
+            message
+        }
+    }
+}
+`;
+
 export const CREATE_PRODUCT_MUTATION = `
 mutation CreateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
   productCreate(input: $product, media: $media){
@@ -158,6 +170,34 @@ export async function runMetafieldDefinitionMutation({shop, variables, query = C
     }
 
     return createdDefinition;
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runDeleteProductMutation({shop, variables, query = DELETE_PRODUCT_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {deletedProductId, userErrors} = data.productDelete;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return deletedProductId;
   } catch (error) {
     console.error(error);
     return '';

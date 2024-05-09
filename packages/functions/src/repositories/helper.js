@@ -30,7 +30,7 @@ export async function batchCreate(firestore, collection, createData) {
  * @param {*} updateData
  * @return {Promise<void>}
  */
-export async function batchUpdate(firestore, docs, updateData, key) {
+export async function batchUpdate(firestore, docs, updateData) {
   const batches = [];
   const docChunks = chunk(docs, 500);
   docChunks.forEach(docChunk => {

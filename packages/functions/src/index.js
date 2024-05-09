@@ -3,6 +3,7 @@ import apiHandler from './handlers/api';
 import apiSaHandler from './handlers/apiSa';
 import authHandler from './handlers/auth';
 import authSaHandler from './handlers/authSa';
+import restApiHandler from './handlers/restApi';
 import syncProductData from './handlers/schedule/syncProduct';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
@@ -12,6 +13,10 @@ export const apiSa = functions.https.onRequest(apiSaHandler.callback());
 
 export const auth = functions.https.onRequest(authHandler.callback());
 export const authSa = functions.https.onRequest(authSaHandler.callback());
+
+export const restApi = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .https.onRequest(restApiHandler.callback());
 
 // ---------------------- Cron schedule handlers ----------------------
 export const syncProduct = functions

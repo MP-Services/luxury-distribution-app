@@ -1,13 +1,15 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {
   getLuxuryShopInfoByShopifyId,
-  getLuxuryStockList
+  getLuxuryStockList,
+  getStockById
 } from '@functions/repositories/luxuryRepository';
 import {getBrandSettingShopId} from '@functions/repositories/settings/brandRepository';
 import {getSyncSettingShopId} from '@functions/repositories/settings/syncRepository';
-import {batchCreate, batchDelete} from '@functions/repositories/helper';
+import {batchCreate, batchDelete, batchUpdate} from '@functions/repositories/helper';
 import {
   getLocationQuery,
+  runDeleteProductMutation,
   runMetafieldDefinitionMutation,
   runProductAdjustQuantitiesMutation,
   runProductMutation,
@@ -17,6 +19,7 @@ import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopReposit
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
 import productMetafields from '@functions/const/productMetafields';
 import {prepareDoc} from './helper';
+import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -73,23 +76,42 @@ export async function getProductsQuery(shopId, limit = 0, syncStatus = '') {
 export async function syncProducts(shopId) {
   try {
     const syncSetting = await getSyncSettingShopId(shopId);
+    const generalSetting = await getGeneralSettingShopId(shopId);
     const categoryMappings = await getMappingDataWithoutPaginate(shopId);
+    const brandFilterSetting = await getBrandSettingShopId(shopId);
     const productsRef = await getProductsQuery(shopId, 3, 'success');
     const shop = await getShopByIdIncludeAccessToken(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
-    if (productsRef.empty || !defaultLocationId) {
+    if (
+      productsRef.empty ||
+      !defaultLocationId ||
+      !brandFilterSetting ||
+      brandFilterSetting.brands.length === 0
+    ) {
       return [];
     }
 
     await Promise.all(
       productsRef.docs.map(async doc => {
         const productData = doc.data();
-        console.log(productData.id);
+        // Remove product if it is not in brand filter
+        if (!brandFilterSetting.brands.includes()) {
+          // const {productShopifyId} = productData;
+          // if (productShopifyId) {
+          //   await runDeleteProductMutation({
+          //     shop,
+          //     variables: {
+          //       product: {id: productShopifyId}
+          //     }
+          //   });
+          // }
+          return doc.ref.delete();
+        }
         let margin = 1;
         const productOptionsData = [
           {
             name: 'Size',
-            values: productData.size_quantity.map(item => ({name: Object.keys(item)[0]}))
+            values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
           }
         ];
         const productMediaData = productData.images.map(item => ({
@@ -104,12 +126,14 @@ export async function syncProducts(shopId) {
 
         const productVariables = {
           product: {
-            title: productData.name,
+            title: generalSetting?.includeBrand
+              ? `${productData.name} ${productData.brand}`
+              : productData.name,
             descriptionHtml: syncSetting.description ? productData.desscription : '',
             metafields: metafieldsData,
             productOptions: productOptionsData,
             collectionsToJoin: [],
-            status: 'ACTIVE'
+            status: generalSetting?.productAsDraft ? 'DRAFT' : 'ACTIVE'
           },
           media: syncSetting.images ? productMediaData : []
         };
@@ -210,6 +234,13 @@ export async function createMetafields(shopId) {
       runMetafieldDefinitionMutation({shop, variables: {definition: metafield}})
     )
   );
+}
+
+async function addProductToQueueBySku(shopId, sku) {
+  // try {
+  //   const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
+  //   const getStockIds = await getStockIdsToSync(shopId);
+  // }
 }
 
 /**
@@ -336,7 +367,7 @@ export async function getStockIdsToSync(shopId) {
  * @returns {Promise<boolean>}
  */
 
-export async function deleteProductsInQueue(shopId) {
+export async function deleteProductsInQueueWhenChangeBrandFilter(shopId) {
   try {
     const brandFilterData = await getBrandSettingShopId(shopId);
     if (brandFilterData) {
@@ -356,4 +387,74 @@ export async function deleteProductsInQueue(shopId) {
     console.log(e);
     return false;
   }
+}
+
+/**
+ *
+ * @param webhookData
+ * @returns {Promise<boolean>}
+ */
+export async function productWebhook(webhookData) {
+  try {
+    const {event, sku} = webhookData;
+    switch (event) {
+      case 'ProductCreate':
+        break;
+      case 'ProductUpdate':
+        const productInQueue = await getOneProductBySku(sku);
+        if (productInQueue) {
+          const stockData = await getStockById(productInQueue.id);
+          await updateQueueBySku(sku, {
+            ...stockData,
+            queueStatus: 'updated',
+            syncStatus: 'new',
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+        break;
+      case 'ProductDelete':
+        await updateQueueBySku(sku, {queueStatus: 'deleted'});
+        break;
+    }
+
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
+/**
+ *
+ * @param sku
+ * @returns {Promise<FirebaseFirestore.DocumentData|null>}
+ */
+async function getOneProductBySku(sku) {
+  const docs = await collection
+    .where('sku', '==', sku)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].data();
+}
+
+/**
+ *
+ * @param sku
+ * @param data
+ * @returns {Promise<null>}
+ */
+async function updateQueueBySku(sku, data) {
+  const docs = await collection.where('sku', '==', sku).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  await batchUpdate(firestore, docs.docs, {
+    ...data,
+    updatedAt: FieldValue.serverTimestamp()
+  });
 }

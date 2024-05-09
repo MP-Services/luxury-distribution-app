@@ -1,6 +1,4 @@
-import {getCurrentShop} from '@functions/helpers/auth';
-import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
-import {addProducts, createMetafields, syncProducts} from '@functions/repositories/productRepository';
+import {productWebhook} from '@functions/repositories/productRepository';
 
 /**
  * Get current subscription of a shop
@@ -8,13 +6,11 @@ import {addProducts, createMetafields, syncProducts} from '@functions/repositori
  * @param {Context|Object|*} ctx
  * @returns {Promise<void>}
  */
-export async function sync(ctx) {
+export async function update(ctx) {
   try {
-    const shopId = getCurrentShop(ctx);
-    // await addProducts(shopId);
-    // await syncProducts(shopId, luxuryShopInfo);
+    const hookResult = await productWebhook(ctx.req.body);
     ctx.body = {
-      success: true
+      success: hookResult
     };
   } catch (e) {
     console.error(e);

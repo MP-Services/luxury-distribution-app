@@ -4,7 +4,7 @@ import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
 
 const firestore = new Firestore();
-const luxuryInfosRef = firestore.collection('luxuryShopInfos');
+const collection = firestore.collection('luxuryShopInfos');
 
 /**
  *
@@ -56,6 +56,37 @@ async function getLXData(url, data, key = 'data') {
   }
 
   return [];
+}
+
+/**
+ *
+ * @param stockId
+ * @returns {Promise<*|*[]|boolean>}
+ */
+export async function getStockById(stockId) {
+  try {
+    const luxuryShopInfo = getOneLuxuryShop();
+    if (luxuryShopInfo) {
+      return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  return false;
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+async function getOneLuxuryShop() {
+  const docs = await collection.limit(1).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs[0].data();
 }
 
 /**
@@ -117,7 +148,7 @@ export async function getLuxuryToken(data) {
  * @returns {Promise<FirebaseFirestore.DocumentData>}
  */
 export async function getLuxuryShopInfoByShopifyId(id) {
-  const docs = await luxuryInfosRef
+  const docs = await collection
     .where('shopifyId', '==', id)
     .limit(1)
     .get();
@@ -134,7 +165,7 @@ export async function getLuxuryShopInfoByShopifyId(id) {
  * @returns {Promise<*|null>}
  */
 export async function getLuxuryShops() {
-  const docs = await luxuryInfosRef.get();
+  const docs = await collection.get();
   if (docs.empty) {
     return null;
   }
@@ -151,13 +182,13 @@ export async function getLuxuryShops() {
 export async function addLuxuryShopInfo(shopId, data) {
   const luxuryInfos = await getLuxuryShopInfoByShopifyId(shopId);
   if (!luxuryInfos) {
-    const luxuryRef = await luxuryInfosRef.add({
+    const luxuryRef = await collection.add({
       ...data,
       shopifyId: shopId,
       tokenCreationTime: FieldValue.serverTimestamp()
     });
     if (luxuryRef) {
-      const luxuryDoc = await luxuryInfosRef.doc(luxuryRef.id).get();
+      const luxuryDoc = await collection.doc(luxuryRef.id).get();
 
       return presentDataAndFormatDate(luxuryDoc);
     }
@@ -172,7 +203,7 @@ export async function addLuxuryShopInfo(shopId, data) {
  */
 export async function updateLuxuryToken(data, updateData) {
   const {username, identifier, publicKey, shopifyId} = {...data};
-  const luxuryDocs = await luxuryInfosRef
+  const luxuryDocs = await collection
     .where('shopifyId', '==', shopifyId)
     .where('username', '==', username)
     .where('identifier', '==', identifier)
