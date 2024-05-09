@@ -7,19 +7,23 @@ import * as brandSettingController from '@functions/controllers/settings/brandCo
 import * as generalSettingController from '@functions/controllers/settings/generalController';
 import * as categorySettingController from '@functions/controllers/settings/categoryController';
 import * as dashboardController from '@functions/controllers/dashboardController';
+import * as attributeMappingController from '@functions/controllers/settings/attributeMappingController';
 import {getApiPrefix} from '@functions/const/app';
 
 export default function apiRouter(isEmbed = false) {
   const router = new Router({prefix: getApiPrefix(isEmbed)});
 
+  router.post('/signup', jsonType, signUpController.signUp);
   router.get('/shops', shopController.getUserShops);
   router.get('/luxuryInfos', shopController.luxuryInfos);
-  router.post('/signup', jsonType, signUpController.signUp);
+
   router.get('/setting/sync', syncSettingController.get);
   router.post('/setting/sync', jsonType, syncSettingController.save);
+
   router.get('/setting/brandfilter', brandSettingController.get);
   router.post('/setting/brandfilter', jsonType, brandSettingController.save);
   router.get('/setting/brandlist', brandSettingController.getLXBrand);
+
   router.get('/setting/general', generalSettingController.get);
   router.post('/setting/general', jsonType, generalSettingController.save);
   router.get(
@@ -34,6 +38,12 @@ export default function apiRouter(isEmbed = false) {
     jsonType,
     categorySettingController.deleteOne
   );
+  router.get('/setting/attributemapping', attributeMappingController.get);
+  router.get(
+    '/setting/attributemapping/optionsmapping',
+    attributeMappingController.getOptionsMapping
+  );
+
   router.get('/dashboard', dashboardController.getDashboardInfo);
 
   return router;

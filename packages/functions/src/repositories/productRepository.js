@@ -252,8 +252,8 @@ async function addProductToQueueBySku(shopId, sku) {
 export async function addProducts(shopId) {
   try {
     const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    const getStockIds = await getStockIdsToSync(shopId);
     const stockList = await getLuxuryStockList(luxuryShopInfo);
+    const getStockIds = await getStockIdsToSync(shopId);
     const brandFilter = await getBrandSettingShopId(shopId);
     const products = stockList
       .filter(

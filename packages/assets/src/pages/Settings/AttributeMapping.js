@@ -4,6 +4,7 @@ import '../../styles/pages/attribute-mapping.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
+import useFetchApi from '@assets/hooks/api/useFetchApi';
 
 /**
  * Render a home page for overview
@@ -13,9 +14,32 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
  */
 export default function AttributeMapping() {
   const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
+  const {data: attributeMappingData, setData: setAttributeMappingData} = useFetchApi({
+    url: '/setting/attributemapping'
+  });
+  const {data: sizeOptionsMappingData} = useFetchApi({
+    url: '/setting/attributemapping/optionsmapping'
+  });
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
+
+  const handleChangeOptionName = (key, value) => {
+    setAttributeMappingData(prev =>
+      prev.map(attribute => {
+        const optionsMapping = attribute?.optionsMapping;
+        const option = optionsMapping.filter(item => item.retailerOptionName === key);
+        optionsMapping.map(option => {
+          if (option.retailerOptionName === key) return {...option, dropshipperOptionName: value};
+          return {
+            retailerOptionName: '',
+            dropshipperOptionName: ''
+          };
+        });
+        return {...attribute, [key]: value};
+      })
+    );
+  };
 
   return (
     <div className="main">
@@ -117,10 +141,7 @@ export default function AttributeMapping() {
                   <div className="cell">1</div>
                   <div className="cell">
                     <select className="retailer-attribute-name" name="retailer_attribute_name">
-                      <option value="0">
-                        Siz asd asd asd asd asd asd asd asd asd jhasgdj asgjh dgjhasg djhgasjhdg
-                        asjhdg jasdjh asjhde
-                      </option>
+                      <option value="size">Size</option>
                     </select>
                   </div>
                   <div className="cell">
@@ -129,65 +150,48 @@ export default function AttributeMapping() {
                       name="dropshipper_attribute_name"
                     />
                   </div>
-
-                  <div className="cell actions">
-                    <button
-                      className="btn btn-primary option-mapping"
-                      onClick={() => setDisplayOptionMapping(!displayOptionMapping)}
-                    >
-                      <span>Option Mapping</span>
-                    </button>
-                  </div>
-                  {displayOptionMapping && (
-                    <div className="option-mapping-table css-grid-table">
-                      <div className="mapping-row row-header css-grid-table-header">
-                        <div className="cell header-cell">#</div>
-                        <div className="cell header-cell retailer-option-name">
-                          Retailer Option Name
-                        </div>
-                        <div className="cell header-cell dropshipper-option-name">
-                          Dropshipper Option Name
-                        </div>
+                  {!!sizeOptionsMappingData.length && (
+                    <>
+                      <div className="cell actions">
+                        <button
+                          className="btn btn-primary option-mapping"
+                          onClick={() => setDisplayOptionMapping(!displayOptionMapping)}
+                        >
+                          <span>Options Mapping</span>
+                        </button>
                       </div>
-                      <div className="row-body css-grid-table-body">
-                        <div className="mapping-row css-grid-table-row">
-                          <div className="cell">1</div>
-                          <div className="cell">
-                            <p>100 cm / 40 inches</p>
+                      {displayOptionMapping && (
+                        <div className="option-mapping-table css-grid-table">
+                          <div className="mapping-row row-header css-grid-table-header">
+                            <div className="cell header-cell">#</div>
+                            <div className="cell header-cell retailer-option-name">
+                              Retailer Option Name
+                            </div>
+                            <div className="cell header-cell dropshipper-option-name">
+                              Dropshipper Option Name
+                            </div>
                           </div>
-                          <div className="cell">
-                            <input
-                              className="dropshipper-option-name clearable"
-                              name="dropshipper_option_name"
-                            />
-                          </div>
-                        </div>
-                        <div className="mapping-row css-grid-table-row">
-                          <div className="cell">2</div>
-                          <div className="cell">
-                            <p>100 cm / 40 inches</p>
-                          </div>
-                          <div className="cell">
-                            <input
-                              className="dropshipper-option-name clearable"
-                              name="dropshipper_option_name"
-                            />
-                          </div>
-                        </div>
-                        <div className="mapping-row css-grid-table-row">
-                          <div className="cell">3</div>
-                          <div className="cell">
-                            <p>100 cm / 40 inches</p>
-                          </div>
-                          <div className="cell">
-                            <input
-                              className="dropshipper-option-name clearable"
-                              name="dropshipper_option_name"
-                            />
+                          <div className="row-body css-grid-table-body">
+                            {sizeOptionsMappingData.map((size, index) => (
+                              <div className="mapping-row css-grid-table-row">
+                                <div className="cell">{index + 1}</div>
+                                <div className="cell">
+                                  <p>{size}</p>
+                                  <input type="hidden" value={size} />
+                                </div>
+                                <div className="cell">
+                                  <input
+                                    className="dropshipper-option-name clearable"
+                                    name="dropshipper_option_name"
+                                    onChange={e => handleChangeOptionName(size, e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

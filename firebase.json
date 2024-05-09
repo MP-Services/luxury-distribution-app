@@ -52,6 +52,10 @@
         "function": "authSa"
       },
       {
+        "source": "/rest_api/v1/**",
+        "function": "restApi"
+      },
+      {
         "source": "/login",
         "destination": "/login/pages/login.html"
       },
