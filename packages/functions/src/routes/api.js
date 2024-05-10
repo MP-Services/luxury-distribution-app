@@ -39,6 +39,7 @@ export default function apiRouter(isEmbed = false) {
     categorySettingController.deleteOne
   );
   router.get('/setting/attributemapping', attributeMappingController.get);
+  router.post('/setting/attributemapping', jsonType, attributeMappingController.save);
   router.get(
     '/setting/attributemapping/optionsmapping',
     attributeMappingController.getOptionsMapping

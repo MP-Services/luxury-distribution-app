@@ -1,10 +1,12 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/attribute-mapping.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
+import useCreateApi from '@assets/hooks/api/useCreateApi';
+import {setLoader} from '@assets/actions/storeActions';
 
 /**
  * Render a home page for overview
@@ -14,32 +16,70 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
  */
 export default function AttributeMapping() {
   const [displayOptionMapping, setDisplayOptionMapping] = useState(false);
-  const {data: attributeMappingData, setData: setAttributeMappingData} = useFetchApi({
-    url: '/setting/attributemapping'
+  const {
+    data: attributeMappingData,
+    setData: setAttributeMappingData,
+    fetchApi,
+    fetched
+  } = useFetchApi({
+    url: '/setting/attributemapping',
+    defaultData: [
+      {
+        retailerAttribute: 'Size',
+        dropshipperAttribute: 'Size',
+        optionsMapping: []
+      }
+    ]
   });
   const {data: sizeOptionsMappingData} = useFetchApi({
     url: '/setting/attributemapping/optionsmapping'
+  });
+  const {creating, handleCreate} = useCreateApi({
+    url: '/setting/attributemapping',
+    successMsg: 'Saved successfully!',
+    errorMsg: 'Failed to save'
   });
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
 
-  const handleChangeOptionName = (key, value) => {
+  const handleChangeOptionName = (retailerOption, dropshipperOption) => {
     setAttributeMappingData(prev =>
       prev.map(attribute => {
-        const optionsMapping = attribute?.optionsMapping;
-        const option = optionsMapping.filter(item => item.retailerOptionName === key);
-        optionsMapping.map(option => {
-          if (option.retailerOptionName === key) return {...option, dropshipperOptionName: value};
-          return {
-            retailerOptionName: '',
-            dropshipperOptionName: ''
-          };
-        });
-        return {...attribute, [key]: value};
+        let optionsMapping = attribute?.optionsMapping || [];
+        const isExistOption = optionsMapping.some(
+          item => item.retailerOptionName === retailerOption
+        );
+        if (isExistOption) {
+          optionsMapping = optionsMapping.map(option => {
+            if (option.retailerOptionName === retailerOption)
+              return {...option, dropshipperOptionName: dropshipperOption};
+            return {...option};
+          });
+        } else {
+          optionsMapping.push({
+            retailerOptionName: retailerOption,
+            dropshipperOptionName: dropshipperOption
+          });
+        }
+        return {...attribute, optionsMapping};
       })
     );
   };
+
+  const getOptionMappingValue = (retailerOptionName) => {
+    const option = attributeMappingData[0].optionsMapping.find(
+      option => option.retailerOptionName === retailerOptionName
+    );
+    return option?.dropshipperOptionName ?? '';
+  };
+
+  useEffect(() => {
+    if (!creating && fetched) {
+      fetchApi().then(() => {});
+    }
+    setLoader(dispatch, creating);
+  }, [creating]);
 
   return (
     <div className="main">
@@ -173,7 +213,7 @@ export default function AttributeMapping() {
                           </div>
                           <div className="row-body css-grid-table-body">
                             {sizeOptionsMappingData.map((size, index) => (
-                              <div className="mapping-row css-grid-table-row">
+                              <div className="mapping-row css-grid-table-row" key={index}>
                                 <div className="cell">{index + 1}</div>
                                 <div className="cell">
                                   <p>{size}</p>
@@ -183,6 +223,7 @@ export default function AttributeMapping() {
                                   <input
                                     className="dropshipper-option-name clearable"
                                     name="dropshipper_option_name"
+                                    value={getOptionMappingValue(size)}
                                     onChange={e => handleChangeOptionName(size, e.target.value)}
                                   />
                                 </div>
@@ -215,7 +256,11 @@ export default function AttributeMapping() {
                   </i>
                   Add Mapping
                 </button>
-                <button type="button" className="btn-primary btn-save">
+                <button
+                  type="button"
+                  className="btn-primary btn-save"
+                  onClick={async () => handleCreate(attributeMappingData)}
+                >
                   Save
                 </button>
               </div>
