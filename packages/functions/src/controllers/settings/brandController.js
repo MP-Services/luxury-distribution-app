@@ -44,7 +44,9 @@ export async function getLXBrand(ctx) {
     const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
     if (luxuryShopInfo) {
       const lxBrandList = await getLXBrandList(luxuryShopInfo);
-      return (ctx.body = {success: true, data: lxBrandList});
+      if (lxBrandList) {
+        return (ctx.body = {success: true, data: lxBrandList});
+      }
     }
   } catch (e) {
     console.log(e);

@@ -6,7 +6,7 @@ import {productWebhook} from '@functions/repositories/productRepository';
  * @param {Context|Object|*} ctx
  * @returns {Promise<void>}
  */
-export async function update(ctx) {
+export async function webhook(ctx) {
   try {
     const hookResult = await productWebhook(ctx.req.body);
     ctx.body = {
@@ -14,8 +14,8 @@ export async function update(ctx) {
     };
   } catch (e) {
     console.error(e);
+    ctx.body = {
+      success: false
+    };
   }
-  ctx.body = {
-    success: false
-  };
 }

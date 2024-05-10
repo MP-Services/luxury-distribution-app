@@ -55,26 +55,26 @@ async function getLXData(url, data, key = 'data') {
     console.log(e);
   }
 
-  return [];
+  return null;
 }
 
-/**
- *
- * @param stockId
- * @returns {Promise<*|*[]|boolean>}
- */
-export async function getStockById(stockId) {
-  try {
-    const luxuryShopInfo = getOneLuxuryShop();
-    if (luxuryShopInfo) {
-      return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
-    }
-  } catch (e) {
-    console.log(e);
-  }
-
-  return false;
-}
+// /**
+//  *
+//  * @param stockId
+//  * @returns {Promise<*|*[]|boolean>}
+//  */
+// export async function getStockById(stockId) {
+//   try {
+//     const luxuryShopInfo = getOneLuxuryShop();
+//     if (luxuryShopInfo) {
+//       return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
+//     }
+//   } catch (e) {
+//     console.log(e);
+//   }
+//
+//   return false;
+// }
 
 /**
  *
@@ -96,6 +96,16 @@ async function getOneLuxuryShop() {
  */
 export async function getBrandList(data) {
   return await getLXData(LUXURY_API_V1_URL + '/brands', data, 'responseData');
+}
+
+/**
+ *
+ * @param stockId
+ * @param luxuryShopInfo
+ * @returns {Promise<*|*[]>}
+ */
+export async function getStockById(stockId, luxuryShopInfo) {
+  return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
 }
 
 /**

@@ -1,6 +1,7 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {
   getLuxuryShopInfoByShopifyId,
+  getLuxuryShops,
   getLuxuryStockList,
   getStockById
 } from '@functions/repositories/luxuryRepository';
@@ -20,6 +21,7 @@ import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/ca
 import productMetafields from '@functions/const/productMetafields';
 import {prepareDoc} from './helper';
 import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
+import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -81,6 +83,7 @@ export async function syncProducts(shopId) {
     const brandFilterSetting = await getBrandSettingShopId(shopId);
     const productsRef = await getProductsQuery(shopId, 3, 'success');
     const shop = await getShopByIdIncludeAccessToken(shopId);
+    const getSizeAttributeMapping = await getAttributeMappingData(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
     if (
       productsRef.empty ||
@@ -111,7 +114,11 @@ export async function syncProducts(shopId) {
         const productOptionsData = [
           {
             name: 'Size',
-            values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
+            // values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
+            values: convertOptionMappingToSizeValue(
+              productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
+              getSizeAttributeMapping
+            )
           }
         ];
         const productMediaData = productData.images.map(item => ({
@@ -236,6 +243,23 @@ export async function createMetafields(shopId) {
   );
 }
 
+/**
+ *
+ * @param sizes
+ * @param getSizeAttributeMapping
+ * @returns {*}
+ */
+function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
+  if (getSizeAttributeMapping) {
+    const sizeOptionMapping = getSizeAttributeMapping.optionsMapping;
+    return sizes.map(size => {
+      const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
+      return sizeOption?.dropshipperOptionName ?? size;
+    });
+  }
+  return sizes;
+}
+
 async function addProductToQueueBySku(shopId, sku) {
   // try {
   //   const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
@@ -253,35 +277,72 @@ export async function addProducts(shopId) {
   try {
     const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
     const stockList = await getLuxuryStockList(luxuryShopInfo);
-    const getStockIds = await getStockIdsToSync(shopId);
-    const brandFilter = await getBrandSettingShopId(shopId);
-    const products = stockList
-      .filter(
-        stockItem =>
-          brandFilter.brands.includes(stockItem.brand) &&
-          (!getStockIds || (getStockIds && !getStockIds.includes(stockItem.id)))
-      )
-      .map(item => {
-        let sizeQuantity = [];
-        if (item.hasOwnProperty('size_quantity')) {
-          sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
-        }
+    if (stockList) {
+      const brandFilter = await getBrandSettingShopId(shopId);
+      const getStockIds = await getStockIdsToSync(shopId);
+      const products = stockList
+        .filter(
+          stockItem =>
+            brandFilter.brands.includes(stockItem.brand) &&
+            (!getStockIds || (getStockIds && !getStockIds.includes(stockItem.id)))
+        )
+        .map(item => {
+          let sizeQuantity = [];
+          if (item.hasOwnProperty('size_quantity')) {
+            sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
+          }
+          const {id, ...data} = item;
 
-        return {
-          shopifyId: shopId,
-          syncStatus: 'new',
-          queueStatus: 'created',
-          ...item,
-          size_quantity: sizeQuantity,
-          size_quantity_delta: sizeQuantity,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp()
-        };
-      });
+          return {
+            stockId: id,
+            shopifyId: shopId,
+            syncStatus: 'new',
+            queueStatus: 'created',
+            ...data,
+            size_quantity: sizeQuantity,
+            size_quantity_delta: sizeQuantity,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          };
+        });
 
-    await batchCreate(firestore, collection, products);
-
+      await batchCreate(firestore, collection, products);
+    }
     return true;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return false;
+}
+
+/**
+ *
+ * @param shopId
+ * @param stockData
+ * @returns {Promise<boolean>}
+ */
+export async function addProduct(shopId, stockData) {
+  try {
+    const brandFilter = await getBrandSettingShopId(shopId);
+    if (stockData && brandFilter && brandFilter.brands.includes(stockData.brand)) {
+      let sizeQuantity = [];
+      if (stockData.hasOwnProperty('size_quantity')) {
+        sizeQuantity = stockData.size_quantity.filter(item => !Array.isArray(item));
+      }
+      const {id, ...data} = stockData;
+      return collection.add({
+        stockId: id,
+        shopifyId: shopId,
+        syncStatus: 'new',
+        queueStatus: 'created',
+        ...data,
+        size_quantity: sizeQuantity,
+        size_quantity_delta: sizeQuantity,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
   } catch (e) {
     console.log(e);
   }
@@ -358,7 +419,10 @@ export async function getStockIdsToSync(shopId) {
     return null;
   }
 
-  return docs.docs.map(doc => ({shopId: doc.data().id}));
+  return docs.docs.map(doc => {
+    const {stockId} = doc.data();
+    return stockId;
+  });
 }
 
 /**
@@ -396,21 +460,47 @@ export async function deleteProductsInQueueWhenChangeBrandFilter(shopId) {
  */
 export async function productWebhook(webhookData) {
   try {
-    const {event, sku} = webhookData;
+    const {event, record: stockId} = webhookData;
+    const shops = await getLuxuryShops();
     switch (event) {
       case 'ProductCreate':
+        await Promise.all(
+          shops.map(async shop => {
+            const stockData = await getStockById(stockId, shop);
+            return addProduct(shop.shopifyId, stockData);
+          })
+        );
         break;
       case 'ProductUpdate':
-        const productInQueue = await getOneProductBySku(sku);
-        if (productInQueue) {
-          const stockData = await getStockById(productInQueue.id);
-          await updateQueueBySku(sku, {
-            ...stockData,
-            queueStatus: 'updated',
-            syncStatus: 'new',
-            updatedAt: FieldValue.serverTimestamp()
-          });
-        }
+        const products = await getAllProductsByStockId(stockId);
+        await Promise.all(
+          shops.map(async shop => {
+            const productNeedUpdate = products.find(item => item.shopifyId === shop.shopifyId);
+            const sizeQuantityOfProduct = productNeedUpdate.size_quantity;
+            const newStockData = await getStockById(stockId, shop);
+            const {id, ...newUpdateStockData} = newStockData;
+            if (productNeedUpdate.syncStatus !== 'success') {
+              const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
+                item => !Array.isArray(item)
+              );
+              const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
+              const newSizeQuantity = sizeQuantityNeedUpdate.filter(
+                a => !oldSize.includes(Object.keys(a)[0])
+              );
+              newUpdateStockData.size_quantity = sizeQuantityNeedUpdate;
+              newUpdateStockData.size_quantity_delta = getSizeQuantityDelta(
+                sizeQuantityNeedUpdate,
+                productNeedUpdate.size_quantity_delta
+              );
+            }
+            return updateProduct(productNeedUpdate.id, {
+              ...newUpdateStockData,
+              queueStatus: 'updated',
+              syncStatus: 'new',
+              updatedAt: FieldValue.serverTimestamp()
+            });
+          })
+        );
         break;
       case 'ProductDelete':
         await updateQueueBySku(sku, {queueStatus: 'deleted'});
@@ -422,6 +512,43 @@ export async function productWebhook(webhookData) {
     console.log(e);
     return false;
   }
+}
+
+/**
+ *
+ * @param a
+ * @param b
+ * @returns {*}
+ */
+
+function getSizeQuantityDelta(a, b) {
+  return b.map(itemB => {
+    const keyB = Object.keys(itemB)[0];
+    const valueB = parseInt(itemB[keyB]);
+    const itemA = a.find(item => Object.keys(item)[0] === keyB);
+
+    if (itemA) {
+      const valueA = parseInt(itemA[keyB]);
+      const newValue = valueB - valueA;
+      return {[keyB]: newValue.toString()};
+    }
+
+    return itemB;
+  });
+}
+
+/**
+ *
+ * @param stockId
+ * @returns {Promise<*[]|null>}
+ */
+async function getAllProductsByStockId(stockId) {
+  const docs = await collection.where('id', '==', stockId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs.map(doc => ({id: doc.id, ...doc.data()}));
 }
 
 /**

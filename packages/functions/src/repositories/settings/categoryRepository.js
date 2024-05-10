@@ -14,6 +14,12 @@ const firestore = new Firestore();
 /** @type CollectionReference */
 const collection = firestore.collection('categoryMappingSettings');
 
+/**
+ *
+ * @param id
+ * @param query
+ * @returns {Promise<{data: *[], count: number, pageInfo: {hasNext: boolean, hasPre: boolean}, error}|{data: *[], count: number, pageInfo: {hasNext: boolean, hasPre: boolean}}>}
+ */
 export async function getMappingData(id, query = {}) {
   try {
     const queriedRef = collection.where('shopifyId', '==', id);
@@ -52,36 +58,16 @@ export async function getShopifyCollections(id) {
   }
 }
 
+/**
+ *
+ * @param data
+ * @returns {Promise<*[]>}
+ */
+
 export async function getRetailerCategory(data) {
   try {
-    // const stockList = await getLuxuryStockList(data);
-    // if (stockList.length) {
-    //   const retailerCats = stockList.reduce((accumulator, item) => {
-    //     const {category, sub_category, sub_sub_category} = item;
-    //     let catId = category.id;
-    //     let catName = category.name;
-    //
-    //     if (sub_category) {
-    //       catId = catId + '_' + sub_category.id;
-    //       catName = catName + ' > ' + sub_category.name;
-    //     }
-    //
-    //     if (sub_sub_category) {
-    //       catId = catId + '_' + sub_sub_category.id;
-    //       catName = catName + ' > ' + sub_sub_category.name;
-    //     }
-    //
-    //     const hasDuplicate = accumulator.some(element => element.catId === catId);
-    //
-    //     if (!hasDuplicate) {
-    //       accumulator.push({catId, catName});
-    //     }
-    //
-    //     return accumulator;
-    //   }, []);
-
     const productCategories = await getCategories(data);
-    if (productCategories.length) {
+    if (productCategories) {
       const retailerCats = transformCategoriesData(productCategories);
       return retailerCats;
     }
@@ -92,6 +78,13 @@ export async function getRetailerCategory(data) {
   return [];
 }
 
+/**
+ *
+ * @param category
+ * @param parentName
+ * @param result
+ * @returns {*[]}
+ */
 function transformCategoriesData(category, parentName = '', result = []) {
   category.forEach(item => {
     const name = parentName ? `${parentName} > ${item.name}` : item.name;

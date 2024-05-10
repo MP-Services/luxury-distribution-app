@@ -1,4 +1,4 @@
-import {addProducts} from '../../repositories/productRepository';
+import {addProducts, createMetafields} from '../../repositories/productRepository';
 
 /**
  *
@@ -9,6 +9,7 @@ export default async function subscribeBrandFilterCreateHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
     const {shopId} = data;
+    await createMetafields(shopId);
     await addProducts(shopId);
   } catch (e) {
     console.error(e);

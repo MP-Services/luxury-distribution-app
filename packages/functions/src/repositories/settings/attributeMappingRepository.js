@@ -63,15 +63,16 @@ export async function saveAttributeMapping(shopId, data) {
 export async function getSizeOptions(luxuryInfo) {
   try {
     const stockList = await getLuxuryStockList(luxuryInfo);
-    let sizeOptions = [];
-    for (const stock of stockList) {
-      const sizes = stock.size_quantity.map(item => Object.keys(item)[0]);
-      sizeOptions = [...sizeOptions, ...sizes.filter(item => !sizeOptions.includes(item))];
+    if (stockList) {
+      let sizeOptions = [];
+      for (const stock of stockList) {
+        const sizes = stock.size_quantity.map(item => Object.keys(item)[0]);
+        sizeOptions = [...sizeOptions, ...sizes.filter(item => !sizeOptions.includes(item))];
+      }
+      return {success: true, data: sizeOptions};
     }
-
-    return {success: true, data: sizeOptions};
   } catch (e) {
     console.log(e);
-    return {success: false};
   }
+  return {success: false};
 }
