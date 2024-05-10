@@ -48,17 +48,8 @@ export async function getProducts(shopId) {
  * @param limit
  * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
  */
-export async function getProductsQuery(shopId, limit = 0, syncStatus = '') {
+export async function getProductsQuery(shopId, limit = 0) {
   try {
-    if (syncStatus) {
-      return await collection
-        .where('shopifyId', '==', shopId)
-        .where('syncStatus', '!=', syncStatus)
-        .orderBy('updatedAt')
-        .limit(limit)
-        .get();
-    }
-
     return await collection
       .where('shopifyId', '==', shopId)
       .orderBy('updatedAt')
@@ -87,7 +78,7 @@ export async function syncProducts(shopId) {
     const getSizeAttributeMapping = await getAttributeMappingData(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
     if (
-      productsRef.empty ||
+      productsQuery.empty ||
       !defaultLocationId ||
       !brandFilterSetting ||
       brandFilterSetting.brands.length === 0
