@@ -52,6 +52,10 @@
         "function": "authSa"
       },
       {
+        "source": "/app/api/v1/**",
+        "function": "apiHookV1"
+      },
+      {
         "source": "/rest_api/v1/**",
         "function": "restApi"
       },

@@ -4,5 +4,6 @@ const {app} = functions.config();
 
 export default {
   isProduction: app.env === 'production',
-  baseUrl: app.base_url
+  baseUrl: app.base_url,
+  isLocal: app.is_local === 'yes'
 };

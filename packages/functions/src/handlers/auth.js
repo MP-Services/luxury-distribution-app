@@ -7,6 +7,8 @@ import path from 'path';
 import createErrorHandler from '@functions/middleware/errorHandler';
 import firebase from 'firebase-admin';
 import appConfig from '@functions/config/app';
+// import * as uninstallationService from '../services/uninstallationService';
+import * as installationService from '../services/installationService';
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp();
@@ -41,6 +43,9 @@ app.use(
       trialDays: 0,
       features: {}
     },
+    afterInstall: installationService.installApp,
+    // afterUninstall: uninstallationService.uninstallApp,
+    afterLogin: installationService.afterLogin,
     hostName: appConfig.baseUrl,
     isEmbeddedApp: true,
     afterThemePublish: ctx => {

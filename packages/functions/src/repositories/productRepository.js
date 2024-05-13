@@ -103,18 +103,18 @@ export async function syncProducts(shopId) {
           return deleteProductInQueue(doc.id);
         } else {
           // Remove product if it is not in brand filter
-          if (!brandFilterSetting.brands.includes()) {
-            // const {productShopifyId} = productData;
-            // if (productShopifyId) {
-            //   await runDeleteProductMutation({
-            //     shop,
-            //     variables: {
-            //       product: {id: productShopifyId}
-            //     }
-            //   });
-            // }
-            return doc.ref.delete();
-          }
+          // if (!brandFilterSetting.brands.includes()) {
+          // const {productShopifyId} = productData;
+          // if (productShopifyId) {
+          //   await runDeleteProductMutation({
+          //     shop,
+          //     variables: {
+          //       product: {id: productShopifyId}
+          //     }
+          //   });
+          // }
+          // return doc.ref.delete();
+          // }
           let margin = 1;
           const productOptionsData = [
             {
