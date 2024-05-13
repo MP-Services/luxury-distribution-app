@@ -12,7 +12,7 @@
     "start": "avada app:serve",
     "logs": "./node_modules/.bin/firebase functions:log",
     "emulators": "npx kill-port 8095 && ./node_modules/.bin/firebase emulators:start --only hosting,functions,pubsub",
-    "predeploy": "concurrently \"yarn workspace @avada/assets run production && yarn workspace @avada/functions run production\" \"npm --prefix packages/statics/ run webpack-watch\"",
+    "predeploy-firebase": "concurrently \"yarn workspace @avada/assets run production && yarn workspace @avada/functions run production\" \"npm --prefix packages/statics/ run webpack-watch\"",
     "eslint-fix": "npm --prefix packages/assets/ run eslint-fix && npm --prefix packages/functions/ run eslint-fix",
     "start-dev-embed": "npm run timeout && echo 'backend build running...' && concurrently \"yarn workspace @avada/functions run watch\" \"npm --prefix packages/statics/ run webpack-watch\"",
     "start-dev": "concurrently \"yarn workspace @avada/assets run watch\" \"yarn workspace @avada/functions run watch\" \"npm --prefix packages/statics/ run webpack-watch\"",
