@@ -20,6 +20,8 @@ export default {
     'write_inventory',
     'read_inventory',
     'read_metaobjects',
-    'write_metaobjects'
+    'write_metaobjects',
+    'read_publications',
+    'write_publications'
   ]
 };

@@ -8,6 +8,30 @@ query location($id: ID){
 }
 `;
 
+export const GET_PUBLICATIONS_QUERY = `
+query publications($after: String) {
+ publications(first: 10, catalogType: APP, after: $after ) {
+    edges {
+      node {
+        id
+        name
+        supportsFuturePublishing
+        app {
+          id
+          title
+          description
+          developerName
+        }
+      }
+    }
+     pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+`;
+
 export const CREATE_METAFIELD_DEFINITION_MUTATION = `
 mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
   metafieldDefinitionCreate(definition: $definition) {
@@ -38,6 +62,28 @@ mutation DeleteProduct($product: ProductDeleteInput!) {
 export const CREATE_PRODUCT_MUTATION = `
 mutation CreateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
   productCreate(input: $product, media: $media){
+        product {
+            id
+            title
+            options {
+              id
+              name
+              optionValues {
+                id
+                name
+              }
+           }
+        }
+        userErrors {
+            field
+            message
+        }
+    }
+}`;
+
+export const UPDATE_PRODUCT_MUTATION = `
+mutation UpdateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
+  productUpdate(input: $product, media: $media){
         product {
             id
             title
@@ -156,7 +202,11 @@ export async function getLocationQuery({shop, variables, query = GET_LOCATION_QU
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runMetafieldDefinitionMutation({shop, variables, query = CREATE_METAFIELD_DEFINITION_MUTATION}) {
+export async function runMetafieldDefinitionMutation({
+  shop,
+  variables,
+  query = CREATE_METAFIELD_DEFINITION_MUTATION
+}) {
   try {
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
@@ -212,7 +262,7 @@ export async function runDeleteProductMutation({shop, variables, query = DELETE_
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runProductMutation({shop, variables, query = CREATE_PRODUCT_MUTATION}) {
+export async function runProductCreateMutation({shop, variables, query = CREATE_PRODUCT_MUTATION}) {
   try {
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
@@ -221,6 +271,34 @@ export async function runProductMutation({shop, variables, query = CREATE_PRODUC
       return '';
     }
     const {product, userErrors} = data.productCreate;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return product;
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runProductUpdateMutation({shop, variables, query = UPDATE_PRODUCT_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {product, userErrors} = data.productUpdate;
     if (userErrors.length) {
       console.error(userErrors);
       return '';
@@ -291,6 +369,49 @@ export async function runProductVariantsBulkMutation({
     }
 
     return {product, productVariants};
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param after
+ * @param variables
+ * @param query
+ * @returns {Promise<{product: *, productVariants: *}|string>}
+ */
+export async function getOnlineStorePublication({
+  shop,
+  after = null,
+  variables = {},
+  query = GET_PUBLICATIONS_QUERY
+}) {
+  try {
+    const graphqlQuery = {query, variables: {...variables, after}};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {publications} = data;
+    const {hasNextPage, endCursor} = publications.pageInfo;
+    const onlineStore = publications.edges.find(
+      publication =>
+        publication.node.name === 'Online Store' && publication.node?.supportsFuturePublishing
+    );
+    if (onlineStore) {
+      return onlineStore.node.id;
+    }
+    const nextAfter = hasNextPage && endCursor;
+    if (nextAfter) {
+      return await getOnlineStorePublication({
+        shop,
+        after: nextAfter
+      });
+    }
   } catch (error) {
     console.error(error);
     return '';

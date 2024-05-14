@@ -10,11 +10,13 @@ import {getSyncSettingShopId} from '@functions/repositories/settings/syncReposit
 import {batchCreate, batchDelete, batchUpdate} from '@functions/repositories/helper';
 import {
   getLocationQuery,
+  getOnlineStorePublication,
   runDeleteProductMutation,
   runMetafieldDefinitionMutation,
   runProductAdjustQuantitiesMutation,
-  runProductMutation,
-  runProductVariantsBulkMutation
+  runProductCreateMutation,
+  runProductVariantsBulkMutation,
+  runProductUpdateMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -53,6 +55,7 @@ export async function getProductsQuery(shopId, limit = 0) {
   try {
     return await collection
       .where('shopifyId', '==', shopId)
+      .where('queueStatus', '!=', 'synced')
       .orderBy('updatedAt')
       .limit(limit)
       .get();
@@ -86,7 +89,7 @@ export async function syncProducts(shopId) {
     ) {
       return [];
     }
-
+    const onlineStore = await getOnlineStorePublication({shop});
     await Promise.all(
       productsQuery.docs.map(async doc => {
         const productData = doc.data();
@@ -117,41 +120,13 @@ export async function syncProducts(shopId) {
           // return doc.ref.delete();
           // }
           let margin = 1;
-          const sizeOptionsMap = convertOptionMappingToSizeValue(
-            productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
-            getSizeAttributeMapping
-          );
-          const productOptionsData = [
-            {
-              name: 'Size',
-              // values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
-              values: sizeOptionsMap
-            }
-          ];
-          const productMediaData = productData.images.map(item => ({
-            mediaContentType: 'IMAGE',
-            originalSource: item.replace(/\s/g, '%20')
-          }));
-          const metafieldsData = productMetafields.map(metafield => ({
-            key: metafield.key,
-            value: productData[metafield.key],
-            type: metafield.type
-          }));
-
-          const productVariables = {
-            product: {
-              title: generalSetting?.includeBrand
-                ? `${productData.name} ${productData.brand}`
-                : productData.name,
-              descriptionHtml: syncSetting.description ? productData.desscription : '',
-              metafields: metafieldsData,
-              productOptions: productOptionsData,
-              collectionsToJoin: [],
-              status: generalSetting?.productAsDraft ? 'DRAFT' : 'ACTIVE'
-            },
-            media: syncSetting.images ? productMediaData : []
-          };
-
+          const productVariables = getProductVariables({
+            generalSetting,
+            syncSetting,
+            productData,
+            getSizeAttributeMapping,
+            onlineStore
+          });
           if (!categoryMappings.empty && syncSetting.categories) {
             const categoryMapping = categoryMappings.docs.find(
               e => e.data().retailerId == productData.categoryMapping
@@ -162,69 +137,69 @@ export async function syncProducts(shopId) {
               margin = categoryMapping.margin;
             }
           }
-          const productShopify = await runProductMutation({shop, variables: productVariables});
-          let variants = [];
-          if (productShopify) {
-            const optionId = productShopify.options[0].id;
-            const productVariants = productShopify.options[0].optionValues.map(
-              (optionValue, index) => ({
-                sku: `${productData.sku}-${index + 1}`,
-                price: productData.selling_price * margin,
-                compareAtPrice: productData.original_price,
-                optionValues: [
-                  {
-                    optionId: optionId,
-                    id: optionValue.id
-                  }
-                ]
-              })
-            );
-            const productVariantsVariables = {
-              productId: productShopify.id,
-              variants: productVariants
-            };
-
-            const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation({
+          if (!productData?.productShopifyId) {
+            const productShopify = await runProductCreateMutation({
               shop,
-              variables: productVariantsVariables
+              variables: productVariables
             });
-            if (productVariantsReturn) {
-              const sizeQuantityDelta = productData.size_quantity_delta;
-              const changesData = productVariantsReturn.map((item, index) => {
-                variants = [...variants, ...[{id: item.id, title: item.title}]];
-
-                return {
-                  inventoryItemId: item.inventoryItem.id,
-                  delta: Number(Object.values(sizeQuantityDelta[index])[0]),
-                  locationId: defaultLocationId
-                };
-              });
-              await runProductAdjustQuantitiesMutation({
-                shop,
-                variables: {
-                  locationId: defaultLocationId,
-                  input: {
-                    changes: changesData,
-                    reason: 'correction',
-                    name: 'available'
-                  }
+            if (productShopify) {
+              const productVariantsVariables = getProductVariantsVariables(
+                productData,
+                productShopify,
+                margin
+              );
+              const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation(
+                {
+                  shop,
+                  variables: productVariantsVariables
                 }
-              });
+              );
+              if (productVariantsReturn) {
+                const productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
+                  productVariantsReturn,
+                  productData.size_quantity_delta,
+                  defaultLocationId
+                );
+                await runProductAdjustQuantitiesMutation({
+                  shop,
+                  variables: productAdjustQuantitiesVariables.variables
+                });
+                return updateProduct(doc.id, {
+                  productOptionsAfterMap: sizeOptionMapping(
+                    productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+                    getSizeAttributeMapping,
+                    productShopify.options[0].optionValues,
+                    productAdjustQuantitiesVariables.variants
+                  ),
+                  productShopifyId: productShopify.id,
+                  queueStatus: 'synced',
+                  syncStatus: 'success'
+                });
+              }
+            } else {
               return updateProduct(doc.id, {
-                productOptionsAfterMap: sizeOptionMapping(
-                  productData.size_quantity_delta.map(item => Object.keys(item)[0]),
-                  getSizeAttributeMapping,
-                  productShopify.options[0].optionValues,
-                  variants
-                ),
-                productShopifyId: productShopify.id,
-                queueStatus: 'synced',
-                syncStatus: 'success'
+                productShopifyId: '',
+                syncStatus: 'failed'
               });
             }
+          } else {
+            // Update product if it has been synced
+            const productVariables = {
+              product: {
+                title: generalSetting?.includeBrand
+                  ? `${productData.name} ${productData.brand}`
+                  : productData.name,
+                descriptionHtml: syncSetting.description ? productData.desscription : '',
+                metafields: getMetafieldsData(productData)
+              },
+              media: syncSetting.images ? productMediaData : []
+            };
+            const productShopifyUpdate = await runProductUpdateMutation({
+              shop,
+              variables: productVariables
+            });
           }
           return updateProduct(doc.id, {
-            productShopifyId: '',
             syncStatus: 'failed'
           });
         }
@@ -233,6 +208,130 @@ export async function syncProducts(shopId) {
   } catch (e) {
     console.log(e);
   }
+}
+
+/**
+ *
+ * @param generalSetting
+ * @param syncSetting
+ * @param productData
+ * @param getSizeAttributeMapping
+ * @param onlineStore
+ * @returns {{product: {metafields: *, productOptions: [{values: *, name: string}], descriptionHtml: (*|string), title: (string|*), collectionsToJoin: *[], status: (string), publications: ([{publicationId}]|*[])}, media: (*|*[])}}
+ */
+function getProductVariables({
+  generalSetting,
+  syncSetting,
+  productData,
+  getSizeAttributeMapping,
+  onlineStore
+}) {
+  const sizeOptionsMap = convertOptionMappingToSizeValue(
+    productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
+    getSizeAttributeMapping
+  );
+  const productOptionsData = [
+    {
+      name: 'Size',
+      // values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
+      values: sizeOptionsMap
+    }
+  ];
+  const productMediaData = productData.images.map(item => ({
+    mediaContentType: 'IMAGE',
+    originalSource: item.replace(/\s/g, '%20')
+  }));
+
+  const metafieldsData = getMetafieldsData(productData);
+
+  return {
+    product: {
+      title: generalSetting?.includeBrand
+        ? `${productData.name} ${productData.brand}`
+        : productData.name,
+      descriptionHtml: syncSetting.description ? productData.desscription : '',
+      metafields: metafieldsData,
+      productOptions: productOptionsData,
+      collectionsToJoin: [],
+      status: generalSetting?.productAsDraft ? 'DRAFT' : 'ACTIVE',
+      publications: onlineStore ? [{publicationId: onlineStore}] : []
+    },
+    media: syncSetting.images ? productMediaData : []
+  };
+}
+
+/**
+ *
+ * @param productData
+ * @returns {{type: *, value: *, key: *}[]}
+ */
+function getMetafieldsData(productData) {
+  return productMetafields.map(metafield => ({
+    key: metafield.key,
+    value: productData[metafield.key],
+    type: metafield.type
+  }));
+}
+
+/**
+ *
+ * @param productData
+ * @param productShopify
+ * @param margin
+ * @returns {{productId, variants: *}}
+ */
+function getProductVariantsVariables(productData, productShopify, margin) {
+  const productVariants = productShopify.options[0].optionValues.map((optionValue, index) => ({
+    sku: `${productData.sku}-${index + 1}`,
+    price: productData.selling_price * margin,
+    compareAtPrice: productData.original_price,
+    optionValues: [
+      {
+        optionId: productShopify.options[0].id,
+        id: optionValue.id
+      }
+    ]
+  }));
+  return {
+    productId: productShopify.id,
+    variants: productVariants
+  };
+}
+
+/**
+ *
+ * @param productVariants
+ * @param sizeQuantityDelta
+ * @param defaultLocationId
+ * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
+ */
+function getProductAdjustQuantitiesVariables(
+  productVariants,
+  sizeQuantityDelta,
+  defaultLocationId
+) {
+  let variants = [];
+  const changesData = productVariants.map((item, index) => {
+    variants = [...variants, ...[{id: item.id, title: item.title}]];
+
+    return {
+      inventoryItemId: item.inventoryItem.id,
+      delta: Number(Object.values(sizeQuantityDelta[index])[0]),
+      locationId: defaultLocationId
+    };
+  });
+
+  return {
+    variables: {
+      locationId: defaultLocationId,
+      input: {
+        changes: changesData,
+        reason: 'correction',
+        name: 'available'
+      }
+    },
+    variants
+  };
 }
 
 /**
@@ -373,11 +472,12 @@ export async function addProducts(shopId) {
           const {id, ...data} = item;
 
           return {
+            ...data,
             stockId: id,
             shopifyId: shopId,
             syncStatus: 'new',
             queueStatus: 'created',
-            ...data,
+            productShopifyId: '',
             size_quantity: sizeQuantity,
             size_quantity_delta: sizeQuantity,
             createdAt: FieldValue.serverTimestamp(),
