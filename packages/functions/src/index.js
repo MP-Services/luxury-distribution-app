@@ -6,6 +6,7 @@ import authSaHandler from './handlers/authSa';
 import apiHookV1Handler from './handlers/apiHookV1';
 import restApiHandler from './handlers/restApi';
 import syncProductData from './handlers/schedule/syncProduct';
+import syncOrderData from './handlers/schedule/syncOrder';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
 
@@ -28,6 +29,12 @@ export const syncProduct = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.schedule('* * * * *')
   .onRun(syncProductData);
+
+// ---------------------- Cron schedule handlers ----------------------
+export const syncOrder = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.schedule('* * * * *')
+  .onRun(syncOrderData);
 
 // ---------------------- Subscriber handlers ----------------------
 export const brandFilterCreateHandling = functions

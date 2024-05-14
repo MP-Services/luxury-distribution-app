@@ -22,6 +22,7 @@ import productMetafields from '@functions/const/productMetafields';
 import {prepareDoc} from './helper';
 import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
+import {presentDataAndFormatDate} from '@avada/firestore-utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -116,14 +117,15 @@ export async function syncProducts(shopId) {
           // return doc.ref.delete();
           // }
           let margin = 1;
+          const sizeOptionsMap = convertOptionMappingToSizeValue(
+            productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
+            getSizeAttributeMapping
+          );
           const productOptionsData = [
             {
               name: 'Size',
               // values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
-              values: convertOptionMappingToSizeValue(
-                productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
-                getSizeAttributeMapping
-              )
+              values: sizeOptionsMap
             }
           ];
           const productMediaData = productData.images.map(item => ({
@@ -160,8 +162,8 @@ export async function syncProducts(shopId) {
               margin = categoryMapping.margin;
             }
           }
-
           const productShopify = await runProductMutation({shop, variables: productVariables});
+          let variants = [];
           if (productShopify) {
             const optionId = productShopify.options[0].id;
             const productVariants = productShopify.options[0].optionValues.map(
@@ -189,6 +191,8 @@ export async function syncProducts(shopId) {
             if (productVariantsReturn) {
               const sizeQuantityDelta = productData.size_quantity_delta;
               const changesData = productVariantsReturn.map((item, index) => {
+                variants = [...variants, ...[{id: item.id, title: item.title}]];
+
                 return {
                   inventoryItemId: item.inventoryItem.id,
                   delta: Number(Object.values(sizeQuantityDelta[index])[0]),
@@ -207,6 +211,12 @@ export async function syncProducts(shopId) {
                 }
               });
               return updateProduct(doc.id, {
+                productOptionsAfterMap: sizeOptionMapping(
+                  productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+                  getSizeAttributeMapping,
+                  productShopify.options[0].optionValues,
+                  variants
+                ),
                 productShopifyId: productShopify.id,
                 queueStatus: 'synced',
                 syncStatus: 'success'
@@ -264,6 +274,76 @@ function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
     });
   }
   return sizes;
+}
+
+/**
+ *
+ * @param sizes
+ * @param getSizeAttributeMapping
+ * @param productOptions
+ * @param productVariants
+ * @returns {*}
+ */
+function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, productVariants) {
+  if (getSizeAttributeMapping) {
+    const sizeOptionMapping = getSizeAttributeMapping.optionsMapping;
+    return sizes.map(size => {
+      const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
+      return sizeOption?.dropshipperOptionName
+        ? {
+            type: 'size',
+            originalOption: size,
+            mappingOption: sizeOption.dropshipperOptionName,
+            productOptionValueId: getProductOptionIdByName(
+              productOptions,
+              sizeOption.dropshipperOptionName
+            ),
+            productVariantId: getVariantIdByTitle(productVariants, sizeOption.dropshipperOptionName)
+          }
+        : {
+            type: 'size',
+            originalOption: size,
+            mappingOption: size,
+            productOptionValueId: getProductOptionIdByName(productOptions, size),
+            productVariantId: getVariantIdByTitle(productVariants, size)
+          };
+    });
+  }
+
+  return sizes.map(size => ({
+    type: 'size',
+    originalSize: size,
+    mappingSize: size,
+    productOptionValueId: getProductOptionIdByName(productOptions, size),
+    productVariantId: getVariantIdByTitle(productVariants, size)
+  }));
+}
+
+/**
+ *
+ *
+ * @param productVariants
+ * @param title
+ * @returns {*|string}
+ */
+function getVariantIdByTitle(productVariants, title) {
+  const productVariant = productVariants.find(variant => {
+    return variant.title === title;
+  });
+  return productVariant?.id ?? '';
+}
+
+/**
+ *
+ * @param productOptions
+ * @param optionName
+ * @returns {*|string}
+ */
+function getProductOptionIdByName(productOptions, optionName) {
+  const productOption = productOptions.find(option => {
+    return option.name === optionName;
+  });
+  return productOption?.id ?? '';
 }
 
 /**
@@ -574,4 +654,24 @@ async function queueProductBulkDelete(stockId) {
  */
 async function deleteProductInQueue(id) {
   await collection.doc(id).delete();
+}
+
+/**
+ *
+ * @param shopId
+ * @param productShopifyId
+ * @returns {Promise<any|null>}
+ */
+export async function getProductByShopifyProductId(shopId, productShopifyId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .where('productShopifyId', '==', `gid://shopify/Product/${productShopifyId}`)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  const [doc] = docs.docs;
+  return presentDataAndFormatDate(doc);
 }

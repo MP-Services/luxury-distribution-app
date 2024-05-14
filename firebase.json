@@ -36,6 +36,14 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
+        "source": "/app/api/v1/**",
+        "function": "apiHookV1"
+      },
+      {
+        "source": "/rest_api/v1/**",
+        "function": "restApi"
+      },
+      {
         "source": "/api/**",
         "function": "api"
       },
@@ -50,14 +58,6 @@
       {
         "source": "/authSa/**",
         "function": "authSa"
-      },
-      {
-        "source": "/app/api/v1/**",
-        "function": "apiHookV1"
-      },
-      {
-        "source": "/rest_api/v1/**",
-        "function": "restApi"
       },
       {
         "source": "/login",

@@ -65,6 +65,7 @@ mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsB
     }
     productVariants {
       id
+      title
       inventoryItem {
         id
       }

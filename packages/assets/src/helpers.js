@@ -20,6 +20,7 @@ export const auth = getAuth(app);
 export const embedApp = createEmbedApp();
 export const client = axios.create({timeout: 60000});
 export const api = createApi();
+export const apiTest = createApiTest();
 
 export function getHost() {
   const isProduction = import.meta.env.VITE_NODE_ENV === 'production';
@@ -84,6 +85,44 @@ function createApi() {
 
   return async (uri, options = {}) => sendRequest(uri, options);
 }
+
+function createApiTest() {
+  const prefix = "/app/api/V1";
+
+  if (isEmbeddedApp) {
+    const fetchFunction = authenticatedFetch(embedApp);
+    return async (uri, options = {}) => {
+      if (options.body) {
+        options.body = JSON.stringify(options.body);
+        options.headers = options.headers || {};
+        options.headers['Content-Type'] = 'application/json';
+      }
+      const response = await fetchFunction(prefix + uri, options);
+      checkHeadersForReauthorization(response.headers, embedApp);
+      return await response.json();
+    };
+  }
+
+  const sendRequest = async (uri, options) => {
+    const idToken = await auth.currentUser.getIdToken(false);
+    return client
+      .request({
+        ...options,
+        headers: {
+          accept: 'application/json',
+          ...(options.headers || {}),
+          'x-auth-token': idToken
+        },
+        url: prefix + uri,
+        method: options.method,
+        data: options.body
+      })
+      .then(res => res.data);
+  };
+
+  return async (uri, options = {}) => sendRequest(uri, options);
+}
+
 
 function checkHeadersForReauthorization(headers, app) {
   if (headers.get('X-Shopify-API-Request-Failure-Reauthorize') !== '1') {
