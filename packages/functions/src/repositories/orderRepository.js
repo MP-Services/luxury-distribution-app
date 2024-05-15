@@ -1,5 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getProductByShopifyProductId} from '@functions/repositories/productRepository';
+import {createOrder} from '@functions/repositories/luxuryRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -13,34 +14,44 @@ const collection = firestore.collection('orders');
  */
 export async function addOrder(shopifyId, data) {
   try {
-    await collection.add({
-      ...data,
-      shopifyId,
-      syncStatus: 'new',
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
-    });
-    return {success: true};
+    const orderDataConverted = await convertShopifyOrderDataToSync(shopifyId, data);
+    if (orderDataConverted.order.products.length) {
+      await collection.add({
+        ...data,
+        orderDataConverted,
+        shopifyId,
+        syncStatus: 'new',
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+      return {success: true};
+    }
   } catch (e) {
     console.log(e);
-    return {success: false};
   }
+  return {success: false};
 }
 
 /**
  *
- * @param shopifyId
+ * @param shop
  * @returns {Promise<unknown[]|boolean>}
  */
-export async function syncOrder(shopifyId) {
+export async function syncOrder(shop) {
   try {
+    const {shopifyId} = shop;
     const orders = await getOrderToSyncQuery(shopifyId);
     if (orders) {
       return orders.map(async order => {
-        const shopifyOrderData = await convertShopifyOrderDataToSync(shopifyId, order);
-        if (shopifyOrderData.order.products.length) {
-          //   Sync product to luxury system
-          console.log('syncOrder');
+        const luxuryOrder = await createOrder(shop, order.orderDataConverted);
+        console.log('luxuryOrder');
+        console.log(luxuryOrder);
+        if (luxuryOrder) {
+          return updateOrder(order.uuid, {
+            luxuryOrderId: luxuryOrder?.id,
+            luxuryReferenceNumber: luxuryOrder?.reference_number,
+            luxuryCreatedAt: luxuryOrder?.create_at
+          });
         }
       });
     }
@@ -53,13 +64,25 @@ export async function syncOrder(shopifyId) {
 
 /**
  *
+ * @param id
+ * @param data
+ * @returns {Promise<void>}
+ */
+async function updateOrder(id, data) {
+  await collection
+    .doc(id)
+    .update({...data, syncStatus: 'success', updateAt: FieldValue.serverTimestamp()});
+}
+
+/**
+ *
  * @param shopifyId
  * @param shopifyOrderData
  * @returns {Promise<{order: {address: {firstname: (*|string), city: (*|string), street: (*|string)[], postcode: (*|string), telephone: (*|string), country_id: (*|string), email: (*|string), region_code: (*|string), lastname: (*|string)}, products: *[]}}>}
  */
 async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
   const address = {
-    region_code: shopifyOrderData?.shipping_address?.provine_code ?? '',
+    region_code: shopifyOrderData?.shipping_address?.provine_code ?? 'NAN',
     country_id: shopifyOrderData?.shipping_address?.country_code ?? '',
     street: [
       shopifyOrderData?.shipping_address?.address1 ?? '',
@@ -70,7 +93,7 @@ async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
     firstname: shopifyOrderData?.shipping_address?.first_name ?? '',
     lastname: shopifyOrderData?.shipping_address?.last_name ?? '',
     email: shopifyOrderData?.email ?? '',
-    telephone: shopifyOrderData?.shipping_address?.phone ?? ''
+    telephone: shopifyOrderData?.shipping_address?.phone ?? 'NAN'
   };
 
   let products = [];
@@ -108,5 +131,5 @@ async function getOrderToSyncQuery(shopifyId, limit = 3) {
     return null;
   }
 
-  return docs.docs.map(doc => ({...doc.data()}));
+  return docs.docs.map(doc => ({uuid: doc.id, ...doc.data()}));
 }

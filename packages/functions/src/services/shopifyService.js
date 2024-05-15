@@ -54,7 +54,8 @@ export async function getAllCollections(shopify, defaultParams = {}) {
  * @return {Promise<Shopify.IPaginatedResult<Shopify.IWebhook>>}
  */
 export async function createWebhooks(shopify, baseUrl = appConfig.baseUrl) {
-  const webhooks = [{topic: 'orders/create', path: 'orders'}];
+  // const webhooks = [{topic: 'orders/create', path: 'orders'}];
+  const webhooks = [{topic: 'orders/paid', path: 'orders'}];
   const currentWebhooks = await shopify.webhook.list();
   const unusedHooks = currentWebhooks.filter(webhook => !webhook.address.includes(baseUrl));
   if (!isEmpty(unusedHooks)) {

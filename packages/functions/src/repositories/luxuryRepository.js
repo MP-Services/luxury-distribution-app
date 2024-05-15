@@ -31,18 +31,21 @@ export async function sendTokenRequest(data) {
 /**
  *
  * @param url
- * @param data
+ * @param shopInfo
  * @param key
- * @returns {Promise<*|*[]>}
+ * @param method
+ * @param data
+ * @returns {Promise<*|null>}
  */
-async function getLXData(url, data, key = 'data') {
+async function sendLXRequest({url, shopInfo, key = 'data', method = 'GET', data = null}) {
   try {
-    const token = await getLuxuryToken(data);
+    const token = await getLuxuryToken(shopInfo);
     const resp = await api(url, {
-      method: 'GET',
+      method,
       options: {
         headers: {Authorization: `Bearer ${token}`}
-      }
+      },
+      data
     });
     if (
       resp.hasOwnProperty('custom_code') &&
@@ -58,67 +61,51 @@ async function getLXData(url, data, key = 'data') {
   return null;
 }
 
-// /**
-//  *
-//  * @param stockId
-//  * @returns {Promise<*|*[]|boolean>}
-//  */
-// export async function getStockById(stockId) {
-//   try {
-//     const luxuryShopInfo = getOneLuxuryShop();
-//     if (luxuryShopInfo) {
-//       return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
-//     }
-//   } catch (e) {
-//     console.log(e);
-//   }
-//
-//   return false;
-// }
-
 /**
  *
+ * @param shopInfo
+ * @param data
  * @returns {Promise<*|null>}
  */
-async function getOneLuxuryShop() {
-  const docs = await collection.limit(1).get();
-  if (docs.empty) {
-    return null;
-  }
-
-  return docs[0].data();
+export async function createOrder(shopInfo, data) {
+  return await sendLXRequest({url: LUXURY_API_V1_URL + '/test-order', shopInfo, data, method: 'POST'});
 }
 
 /**
  *
- * @param data
+ * @param shopInfo
  * @returns {Promise<*|[]>}
  */
-export async function getBrandList(data) {
-  return await getLXData(LUXURY_API_V1_URL + '/brands', data, 'responseData');
+export async function getBrandList(shopInfo) {
+  return await sendLXRequest({url: LUXURY_API_V1_URL + '/brands', shopInfo, key: 'responseData'});
 }
 
 /**
  *
  * @param stockId
- * @param luxuryShopInfo
+ * @param shopInfo
  * @returns {Promise<*|*[]>}
  */
-export async function getStockById(stockId, luxuryShopInfo) {
-  return await getLXData(LUXURY_API_V2_URL + `/stocks/${stockId}`, luxuryShopInfo);
+export async function getStockById(stockId, shopInfo) {
+  return await sendLXRequest({url: LUXURY_API_V2_URL + `/stocks/${stockId}`, shopInfo});
 }
 
 /**
  *
- * @param data
+ * @param shopInfo
  * @returns {Promise<*|[]>}
  */
-export async function getLuxuryStockList(data) {
-  return await getLXData(LUXURY_API_V2_URL + '/stocks', data);
+export async function getLuxuryStockList(shopInfo) {
+  return await sendLXRequest({url: LUXURY_API_V2_URL + '/stocks', shopInfo});
 }
 
-export async function getCategories(data) {
-  return await getLXData(LUXURY_API_V1_URL + '/product-category', data);
+/**
+ *
+ * @param shopInfo
+ * @returns {Promise<*|null>}
+ */
+export async function getCategories(shopInfo) {
+  return await sendLXRequest({url: LUXURY_API_V1_URL + '/product-category', shopInfo});
 }
 
 /**
@@ -179,8 +166,7 @@ export async function getLuxuryShops() {
   if (docs.empty) {
     return null;
   }
-
-  return docs.docs.map(doc => ({id: doc.id, ...doc.data()}));
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
 }
 
 /**
