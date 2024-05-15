@@ -54,6 +54,22 @@ const productMetafields = [
     type: 'multi_line_text_field',
     ownerType: 'PRODUCT',
     description: 'This metafield is created by Luxury App'
+  },
+  {
+    key: 'season_one',
+    name: 'Season One',
+    namespace: 'luxury',
+    type: 'multi_line_text_field',
+    ownerType: 'PRODUCT',
+    description: 'This metafield is created by Luxury App'
+  },
+  {
+    key: 'season_two',
+    name: 'Season Two',
+    namespace: 'luxury',
+    type: 'multi_line_text_field',
+    ownerType: 'PRODUCT',
+    description: 'This metafield is created by Luxury App'
   }
 ];
 

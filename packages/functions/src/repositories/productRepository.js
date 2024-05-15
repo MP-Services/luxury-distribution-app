@@ -16,7 +16,8 @@ import {
   runProductAdjustQuantitiesMutation,
   runProductCreateMutation,
   runProductVariantsBulkMutation,
-  runProductUpdateMutation
+  runProductUpdateMutation,
+  runMetafieldsSetMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -186,17 +187,28 @@ export async function syncProducts(shopId) {
             // Update product if it has been synced
             const productVariables = {
               product: {
+                id: productData.productShopifyId,
                 title: generalSetting?.includeBrand
                   ? `${productData.name} ${productData.brand}`
                   : productData.name,
-                descriptionHtml: syncSetting.description ? productData.desscription : '',
-                metafields: getMetafieldsData(productData)
-              },
-              media: syncSetting.images ? productMediaData : []
+                descriptionHtml: syncSetting.description ? productData.desscription : ''
+              }
             };
-            const productShopifyUpdate = await runProductUpdateMutation({
-              shop,
-              variables: productVariables
+
+            await Promise.all([
+              runProductUpdateMutation({
+                shop,
+                variables: productVariables
+              }),
+              runMetafieldsSetMutation({
+                shop,
+                variables: {metafields: getMetafieldsData(productData)}
+              })
+            ]);
+
+            return updateProduct(doc.id, {
+              syncStatus: 'success',
+              queueStatus: 'synced'
             });
           }
           return updateProduct(doc.id, {
@@ -243,7 +255,6 @@ function getProductVariables({
   }));
 
   const metafieldsData = getMetafieldsData(productData);
-
   return {
     product: {
       title: generalSetting?.includeBrand
@@ -266,11 +277,26 @@ function getProductVariables({
  * @returns {{type: *, value: *, key: *}[]}
  */
 function getMetafieldsData(productData) {
-  return productMetafields.map(metafield => ({
-    key: metafield.key,
-    value: productData[metafield.key],
-    type: metafield.type
-  }));
+  if (!productData.productShopifyId) {
+    return productMetafields.map(metafield => ({
+      key: metafield.key,
+      value:
+        metafield.key === 'season_one' || metafield.key === 'season_two'
+          ? productData[metafield.key]?.name
+          : productData[metafield.key],
+      namespace: 'luxury'
+    }));
+  } else {
+    return productMetafields.map(metafield => ({
+      key: metafield.key,
+      value:
+        metafield.key === 'season_one' || metafield.key === 'season_two'
+          ? productData[metafield.key]?.name
+          : productData[metafield.key],
+      namespace: 'luxury',
+      ownerId: productData.productShopifyId
+    }));
+  }
 }
 
 /**
@@ -300,19 +326,19 @@ function getProductVariantsVariables(productData, productShopify, margin) {
 
 /**
  *
- * @param productVariants
+ * @param productVariantsReturn
  * @param sizeQuantityDelta
  * @param defaultLocationId
  * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
  */
 function getProductAdjustQuantitiesVariables(
-  productVariants,
+  productVariantsReturn,
   sizeQuantityDelta,
   defaultLocationId
 ) {
   let variants = [];
-  const changesData = productVariants.map((item, index) => {
-    variants = [...variants, ...[{id: item.id, title: item.title}]];
+  const changesData = productVariantsReturn.map((item, index) => {
+    variants = [...variants, ...[{id: item.id, title: item.title, inventoryItem: item.inventoryItem}]];
 
     return {
       inventoryItemId: item.inventoryItem.id,
@@ -397,14 +423,22 @@ function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, produ
               productOptions,
               sizeOption.dropshipperOptionName
             ),
-            productVariantId: getVariantIdByTitle(productVariants, sizeOption.dropshipperOptionName)
+            productVariantId: getVariantIdByTitle(
+              productVariants,
+              sizeOption.dropshipperOptionName
+            ),
+            inventoryItemId: getInventoryItemIdByTitle(
+              productVariants,
+              sizeOption.dropshipperOptionName
+            )
           }
         : {
             type: 'size',
             originalOption: size,
             mappingOption: size,
             productOptionValueId: getProductOptionIdByName(productOptions, size),
-            productVariantId: getVariantIdByTitle(productVariants, size)
+            productVariantId: getVariantIdByTitle(productVariants, size),
+            inventoryItemId: getInventoryItemIdByTitle(productVariants, size)
           };
     });
   }
@@ -414,8 +448,23 @@ function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, produ
     originalSize: size,
     mappingSize: size,
     productOptionValueId: getProductOptionIdByName(productOptions, size),
-    productVariantId: getVariantIdByTitle(productVariants, size)
+    productVariantId: getVariantIdByTitle(productVariants, size),
+    inventoryItemId: getInventoryItemIdByTitle(productVariants, size)
   }));
+}
+
+/**
+ *
+ *
+ * @param productVariants
+ * @param title
+ * @returns {*|string}
+ */
+function getInventoryItemIdByTitle(productVariants, title) {
+  const productVariant = productVariants.find(variant => {
+    return variant.title === title;
+  });
+  return productVariant?.inventoryItem?.id ?? '';
 }
 
 /**
@@ -672,9 +721,10 @@ export async function productWebhook(webhookData) {
                 productNeedUpdate.size_quantity_delta
               );
             }
+            const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
             return updateProduct(productNeedUpdate.id, {
               ...newUpdateStockData,
-              queueStatus: 'updated',
+              queueStatus,
               syncStatus: 'new',
               updatedAt: FieldValue.serverTimestamp()
             });

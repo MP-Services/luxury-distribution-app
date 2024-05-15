@@ -47,6 +47,24 @@ mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
 }
 `;
 
+export const METAFIELDS_SET_MUTATION = `
+  mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields {
+      key
+      namespace
+      value
+      createdAt
+      updatedAt
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
 export const DELETE_PRODUCT_MUTATION = `
 mutation DeleteProduct($product: ProductDeleteInput!) {
   productDelete(input: $product){
@@ -191,6 +209,34 @@ export async function getLocationQuery({shop, variables, query = GET_LOCATION_QU
     return location.id;
   } catch (e) {
     console.log(e);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runMetafieldsSetMutation({shop, variables, query = METAFIELDS_SET_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {metafields, userErrors} = data.metafieldsSet;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return metafields;
+  } catch (error) {
+    console.error(error);
     return '';
   }
 }

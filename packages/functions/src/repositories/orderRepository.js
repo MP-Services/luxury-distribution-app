@@ -44,8 +44,6 @@ export async function syncOrder(shop) {
     if (orders) {
       return orders.map(async order => {
         const luxuryOrder = await createOrder(shop, order.orderDataConverted);
-        console.log('luxuryOrder');
-        console.log(luxuryOrder);
         if (luxuryOrder) {
           return updateOrder(order.uuid, {
             luxuryOrderId: luxuryOrder?.id,
