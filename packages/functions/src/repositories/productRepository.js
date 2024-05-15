@@ -94,17 +94,15 @@ export async function syncProducts(shopId) {
     await Promise.all(
       productsQuery.docs.map(async doc => {
         const productData = doc.data();
-        if (productData.queueStatus === 'deleted') {
-          if (productData.syncStatus === 'success' && productData?.productShopifyId) {
-            await runDeleteProductMutation({
-              shop,
-              variables: {
-                product: {
-                  id: productData.productShopifyId
-                }
+        if (productData.queueStatus === 'deleted' && productData?.productShopifyId) {
+          await runDeleteProductMutation({
+            shop,
+            variables: {
+              product: {
+                id: productData.productShopifyId
               }
-            });
-          }
+            }
+          });
           return deleteProductInQueue(doc.id);
         } else {
           // Remove product if it is not in brand filter
@@ -139,6 +137,7 @@ export async function syncProducts(shopId) {
             }
           }
           if (!productData?.productShopifyId) {
+            // Sync new product to shopify
             const productShopify = await runProductCreateMutation({
               shop,
               variables: productVariables
@@ -194,6 +193,11 @@ export async function syncProducts(shopId) {
                 descriptionHtml: syncSetting.description ? productData.desscription : ''
               }
             };
+            const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+              productData.productOptionsAfterMap,
+              productData.size_quantity_delta,
+              defaultLocationId
+            );
 
             await Promise.all([
               runProductUpdateMutation({
@@ -203,6 +207,10 @@ export async function syncProducts(shopId) {
               runMetafieldsSetMutation({
                 shop,
                 variables: {metafields: getMetafieldsData(productData)}
+              }),
+              runProductAdjustQuantitiesMutation({
+                shop,
+                variables: productAdjustQuantitiesUpdate.variables
               })
             ]);
 
@@ -338,7 +346,10 @@ function getProductAdjustQuantitiesVariables(
 ) {
   let variants = [];
   const changesData = productVariantsReturn.map((item, index) => {
-    variants = [...variants, ...[{id: item.id, title: item.title, inventoryItem: item.inventoryItem}]];
+    variants = [
+      ...variants,
+      ...[{id: item.id, title: item.title, inventoryItem: item.inventoryItem}]
+    ];
 
     return {
       inventoryItemId: item.inventoryItem.id,
@@ -357,6 +368,41 @@ function getProductAdjustQuantitiesVariables(
       }
     },
     variants
+  };
+}
+
+/**
+ *
+ * @param productOptionsAfterMap
+ * @param sizeQuantityDelta
+ * @param defaultLocationId
+ * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
+ */
+function getProductAdjustQuantitiesUpdate(
+  productOptionsAfterMap,
+  sizeQuantityDelta,
+  defaultLocationId
+) {
+  const changesData = productOptionsAfterMap.map((item, index) => {
+    const deltaItem = sizeQuantityDelta.find(size => {
+      return Object.keys(size)[0] == item.originalSize;
+    });
+    const delta = deltaItem ? Object.values(deltaItem)[0] : 0;
+    return {
+      inventoryItemId: item.inventoryItemId,
+      delta: Number(delta),
+      locationId: defaultLocationId
+    };
+  });
+  return {
+    variables: {
+      locationId: defaultLocationId,
+      input: {
+        changes: changesData,
+        reason: 'correction',
+        name: 'available'
+      }
+    }
   };
 }
 
@@ -700,34 +746,38 @@ export async function productWebhook(webhookData) {
         );
         break;
       case 'ProductUpdate':
-        const products = await getAllProductsByStockId(stockId);
         await Promise.all(
           shops.map(async shop => {
-            const productNeedUpdate = products.find(item => item.shopifyId === shop.shopifyId);
-            const sizeQuantityOfProduct = productNeedUpdate.size_quantity;
-            const newStockData = await getStockById(stockId, shop);
-            const {id, ...newUpdateStockData} = newStockData;
-            if (productNeedUpdate.syncStatus !== 'success') {
-              const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
-                item => !Array.isArray(item)
-              );
-              const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
-              const newSizeQuantity = sizeQuantityNeedUpdate.filter(
-                a => !oldSize.includes(Object.keys(a)[0])
-              );
-              newUpdateStockData.size_quantity = sizeQuantityNeedUpdate;
-              newUpdateStockData.size_quantity_delta = getSizeQuantityDelta(
-                sizeQuantityNeedUpdate,
-                productNeedUpdate.size_quantity_delta
-              );
+            const {shopifyId} = shop;
+            const productNeedUpdate = await getAllProductByStockId(stockId, shopifyId);
+            if (productNeedUpdate) {
+              const brandFilter = await getBrandSettingShopId(shopifyId);
+              const sizeQuantityOfProduct = productNeedUpdate.size_quantity;
+              const newStockData = await getStockById(stockId, shop);
+              const isExistInBrandFilter =
+                brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
+              if (productNeedUpdate?.productShopifyId) {
+                const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
+                  item => !Array.isArray(item)
+                );
+                const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
+                const newSizeQuantity = sizeQuantityNeedUpdate.filter(
+                  a => !oldSize.includes(Object.keys(a)[0])
+                );
+                newStockData.size_quantity = sizeQuantityNeedUpdate;
+                newStockData.size_quantity_delta = getSizeQuantityDelta(
+                  sizeQuantityNeedUpdate,
+                  productNeedUpdate.size_quantity_delta
+                );
+              }
+              const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
+              return updateProduct(productNeedUpdate.id, {
+                ...newStockData,
+                queueStatus,
+                syncStatus: 'new',
+                updatedAt: FieldValue.serverTimestamp()
+              });
             }
-            const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
-            return updateProduct(productNeedUpdate.id, {
-              ...newUpdateStockData,
-              queueStatus,
-              syncStatus: 'new',
-              updatedAt: FieldValue.serverTimestamp()
-            });
           })
         );
         break;
@@ -769,15 +819,21 @@ function getSizeQuantityDelta(a, b) {
 /**
  *
  * @param stockId
- * @returns {Promise<*[]|null>}
+ * @param shopifyId
+ * @returns {Promise<{[p: string]: FirebaseFirestore.DocumentFieldValue, uid: string}|null>}
  */
-async function getAllProductsByStockId(stockId) {
-  const docs = await collection.where('id', '==', stockId).get();
+async function getAllProductByStockId(stockId, shopifyId) {
+  const docs = await collection
+    .where('stockId', '==', stockId)
+    .where('shopifyId', '==', shopifyId)
+    .limit(1)
+    .get();
   if (docs.empty) {
     return null;
   }
 
-  return docs.docs.map(doc => ({id: doc.id, ...doc.data()}));
+  const doc = docs.docs[0];
+  return {uid: doc.id, ...doc.data()};
 }
 
 /**
@@ -786,15 +842,23 @@ async function getAllProductsByStockId(stockId) {
  * @returns {Promise<null>}
  */
 async function queueProductBulkDelete(stockId) {
-  const docs = await collection.where('stockId', '==', stockId).get();
-  if (docs.empty) {
-    return null;
+  const docsSync = await collection
+    .where('stockId', '==', stockId)
+    .where('queueStatus', '!=', 'created')
+    .get();
+  const docs = await collection
+    .where('stockId', '==', stockId)
+    .where('queueStatus', '==', 'created')
+    .get();
+  if (!docsSync.empty) {
+    await batchUpdate(firestore, docsSync.docs, {
+      queueStatus: 'deleted',
+      updatedAt: FieldValue.serverTimestamp()
+    });
   }
-
-  await batchUpdate(firestore, docs.docs, {
-    queueStatus: 'deleted',
-    updatedAt: FieldValue.serverTimestamp()
-  });
+  if (!docs.empty) {
+    await batchDelete(firestore, docs.docs);
+  }
 }
 
 /**
