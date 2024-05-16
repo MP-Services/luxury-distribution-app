@@ -106,19 +106,6 @@ export async function syncProducts(shopId) {
           });
           return deleteProductInQueue(doc.id);
         } else {
-          // Remove product if it is not in brand filter
-          // if (!brandFilterSetting.brands.includes()) {
-          // const {productShopifyId} = productData;
-          // if (productShopifyId) {
-          //   await runDeleteProductMutation({
-          //     shop,
-          //     variables: {
-          //       product: {id: productShopifyId}
-          //     }
-          //   });
-          // }
-          // return doc.ref.delete();
-          // }
           let margin = 1;
           const productVariables = getProductVariables({
             generalSetting,
@@ -137,8 +124,8 @@ export async function syncProducts(shopId) {
               margin = categoryMapping?.margin || 1;
             }
           }
-          if (!productData?.productShopifyId) {
-            // Sync new product to shopify
+          if (!productData?.productShopifyId && productData.queueStatus === 'create') {
+            // Create new product to shopify
             const productShopify = await runProductCreateMutation({
               shop,
               variables: productVariables
@@ -469,7 +456,7 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
       .where('shopifyId', '==', shopifyId)
       .where('productShopifyId', '!=', '')
       .where('queueStatus', '==', 'synced')
-      .where('syncStatus', '==', 'success')
+      .where('syncStatus', '==', ['success', 'failed'])
       .where('product_category_id', 'in', retailerCategories)
       .get();
     if (!docs.empty) {
@@ -627,12 +614,12 @@ export async function addProducts(shopId) {
     const stockList = await getLuxuryStockList(luxuryShopInfo);
     if (stockList) {
       const brandFilter = await getBrandSettingShopId(shopId);
-      const getStockIds = await getStockIdsToSync(shopId);
+      const stockIdsExclude = await getStockIdsExclude(shopId);
       const products = stockList
         .filter(
           stockItem =>
             brandFilter.brands.includes(stockItem.brand) &&
-            (!getStockIds || (getStockIds && !getStockIds.includes(stockItem.id)))
+            (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
         )
         .map(item => {
           let sizeQuantity = [];
@@ -709,8 +696,6 @@ export async function getProductCounts(shopId) {
     const [totalProduct, createQueue, updateQueue, deleteQueue] = await Promise.all([
       collection
         .where('shopifyId', '==', shopId)
-        .where('queueStatus', '!=', 'delete')
-        .where('syncStatus', '==', 'success')
         .count()
         .get(),
       collection
@@ -758,10 +743,10 @@ export async function getProductCounts(shopId) {
  * @param shopId
  * @returns {Promise<{shopId: *}[]>}
  */
-export async function getStockIdsToSync(shopId) {
+export async function getStockIdsExclude(shopId) {
   const docs = await collection
     .where('shopifyId', '==', shopId)
-    .where('syncStatus', '==', 'new')
+    .where('productShopifyId', '!=', '')
     .get();
 
   if (docs.empty) {
@@ -939,6 +924,7 @@ async function queueProductBulkDelete(stockId) {
   if (!docsSync.empty) {
     await batchUpdate(firestore, docsSync.docs, {
       queueStatus: 'delete',
+      syncStatus: 'new',
       updatedAt: FieldValue.serverTimestamp()
     });
   }
