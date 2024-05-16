@@ -777,17 +777,17 @@ export async function getStockIdsToSync(shopId) {
 /**
  *
  * @param shopId
+ * @param brandFilterData
  * @returns {Promise<boolean>}
  */
 
-export async function deleteProductsInQueueWhenChangeBrandFilter(shopId) {
+export async function deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFilterData) {
   try {
-    const brandFilterData = await getBrandSettingShopId(shopId);
     if (brandFilterData) {
       const brands = brandFilterData.brands;
       const docsQuery = collection
         .where('shopifyId', '==', shopId)
-        .where('syncStatus', '==', 'new');
+        .where('queueStatus', '==', 'create');
       if (Array.isArray(brands) && brands.length) {
         docsQuery.where('brand', 'not-in', brandFilterData.brands);
       }
@@ -832,32 +832,36 @@ export async function productWebhook(webhookData) {
               const isExistInBrandFilter =
                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
               if (!isExistInBrandFilter) {
+                // If product is not in the brand filter
                 if (productNeedUpdate?.productShopifyId) {
                   return updateProduct(productNeedUpdate.id, {queueStatus: 'delete'});
+                } else {
+                  return deleteProductsInQueueWhenChangeBrandFilter(shopifyId, brandFilter);
                 }
-              }
-              if (productNeedUpdate?.productShopifyId) {
-                // const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
-                //   item => !Array.isArray(item)
-                // );
-                // const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
-                // const newSizeQuantity = sizeQuantityNeedUpdate.filter(
-                //   a => !oldSize.includes(Object.keys(a)[0])
-                // );
-                // newStockData.size_quantity = sizeQuantityNeedUpdate;
-                newStockData.size_quantity_delta = getSizeQuantityDelta(
-                  newStockData.size_quantity,
-                  productNeedUpdate.size_quantity
-                );
-                const queueStatus = productNeedUpdate?.productShopifyId ? 'update' : 'create';
-                return updateProduct(productNeedUpdate.id, {
-                  ...newStockData,
-                  queueStatus,
-                  syncStatus: 'new',
-                  updatedAt: FieldValue.serverTimestamp()
-                });
               } else {
-                return addProduct(shop.shopifyId, newStockData);
+                if (productNeedUpdate?.productShopifyId) {
+                  // const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
+                  //   item => !Array.isArray(item)
+                  // );
+                  // const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
+                  // const newSizeQuantity = sizeQuantityNeedUpdate.filter(
+                  //   a => !oldSize.includes(Object.keys(a)[0])
+                  // );
+                  // newStockData.size_quantity = sizeQuantityNeedUpdate;
+                  newStockData.size_quantity_delta = getSizeQuantityDelta(
+                    newStockData.size_quantity,
+                    productNeedUpdate.size_quantity
+                  );
+                  const queueStatus = productNeedUpdate?.productShopifyId ? 'update' : 'create';
+                  return updateProduct(productNeedUpdate.id, {
+                    ...newStockData,
+                    queueStatus,
+                    syncStatus: 'new',
+                    updatedAt: FieldValue.serverTimestamp()
+                  });
+                } else {
+                  return addProduct(shop.shopifyId, newStockData);
+                }
               }
             }
           })

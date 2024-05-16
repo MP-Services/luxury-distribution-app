@@ -2,6 +2,7 @@ import {
   addProducts,
   deleteProductsInQueueWhenChangeBrandFilter
 } from '../../repositories/productRepository';
+import {getBrandSettingShopId} from "@functions/repositories/settings/brandRepository";
 
 /**
  *
@@ -12,7 +13,8 @@ export default async function subscribeBrandFilterUpdateHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
     const {shopId} = data;
-    await deleteProductsInQueueWhenChangeBrandFilter(shopId);
+    const brandFilterData = await getBrandSettingShopId(shopId);
+    await deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFilterData);
     await addProducts(shopId);
   } catch (e) {
     console.error(e);
