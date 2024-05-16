@@ -95,151 +95,221 @@ export async function syncProducts(shopId) {
     await Promise.all(
       productsQuery.docs.map(async doc => {
         const productData = doc.data();
+        const docId = doc.id;
         if (productData.queueStatus === 'delete' && productData?.productShopifyId) {
-          await runDeleteProductMutation({
+          return actionQueueDelete(shop, docId, productData);
+        }
+        if (productData.queueStatus === 'create' && !productData?.productShopifyId) {
+          return actionQueueCreate({
             shop,
-            variables: {
-              product: {
-                id: productData.productShopifyId
-              }
-            }
+            categoryMappings,
+            syncSetting,
+            generalSetting,
+            getSizeAttributeMapping,
+            defaultLocationId,
+            onlineStore,
+            docId,
+            productData
           });
-          return deleteProductInQueue(doc.id);
-        } else {
-          if (!productData?.productShopifyId && productData.queueStatus === 'create') {
-            // Create new product to shopify
-            const {productVariables, margin} = addCollectionsToProductVariables(
-              categoryMappings,
-              syncSetting,
-              productData,
-              getProductVariables({
-                generalSetting,
-                syncSetting,
-                productData,
-                getSizeAttributeMapping,
-                onlineStore
-              })
-            );
-            const productShopify = await runProductCreateMutation({
-              shop,
-              variables: productVariables
-            });
-            if (productShopify) {
-              const productVariantsVariables = getProductVariantsVariables(
-                productData,
-                productShopify,
-                margin
-              );
-              const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation(
-                {
-                  shop,
-                  variables: productVariantsVariables
-                }
-              );
-              if (productVariantsReturn) {
-                const productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
-                  productVariantsReturn,
-                  productData.size_quantity_delta,
-                  defaultLocationId
-                );
-                await runProductAdjustQuantitiesMutation({
-                  shop,
-                  variables: productAdjustQuantitiesVariables.variables
-                });
-                return updateProduct(doc.id, {
-                  productOptionsAfterMap: sizeOptionMapping(
-                    productData.size_quantity_delta.map(item => Object.keys(item)[0]),
-                    getSizeAttributeMapping,
-                    productShopify.options[0].optionValues,
-                    productAdjustQuantitiesVariables.variants,
-                    productShopify.options[0].id
-                  ),
-                  productShopifyId: productShopify.id,
-                  queueStatus: 'synced',
-                  syncStatus: 'success',
-                  updatedAt: FieldValue.serverTimestamp(),
-                  size_quantity_delta: []
-                });
-              }
-            } else {
-              return updateProduct(doc.id, {
-                productShopifyId: '',
-                syncStatus: 'failed',
-                updatedAt: FieldValue.serverTimestamp()
-              });
-            }
-          } else {
-            // Update product if it has been synced
-            const initProductVariables = {
-              product: {
-                id: productData.productShopifyId,
-                title: generalSetting?.includeBrand
-                  ? `${productData.name} ${productData.brand}`
-                  : productData.name,
-                descriptionHtml: syncSetting.description ? productData.desscription : ''
-              }
-            };
-
-            const {productVariables, margin} = addCollectionsToProductVariables(
-              categoryMappings,
-              syncSetting,
-              productData,
-              initProductVariables
-            );
-
-            const productVariantsUpdateVariables = getProductVariantsUpdateVariables(
-              productData,
-              margin
-            );
-
-            const updateMutations = [
-              runProductUpdateMutation({
-                shop,
-                variables: productVariables
-              }),
-              runMetafieldsSetMutation({
-                shop,
-                variables: {metafields: getMetafieldsData(productData)}
-              }),
-              runProductVariantsBulkMutation({
-                shop,
-                variables: productVariantsUpdateVariables,
-                query: UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
-                key: 'productVariantsBulkUpdate'
-              })
-            ];
-
-            if (productData.size_quantity_delta.length) {
-              const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
-                productData.productOptionsAfterMap,
-                productData.size_quantity_delta,
-                defaultLocationId
-              );
-              updateMutations.push(
-                runProductAdjustQuantitiesMutation({
-                  shop,
-                  variables: productAdjustQuantitiesUpdate.variables
-                })
-              );
-            }
-
-            await Promise.all(updateMutations);
-
-            return updateProduct(doc.id, {
-              syncStatus: 'success',
-              queueStatus: 'synced',
-              updatedAt: FieldValue.serverTimestamp()
-            });
-          }
-          // return updateProduct(doc.id, {
-          //   syncStatus: 'failed'
-          // });
+        }
+        if (productData.queueStatus === 'update' && productData?.productShopifyId) {
+          return actionQueueUpdate({
+            shop,
+            syncSetting,
+            generalSetting,
+            categoryMappings,
+            defaultLocationId,
+            docId,
+            productData
+          });
         }
       })
     );
   } catch (e) {
     console.log(e);
   }
+}
+
+/**
+ *
+ * @param shop
+ * @param categoryMappings
+ * @param syncSetting
+ * @param generalSetting
+ * @param getSizeAttributeMapping
+ * @param defaultLocationId
+ * @param onlineStore
+ * @param docId
+ * @param productData
+ * @returns {Promise<void>}
+ */
+async function actionQueueCreate({
+  shop,
+  categoryMappings,
+  syncSetting,
+  generalSetting,
+  getSizeAttributeMapping,
+  defaultLocationId,
+  onlineStore,
+  docId,
+  productData
+}) {
+  const {productVariables, margin} = addCollectionsToProductVariables(
+    categoryMappings,
+    syncSetting,
+    productData,
+    getProductVariables({
+      generalSetting,
+      syncSetting,
+      productData,
+      getSizeAttributeMapping,
+      onlineStore
+    })
+  );
+  const productShopify = await runProductCreateMutation({
+    shop,
+    variables: productVariables
+  });
+  if (productShopify) {
+    const productVariantsVariables = getProductVariantsVariables(
+      productData,
+      productShopify,
+      margin
+    );
+    const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation({
+      shop,
+      variables: productVariantsVariables
+    });
+    if (productVariantsReturn) {
+      const productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
+        productVariantsReturn,
+        productData.size_quantity_delta,
+        defaultLocationId
+      );
+      await runProductAdjustQuantitiesMutation({
+        shop,
+        variables: productAdjustQuantitiesVariables.variables
+      });
+      return updateProduct(docId, {
+        productOptionsAfterMap: sizeOptionMapping(
+          productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+          getSizeAttributeMapping,
+          productShopify.options[0].optionValues,
+          productAdjustQuantitiesVariables.variants,
+          productShopify.options[0].id
+        ),
+        productShopifyId: productShopify.id,
+        queueStatus: 'synced',
+        syncStatus: 'success',
+        updatedAt: FieldValue.serverTimestamp(),
+        size_quantity_delta: []
+      });
+    }
+  } else {
+    return updateProduct(docId, {
+      productShopifyId: '',
+      syncStatus: 'failed',
+      updatedAt: FieldValue.serverTimestamp()
+    });
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param syncSetting
+ * @param generalSetting
+ * @param categoryMappings
+ * @param defaultLocationId
+ * @param docId
+ * @param productData
+ * @returns {Promise<void>}
+ */
+async function actionQueueUpdate({
+  shop,
+  syncSetting,
+  generalSetting,
+  categoryMappings,
+  defaultLocationId,
+  docId,
+  productData
+}) {
+  const initProductVariables = {
+    product: {
+      id: productData.productShopifyId,
+      title: generalSetting?.includeBrand
+        ? `${productData.name} ${productData.brand}`
+        : productData.name,
+      descriptionHtml: syncSetting.description ? productData.desscription : ''
+    }
+  };
+
+  const {productVariables, margin} = addCollectionsToProductVariables(
+    categoryMappings,
+    syncSetting,
+    productData,
+    initProductVariables
+  );
+
+  const productVariantsUpdateVariables = getProductVariantsUpdateVariables(productData, margin);
+
+  const updateMutations = [
+    runProductUpdateMutation({
+      shop,
+      variables: productVariables
+    }),
+    runMetafieldsSetMutation({
+      shop,
+      variables: {metafields: getMetafieldsData(productData)}
+    }),
+    runProductVariantsBulkMutation({
+      shop,
+      variables: productVariantsUpdateVariables,
+      query: UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
+      key: 'productVariantsBulkUpdate'
+    })
+  ];
+
+  if (productData.size_quantity_delta.length) {
+    const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+      productData.productOptionsAfterMap,
+      productData.size_quantity_delta,
+      defaultLocationId
+    );
+    updateMutations.push(
+      runProductAdjustQuantitiesMutation({
+        shop,
+        variables: productAdjustQuantitiesUpdate.variables
+      })
+    );
+  }
+
+  await Promise.all(updateMutations);
+
+  return updateProduct(docId, {
+    syncStatus: 'success',
+    queueStatus: 'synced',
+    updatedAt: FieldValue.serverTimestamp()
+  });
+}
+
+/**
+ *
+ * @param shop
+ * @param docId
+ * @param productData
+ * @returns {Promise<void>}
+ */
+async function actionQueueDelete(shop, docId, productData) {
+  await runDeleteProductMutation({
+    shop,
+    variables: {
+      product: {
+        id: productData.productShopifyId
+      }
+    }
+  });
+  return deleteProductInQueue(docId);
 }
 
 /**
