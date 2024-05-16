@@ -698,11 +698,12 @@ export async function addProduct(shopId, stockData) {
       }
       const {id, ...data} = stockData;
       return collection.add({
-        stockId: id,
-        shopifyId: shopId,
-        syncStatus: 'new',
-        queueStatus: 'create',
         ...data,
+        queueStatus: 'create',
+        syncStatus: 'new',
+        shopifyId: shopId,
+        stockId: id,
+        productShopifyId: '',
         size_quantity: sizeQuantity,
         size_quantity_delta: sizeQuantity,
         createdAt: FieldValue.serverTimestamp(),
