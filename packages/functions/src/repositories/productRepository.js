@@ -157,13 +157,15 @@ export async function syncProducts(shopId) {
                   productShopifyId: productShopify.id,
                   queueStatus: 'synced',
                   syncStatus: 'success',
+                  updatedAt: FieldValue.serverTimestamp(),
                   size_quantity_delta: []
                 });
               }
             } else {
               return updateProduct(doc.id, {
                 productShopifyId: '',
-                syncStatus: 'failed'
+                syncStatus: 'failed',
+                updatedAt: FieldValue.serverTimestamp()
               });
             }
           } else {
@@ -225,7 +227,8 @@ export async function syncProducts(shopId) {
 
             return updateProduct(doc.id, {
               syncStatus: 'success',
-              queueStatus: 'synced'
+              queueStatus: 'synced',
+              updatedAt: FieldValue.serverTimestamp()
             });
           }
           // return updateProduct(doc.id, {
@@ -492,7 +495,8 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
     if (!docs.empty) {
       await batchUpdate(firestore, docs.docs, {
         queueStatus: 'update',
-        syncStatus: 'new'
+        syncStatus: 'new',
+        updatedAt: FieldValue.serverTimestamp()
       });
     }
   }
@@ -506,24 +510,53 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
  */
 export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, generalSetting) {
   if (generalSetting?.deleteOutStock) {
-    const docsCreate = await collection
+    const outOfStockDocsCreate = await collection
       .where('shopifyId', '==', shopifyId)
       .where('queueStatus', '==', 'create')
       .where('qty', '==', 0)
       .get();
-    const docsSync = await collection
+    const outOfStockDocsSynced = await collection
       .where('shopifyId', '==', shopifyId)
       .where('qty', '==', 0)
       .where('productShopifyId', '!=', '')
       .get();
+    const docsSynced = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('qty', '>', 0)
+      .where('productShopifyId', '!=', '')
+      .get();
     const actions = [];
-    if (!docsCreate.empty) {
-      actions.push(batchDelete(firestore, docsCreate.docs));
+    if (!outOfStockDocsCreate.empty) {
+      actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
     }
-    if (!docsSync.empty) {
+    if (!outOfStockDocsSynced.empty) {
       actions.push(
-        batchUpdate(firestore, docsSync.docs, {queueStatus: 'delete', syncStatus: 'new'})
+        batchUpdate(firestore, outOfStockDocsSynced.docs, {
+          queueStatus: 'delete',
+          syncStatus: 'new',
+          updatedAt: FieldValue.serverTimestamp()
+        })
       );
+    }
+    if (!docsSynced.empty) {
+      const outStockDocsUpdate = docsSynced.docs.filter(doc => {
+        const stockData = doc.data();
+        for (const size of stockData.size_quantity) {
+          if (Number(Object.values(size)[0]) === 0) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (outStockDocsUpdate.length) {
+        actions.push(
+          batchUpdate(firestore, outStockDocsUpdate, {
+            queueStatus: 'update',
+            syncStatus: 'new',
+            updatedAt: FieldValue.serverTimestamp()
+          })
+        );
+      }
     }
 
     await Promise.all(actions);
@@ -882,7 +915,10 @@ export async function productWebhook(webhookData) {
               if (!isExistInBrandFilter) {
                 // If product is not in the brand filter
                 if (productNeedUpdate?.productShopifyId) {
-                  return updateProduct(productNeedUpdate.id, {queueStatus: 'delete'});
+                  return updateProduct(productNeedUpdate.id, {
+                    queueStatus: 'delete',
+                    updatedAt: FieldValue.serverTimestamp()
+                  });
                 } else {
                   return deleteProductsInQueueWhenChangeBrandFilter(shopifyId, brandFilter);
                 }

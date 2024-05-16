@@ -24,7 +24,6 @@ export async function batchCreate(firestore, collection, createData) {
 }
 
 /**
- * @param  key
  * @param {Firestore} firestore
  * @param {FirebaseFirestore.QueryDocumentSnapshot[]} docs
  * @param {*} updateData
