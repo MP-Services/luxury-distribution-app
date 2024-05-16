@@ -106,26 +106,20 @@ export async function syncProducts(shopId) {
           });
           return deleteProductInQueue(doc.id);
         } else {
-          let margin = 1;
-          const productVariables = getProductVariables({
-            generalSetting,
-            syncSetting,
-            productData,
-            getSizeAttributeMapping,
-            onlineStore
-          });
-          if (!categoryMappings.empty && syncSetting.categories) {
-            const categoryMapping = categoryMappings.docs.find(
-              e => e.data().retailerId == productData.categoryMapping
-            );
-
-            if (categoryMapping) {
-              productVariables.product.collectionsToJoin = [categoryMapping.shopShipperId];
-              margin = categoryMapping?.margin || 1;
-            }
-          }
           if (!productData?.productShopifyId && productData.queueStatus === 'create') {
             // Create new product to shopify
+            const {productVariables, margin} = addCollectionsToProductVariables(
+              categoryMappings,
+              syncSetting,
+              productData,
+              getProductVariables({
+                generalSetting,
+                syncSetting,
+                productData,
+                getSizeAttributeMapping,
+                onlineStore
+              })
+            );
             const productShopify = await runProductCreateMutation({
               shop,
               variables: productVariables
@@ -174,7 +168,7 @@ export async function syncProducts(shopId) {
             }
           } else {
             // Update product if it has been synced
-            const productVariables = {
+            const initProductVariables = {
               product: {
                 id: productData.productShopifyId,
                 title: generalSetting?.includeBrand
@@ -183,6 +177,13 @@ export async function syncProducts(shopId) {
                 descriptionHtml: syncSetting.description ? productData.desscription : ''
               }
             };
+
+            const {productVariables, margin} = addCollectionsToProductVariables(
+              categoryMappings,
+              syncSetting,
+              productData,
+              initProductVariables
+            );
 
             const productVariantsUpdateVariables = getProductVariantsUpdateVariables(
               productData,
@@ -222,10 +223,10 @@ export async function syncProducts(shopId) {
 
             await Promise.all(updateMutations);
 
-            // return updateProduct(doc.id, {
-            //   syncStatus: 'success',
-            //   queueStatus: 'synced'
-            // });
+            return updateProduct(doc.id, {
+              syncStatus: 'success',
+              queueStatus: 'synced'
+            });
           }
           // return updateProduct(doc.id, {
           //   syncStatus: 'failed'
@@ -236,6 +237,35 @@ export async function syncProducts(shopId) {
   } catch (e) {
     console.log(e);
   }
+}
+
+/**
+ *
+ * @param categoryMappings
+ * @param syncSetting
+ * @param productData
+ * @param productVariables
+ * @returns {{margin: number, productVariables}}
+ */
+function addCollectionsToProductVariables(
+  categoryMappings,
+  syncSetting,
+  productData,
+  productVariables
+) {
+  let margin = 1;
+  if (!categoryMappings.empty && syncSetting.categories) {
+    const categoryMapping = categoryMappings.docs.find(
+      e => e.data().retailerId == productData.categoryMapping
+    );
+
+    if (categoryMapping) {
+      productVariables.product.collectionsToJoin = [categoryMapping.shopShipperId];
+      margin = categoryMapping?.margin || 1;
+    }
+  }
+
+  return {productVariables, margin};
 }
 
 /**
