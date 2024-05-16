@@ -162,3 +162,13 @@ export async function deleteCategoryById(id) {
 
   return true;
 }
+
+/**
+ *
+ * @param data
+ * @param key
+ * @returns {boolean}
+ */
+export function hasDuplicate(data, key) {
+  return new Set(data.map(item => item[key])).size !== data.length;
+}

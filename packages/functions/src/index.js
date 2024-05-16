@@ -9,6 +9,7 @@ import syncProductData from './handlers/schedule/syncProduct';
 import syncOrderData from './handlers/schedule/syncOrder';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
+import subscribeCategoryMappingSaveHandling from './handlers/pubsub/subscribeCategoryMappingSaveHandling';
 
 export const api = functions.https.onRequest(apiHandler.callback());
 export const apiSa = functions.https.onRequest(apiSaHandler.callback());
@@ -46,3 +47,8 @@ export const brandFilterUpdateHandling = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.topic('brandFilterUpdateHandling')
   .onPublish(subscribeBrandFilterUpdateHandling);
+
+export const categoryMappingSaveHandling = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.topic('categoryMappingSaveHandling')
+  .onPublish(subscribeCategoryMappingSaveHandling);

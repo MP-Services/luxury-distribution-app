@@ -17,7 +17,8 @@ import {
   runProductCreateMutation,
   runProductVariantsBulkMutation,
   runProductUpdateMutation,
-  runMetafieldsSetMutation
+  runMetafieldsSetMutation,
+  UPDATE_PRODUCT_VARIANTS_BULK_MUTATION
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -133,7 +134,7 @@ export async function syncProducts(shopId) {
 
             if (categoryMapping) {
               productVariables.product.collectionsToJoin = [categoryMapping.shopShipperId];
-              margin = categoryMapping.margin;
+              margin = categoryMapping?.margin || 1;
             }
           }
           if (!productData?.productShopifyId) {
@@ -169,11 +170,13 @@ export async function syncProducts(shopId) {
                     productData.size_quantity_delta.map(item => Object.keys(item)[0]),
                     getSizeAttributeMapping,
                     productShopify.options[0].optionValues,
-                    productAdjustQuantitiesVariables.variants
+                    productAdjustQuantitiesVariables.variants,
+                    productShopify.options[0].id
                   ),
                   productShopifyId: productShopify.id,
                   queueStatus: 'synced',
-                  syncStatus: 'success'
+                  syncStatus: 'success',
+                  size_quantity_delta: []
                 });
               }
             } else {
@@ -193,13 +196,13 @@ export async function syncProducts(shopId) {
                 descriptionHtml: syncSetting.description ? productData.desscription : ''
               }
             };
-            const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
-              productData.productOptionsAfterMap,
-              productData.size_quantity_delta,
-              defaultLocationId
+
+            const productVariantsUpdateVariables = getProductVariantsUpdateVariables(
+              productData,
+              margin
             );
 
-            await Promise.all([
+            const updateMutations = [
               runProductUpdateMutation({
                 shop,
                 variables: productVariables
@@ -208,20 +211,38 @@ export async function syncProducts(shopId) {
                 shop,
                 variables: {metafields: getMetafieldsData(productData)}
               }),
-              runProductAdjustQuantitiesMutation({
+              runProductVariantsBulkMutation({
                 shop,
-                variables: productAdjustQuantitiesUpdate.variables
+                variables: productVariantsUpdateVariables,
+                query: UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
+                key: 'productVariantsBulkUpdate'
               })
-            ]);
+            ];
 
-            return updateProduct(doc.id, {
-              syncStatus: 'success',
-              queueStatus: 'synced'
-            });
+            if (productData.size_quantity_delta.length) {
+              const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+                productData.productOptionsAfterMap,
+                productData.size_quantity_delta,
+                defaultLocationId
+              );
+              updateMutations.push(
+                runProductAdjustQuantitiesMutation({
+                  shop,
+                  variables: productAdjustQuantitiesUpdate.variables
+                })
+              );
+            }
+
+            await Promise.all(updateMutations);
+
+            // return updateProduct(doc.id, {
+            //   syncStatus: 'success',
+            //   queueStatus: 'synced'
+            // });
           }
-          return updateProduct(doc.id, {
-            syncStatus: 'failed'
-          });
+          // return updateProduct(doc.id, {
+          //   syncStatus: 'failed'
+          // });
         }
       })
     );
@@ -334,6 +355,25 @@ function getProductVariantsVariables(productData, productShopify, margin) {
 
 /**
  *
+ * @param productData
+ * @param margin
+ * @returns {{productId, variants: *}}
+ */
+function getProductVariantsUpdateVariables(productData, margin) {
+  const productOptions = productData.productOptionsAfterMap;
+  const productVariants = productOptions.map(item => ({
+    price: productData.selling_price * margin,
+    compareAtPrice: productData.original_price,
+    id: item.productVariantId
+  }));
+  return {
+    productId: productData.productShopifyId,
+    variants: productVariants
+  };
+}
+
+/**
+ *
  * @param productVariantsReturn
  * @param sizeQuantityDelta
  * @param defaultLocationId
@@ -418,6 +458,31 @@ export async function updateProduct(id, updateData) {
 
 /**
  *
+ * @param shopifyId
+ * @param mappingData
+ * @returns {Promise<void>}
+ */
+export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
+  if (mappingData.length) {
+    const retailerCategories = mappingData.map(mappingRow => Number(mappingRow.retailerId));
+    const docs = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('productShopifyId', '!=', '')
+      .where('queueStatus', '==', 'synced')
+      .where('syncStatus', '==', 'success')
+      .where('product_category_id', 'in', retailerCategories)
+      .get();
+    if (!docs.empty) {
+      await batchUpdate(firestore, docs.docs, {
+        queueStatus: 'updated',
+        syncStatus: 'new'
+      });
+    }
+  }
+}
+
+/**
+ *
  * @param shopId
  * @returns {Promise<void>}
  */
@@ -453,9 +518,16 @@ function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
  * @param getSizeAttributeMapping
  * @param productOptions
  * @param productVariants
+ * @param productOptionId
  * @returns {*}
  */
-function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, productVariants) {
+function sizeOptionMapping(
+  sizes,
+  getSizeAttributeMapping,
+  productOptions,
+  productVariants,
+  productOptionId
+) {
   if (getSizeAttributeMapping) {
     const sizeOptionMapping = getSizeAttributeMapping.optionsMapping;
     return sizes.map(size => {
@@ -476,7 +548,8 @@ function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, produ
             inventoryItemId: getInventoryItemIdByTitle(
               productVariants,
               sizeOption.dropshipperOptionName
-            )
+            ),
+            productOptionId
           }
         : {
             type: 'size',
@@ -484,7 +557,8 @@ function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, produ
             mappingOption: size,
             productOptionValueId: getProductOptionIdByName(productOptions, size),
             productVariantId: getVariantIdByTitle(productVariants, size),
-            inventoryItemId: getInventoryItemIdByTitle(productVariants, size)
+            inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
+            productOptionId
           };
     });
   }
@@ -495,7 +569,8 @@ function sizeOptionMapping(sizes, getSizeAttributeMapping, productOptions, produ
     mappingSize: size,
     productOptionValueId: getProductOptionIdByName(productOptions, size),
     productVariantId: getVariantIdByTitle(productVariants, size),
-    inventoryItemId: getInventoryItemIdByTitle(productVariants, size)
+    inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
+    productOptionId
   }));
 }
 
@@ -757,26 +832,28 @@ export async function productWebhook(webhookData) {
               const isExistInBrandFilter =
                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
               if (productNeedUpdate?.productShopifyId) {
-                const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
-                  item => !Array.isArray(item)
-                );
-                const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
-                const newSizeQuantity = sizeQuantityNeedUpdate.filter(
-                  a => !oldSize.includes(Object.keys(a)[0])
-                );
-                newStockData.size_quantity = sizeQuantityNeedUpdate;
+                // const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
+                //   item => !Array.isArray(item)
+                // );
+                // const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
+                // const newSizeQuantity = sizeQuantityNeedUpdate.filter(
+                //   a => !oldSize.includes(Object.keys(a)[0])
+                // );
+                // newStockData.size_quantity = sizeQuantityNeedUpdate;
                 newStockData.size_quantity_delta = getSizeQuantityDelta(
-                  sizeQuantityNeedUpdate,
-                  productNeedUpdate.size_quantity_delta
+                  newStockData.size_quantity,
+                  productNeedUpdate.size_quantity
                 );
+                const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
+                return updateProduct(productNeedUpdate.id, {
+                  ...newStockData,
+                  queueStatus,
+                  syncStatus: 'new',
+                  updatedAt: FieldValue.serverTimestamp()
+                });
+              } else {
+                return addProduct(shop.shopifyId, newStockData);
               }
-              const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
-              return updateProduct(productNeedUpdate.id, {
-                ...newStockData,
-                queueStatus,
-                syncStatus: 'new',
-                updatedAt: FieldValue.serverTimestamp()
-              });
             }
           })
         );

@@ -6,9 +6,11 @@ import {
   getMappingData,
   editCategoryMapping,
   removeCategoryMapping,
-  deleteCategoryById
+  deleteCategoryById,
+  hasDuplicate
 } from '@functions/repositories/settings/categoryRepository';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
+import publishTopic from '@functions/helpers/pubsub/publishTopic';
 
 /**
  *
@@ -18,12 +20,17 @@ import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryReposi
 export async function save(ctx) {
   const {newMappingRows, editMappingRows} = ctx.req.body.data;
   const {shopID, shopifyDomain} = getCurrentUser(ctx);
-  const [saveResult, editResult] = await Promise.all([
-    saveCategoryMapping(shopID, shopifyDomain, newMappingRows),
-    editCategoryMapping(shopID, shopifyDomain, editMappingRows)
-  ]);
+  const mappingRows = [...editMappingRows, ...newMappingRows];
+  if (!hasDuplicate(mappingRows, 'retailerId')) {
+    const [saveResult, editResult] = await Promise.all([
+      saveCategoryMapping(shopID, shopifyDomain, newMappingRows),
+      editCategoryMapping(shopID, shopifyDomain, editMappingRows)
+    ]);
+    await publishTopic('categoryMappingSaveHandling', {shopId: shopID, mappingData: mappingRows});
 
-  ctx.body = {success: saveResult && editResult};
+    return (ctx.body = {success: saveResult && editResult});
+  }
+  return (ctx.body = {success: false, error: 'Duplicate Retailer Category'});
 }
 
 /**

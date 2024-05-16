@@ -151,6 +151,27 @@ mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsB
 }
 `;
 
+export const UPDATE_PRODUCT_VARIANTS_BULK_MUTATION = `
+mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+  productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+    product {
+      id
+    }
+    productVariants {
+      id
+      title
+      inventoryItem {
+        id
+      }
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
 export const INVENTORY_ADJUST_QUANTITIES_MUTATION = `
 mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!, $locationId: ID!) {
   inventoryAdjustQuantities(input: $input) {
@@ -394,12 +415,14 @@ export async function runProductAdjustQuantitiesMutation({
  * @param shop
  * @param variables
  * @param query
+ * @param key
  * @returns {Promise<*|string>}
  */
 export async function runProductVariantsBulkMutation({
   shop,
   variables,
-  query = CREATE_PRODUCT_VARIANTS_BULK_MUTATION
+  query = CREATE_PRODUCT_VARIANTS_BULK_MUTATION,
+  key = 'productVariantsBulkCreate'
 }) {
   try {
     const graphqlQuery = {query, variables};
@@ -408,7 +431,7 @@ export async function runProductVariantsBulkMutation({
       console.error(errors.map(x => x.message).join('. '));
       return '';
     }
-    const {product, productVariants, userErrors} = data.productVariantsBulkCreate;
+    const {product, productVariants, userErrors} = data[key];
     if (userErrors.length) {
       console.error(userErrors);
       return '';
