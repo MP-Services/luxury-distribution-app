@@ -95,7 +95,7 @@ export async function syncProducts(shopId) {
     await Promise.all(
       productsQuery.docs.map(async doc => {
         const productData = doc.data();
-        if (productData.queueStatus === 'deleted' && productData?.productShopifyId) {
+        if (productData.queueStatus === 'delete' && productData?.productShopifyId) {
           await runDeleteProductMutation({
             shop,
             variables: {
@@ -474,7 +474,7 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
       .get();
     if (!docs.empty) {
       await batchUpdate(firestore, docs.docs, {
-        queueStatus: 'updated',
+        queueStatus: 'update',
         syncStatus: 'new'
       });
     }
@@ -646,7 +646,7 @@ export async function addProducts(shopId) {
             stockId: id,
             shopifyId: shopId,
             syncStatus: 'new',
-            queueStatus: 'created',
+            queueStatus: 'create',
             productShopifyId: '',
             size_quantity: sizeQuantity,
             size_quantity_delta: sizeQuantity,
@@ -684,7 +684,7 @@ export async function addProduct(shopId, stockData) {
         stockId: id,
         shopifyId: shopId,
         syncStatus: 'new',
-        queueStatus: 'created',
+        queueStatus: 'create',
         ...data,
         size_quantity: sizeQuantity,
         size_quantity_delta: sizeQuantity,
@@ -706,26 +706,26 @@ export async function addProduct(shopId, stockData) {
  */
 export async function getProductCounts(shopId) {
   try {
-    const [totalProduct, createdQueue, updatedQueue, deletedQueue] = await Promise.all([
+    const [totalProduct, createQueue, updateQueue, deleteQueue] = await Promise.all([
       collection
         .where('shopifyId', '==', shopId)
-        .where('queueStatus', '!=', 'deleted')
+        .where('queueStatus', '!=', 'delete')
         .where('syncStatus', '==', 'success')
         .count()
         .get(),
       collection
         .where('shopifyId', '==', shopId)
-        .where('queueStatus', '==', 'created')
+        .where('queueStatus', '==', 'create')
         .count()
         .get(),
       collection
         .where('shopifyId', '==', shopId)
-        .where('queueStatus', '==', 'updated')
+        .where('queueStatus', '==', 'update')
         .count()
         .get(),
       collection
         .where('shopifyId', '==', shopId)
-        .where('queueStatus', '==', 'deleted')
+        .where('queueStatus', '==', 'delete')
         .count()
         .get()
     ]);
@@ -734,9 +734,9 @@ export async function getProductCounts(shopId) {
       success: true,
       data: {
         totalsProductCount: totalProduct.data().count,
-        createQueueProductCount: createdQueue.data().count,
-        updateQueueProductCount: updatedQueue.data().count,
-        deleteQueueProductCount: deletedQueue.data().count
+        createQueueProductCount: createQueue.data().count,
+        updateQueueProductCount: updateQueue.data().count,
+        deleteQueueProductCount: deleteQueue.data().count
       }
     };
   } catch (e) {
@@ -831,6 +831,11 @@ export async function productWebhook(webhookData) {
               const newStockData = await getStockById(stockId, shop);
               const isExistInBrandFilter =
                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
+              if (!isExistInBrandFilter) {
+                if (productNeedUpdate?.productShopifyId) {
+                  return updateProduct(productNeedUpdate.id, {queueStatus: 'delete'});
+                }
+              }
               if (productNeedUpdate?.productShopifyId) {
                 // const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
                 //   item => !Array.isArray(item)
@@ -844,7 +849,7 @@ export async function productWebhook(webhookData) {
                   newStockData.size_quantity,
                   productNeedUpdate.size_quantity
                 );
-                const queueStatus = productNeedUpdate?.productShopifyId ? 'updated' : 'created';
+                const queueStatus = productNeedUpdate?.productShopifyId ? 'update' : 'create';
                 return updateProduct(productNeedUpdate.id, {
                   ...newStockData,
                   queueStatus,
@@ -921,15 +926,15 @@ async function getAllProductByStockId(stockId, shopifyId) {
 async function queueProductBulkDelete(stockId) {
   const docsSync = await collection
     .where('stockId', '==', stockId)
-    .where('queueStatus', '!=', 'created')
+    .where('queueStatus', '!=', 'create')
     .get();
   const docs = await collection
     .where('stockId', '==', stockId)
-    .where('queueStatus', '==', 'created')
+    .where('queueStatus', '==', 'create')
     .get();
   if (!docsSync.empty) {
     await batchUpdate(firestore, docsSync.docs, {
-      queueStatus: 'deleted',
+      queueStatus: 'delete',
       updatedAt: FieldValue.serverTimestamp()
     });
   }
