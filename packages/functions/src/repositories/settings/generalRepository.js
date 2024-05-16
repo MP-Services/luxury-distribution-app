@@ -1,5 +1,6 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
+import publishTopic from '@functions/helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -45,6 +46,7 @@ export async function saveGeneralSetting(shopId, shopifyDomain, data) {
     } else {
       await docs.docs[0].ref.update({...data});
     }
+    await publishTopic('generalSettingSaveHandling', {shopId, generalSetting: data});
 
     return {success: true};
   } catch (error) {

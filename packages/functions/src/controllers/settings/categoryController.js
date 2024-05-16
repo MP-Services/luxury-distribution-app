@@ -5,7 +5,6 @@ import {
   getRetailerCategory,
   getMappingData,
   editCategoryMapping,
-  removeCategoryMapping,
   deleteCategoryById,
   hasDuplicate
 } from '@functions/repositories/settings/categoryRepository';
@@ -26,7 +25,16 @@ export async function save(ctx) {
       saveCategoryMapping(shopID, shopifyDomain, newMappingRows),
       editCategoryMapping(shopID, shopifyDomain, editMappingRows)
     ]);
-    await publishTopic('categoryMappingSaveHandling', {shopId: shopID, mappingData: mappingRows});
+    let data = [];
+    if (saveResult) {
+      data = [...data, ...newMappingRows];
+    }
+    if (editResult) {
+      data = [...data, ...editMappingRows];
+    }
+    if (saveResult && editResult) {
+      await publishTopic('categoryMappingSaveHandling', {shopId: shopID, mappingData: data});
+    }
 
     return (ctx.body = {success: saveResult && editResult});
   }

@@ -500,6 +500,38 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
 
 /**
  *
+ * @param shopifyId
+ * @param generalSetting
+ * @returns {Promise<void>}
+ */
+export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, generalSetting) {
+  if (generalSetting?.deleteOutStock) {
+    const docsCreate = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('queueStatus', '==', 'create')
+      .where('qty', '==', 0)
+      .get();
+    const docsSync = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('qty', '==', 0)
+      .where('productShopifyId', '!=', '')
+      .get();
+    const actions = [];
+    if (!docsCreate.empty) {
+      actions.push(batchDelete(firestore, docsCreate.docs));
+    }
+    if (!docsSync.empty) {
+      actions.push(
+        batchUpdate(firestore, docsSync.docs, {queueStatus: 'delete', syncStatus: 'new'})
+      );
+    }
+
+    await Promise.all(actions);
+  }
+}
+
+/**
+ *
  * @param shopId
  * @returns {Promise<void>}
  */
