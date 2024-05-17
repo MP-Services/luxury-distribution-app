@@ -4,7 +4,7 @@ import publishTopic from '@functions/helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
-const generalSettingsRef = firestore.collection('generalSettings');
+const collection = firestore.collection('generalSettings');
 
 /**
  * Get shop info by given shop ID
@@ -13,7 +13,7 @@ const generalSettingsRef = firestore.collection('generalSettings');
  * @return {Promise<FirebaseFirestore.DocumentData>}
  */
 export async function getGeneralSettingShopId(id) {
-  const docs = await generalSettingsRef
+  const docs = await collection
     .where('shopifyId', '==', id)
     .limit(1)
     .get();
@@ -33,12 +33,12 @@ export async function getGeneralSettingShopId(id) {
  */
 export async function saveGeneralSetting(shopId, shopifyDomain, data) {
   try {
-    const docs = await generalSettingsRef
+    const docs = await collection
       .where('shopifyId', '==', shopId)
       .limit(1)
       .get();
     if (docs.empty) {
-      await generalSettingsRef.add({
+      await collection.add({
         shopifyId: shopId,
         shopifyDomain,
         ...data
@@ -53,4 +53,21 @@ export async function saveGeneralSetting(shopId, shopifyDomain, data) {
     console.log(error);
     return {success: false, error: error.message};
   }
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<*|null>}
+ */
+export async function deleteGeneralSettingByShopId(shopId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
 }

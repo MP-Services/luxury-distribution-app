@@ -172,3 +172,17 @@ export async function deleteCategoryById(id) {
 export function hasDuplicate(data, key) {
   return new Set(data.map(item => item[key])).size !== data.length;
 }
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteCategoryMappingsByShopId(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
+}

@@ -44,3 +44,21 @@ export async function getShopByField(value, field = 'shopifyDomain') {
   const doc = docs.docs[0];
   return {id: doc.id, ...doc.data()};
 }
+
+/**
+ * @param shopId
+ * @param postData
+ * @return {Promise<{success: boolean, error: *}>}
+ */
+export async function updateShopData(shopId, postData) {
+  if (isEmpty(postData)) {
+    return {success: true};
+  }
+  try {
+    await collection.doc(shopId).update(postData);
+    return {success: true};
+  } catch (e) {
+    console.error(e);
+    return {success: false, error: e.message};
+  }
+}

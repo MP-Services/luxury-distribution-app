@@ -1,6 +1,7 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getProductByShopifyProductId} from '@functions/repositories/productRepository';
 import {createOrder} from '@functions/repositories/luxuryRepository';
+import {batchDelete} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -105,7 +106,9 @@ async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
     if (luxuryProduct && productOption) {
       products = [
         ...products,
-        ...[{stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalValue}]
+        ...[
+          {stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalValue}
+        ]
       ];
     }
   }
@@ -130,4 +133,18 @@ async function getOrderToSyncQuery(shopifyId, limit = 3) {
   }
 
   return docs.docs.map(doc => ({uuid: doc.id, ...doc.data()}));
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteOrdersByShopId(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
 }

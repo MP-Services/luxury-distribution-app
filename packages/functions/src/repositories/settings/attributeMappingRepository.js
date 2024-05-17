@@ -1,6 +1,5 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
-import {batchCreate} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -75,4 +74,21 @@ export async function getSizeOptions(luxuryInfo) {
     console.log(e);
   }
   return {success: false};
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<*|null>}
+ */
+export async function deleteAttributeMapping(shopId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
 }

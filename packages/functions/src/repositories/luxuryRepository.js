@@ -68,7 +68,12 @@ async function sendLXRequest({url, shopInfo, key = 'data', method = 'GET', data 
  * @returns {Promise<*|null>}
  */
 export async function createOrder(shopInfo, data) {
-  return await sendLXRequest({url: LUXURY_API_V1_URL + '/test-order', shopInfo, data, method: 'POST'});
+  return await sendLXRequest({
+    url: LUXURY_API_V1_URL + '/test-order',
+    shopInfo,
+    data,
+    method: 'POST'
+  });
 }
 
 /**
@@ -212,4 +217,21 @@ export async function updateLuxuryToken(data, updateData) {
   }
 
   return luxuryDoc.ref.update({token: updateData, tokenCreationTime: FieldValue.serverTimestamp()});
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<*|null>}
+ */
+export async function deleteLuxuryShop(shopId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
 }

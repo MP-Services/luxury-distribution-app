@@ -1259,3 +1259,17 @@ export async function getProductByShopifyProductId(shopId, productShopifyId) {
   const [doc] = docs.docs;
   return presentDataAndFormatDate(doc);
 }
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteProductsWhenUninstallByShopId(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
+}

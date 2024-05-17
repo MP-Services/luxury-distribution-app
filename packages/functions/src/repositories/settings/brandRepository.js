@@ -5,7 +5,7 @@ import publishTopic from '../../helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
-const brandSettingsRef = firestore.collection('brandFilterSettings');
+const collection = firestore.collection('brandFilterSettings');
 
 export async function getLXBrandList(data) {
   return await getBrandList(data);
@@ -18,7 +18,7 @@ export async function getLXBrandList(data) {
  * @return {Promise<FirebaseFirestore.DocumentData>}
  */
 export async function getBrandSettingShopId(id) {
-  const docs = await brandSettingsRef
+  const docs = await collection
     .where('shopifyId', '==', id)
     .limit(1)
     .get();
@@ -38,12 +38,12 @@ export async function getBrandSettingShopId(id) {
  */
 export async function saveBrandFilterSetting(shopId, shopifyDomain, data) {
   try {
-    const docs = await brandSettingsRef
+    const docs = await collection
       .where('shopifyId', '==', shopId)
       .limit(1)
       .get();
     if (docs.empty) {
-      await brandSettingsRef.add({
+      await collection.add({
         shopifyId: shopId,
         shopifyDomain,
         brands: data
@@ -59,4 +59,21 @@ export async function saveBrandFilterSetting(shopId, shopifyDomain, data) {
     console.log(error);
     return {success: false, error: error.message};
   }
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<*|null>}
+ */
+export async function deleteBrandFilterByShopId(shopId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
 }
