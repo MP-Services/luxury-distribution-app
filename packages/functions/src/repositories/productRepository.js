@@ -590,11 +590,6 @@ export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, general
       .where('qty', '==', 0)
       .where('productShopifyId', '!=', '')
       .get();
-    const docsSynced = await collection
-      .where('shopifyId', '==', shopifyId)
-      .where('qty', '>', 0)
-      .where('productShopifyId', '!=', '')
-      .get();
     const actions = [];
     if (!outOfStockDocsCreate.empty) {
       actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
@@ -607,26 +602,6 @@ export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, general
           updatedAt: FieldValue.serverTimestamp()
         })
       );
-    }
-    if (!docsSynced.empty) {
-      const outStockDocsUpdate = docsSynced.docs.filter(doc => {
-        const stockData = doc.data();
-        for (const size of stockData.size_quantity) {
-          if (Number(Object.values(size)[0]) === 0) {
-            return true;
-          }
-        }
-        return false;
-      });
-      if (outStockDocsUpdate.length) {
-        actions.push(
-          batchUpdate(firestore, outStockDocsUpdate, {
-            queueStatus: 'update',
-            syncStatus: 'new',
-            updatedAt: FieldValue.serverTimestamp()
-          })
-        );
-      }
     }
 
     await Promise.all(actions);
@@ -975,22 +950,25 @@ export async function productWebhook(webhookData) {
         await Promise.all(
           shops.map(async shop => {
             const {shopifyId} = shop;
-            const productNeedUpdate = await getAllProductByStockId(stockId, shopifyId);
+            const productNeedUpdate = await getProductByStockId(stockId, shopifyId);
             if (productNeedUpdate) {
               const brandFilter = await getBrandSettingShopId(shopifyId);
-              const sizeQuantityOfProduct = productNeedUpdate.size_quantity;
               const newStockData = await getStockById(stockId, shop);
               const isExistInBrandFilter =
                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
-              if (!isExistInBrandFilter) {
-                // If product is not in the brand filter
+              const generalSetting = await getGeneralSettingShopId(shopifyId);
+              if (
+                !isExistInBrandFilter ||
+                (generalSetting?.deleteOutStock && Number(newStockData.qty) === 0)
+              ) {
+                // If product is not in the brand filter or out of stock
                 if (productNeedUpdate?.productShopifyId) {
                   return updateProduct(productNeedUpdate.id, {
                     queueStatus: 'delete',
                     updatedAt: FieldValue.serverTimestamp()
                   });
                 } else {
-                  return deleteProductsInQueueWhenChangeBrandFilter(shopifyId, brandFilter);
+                  return deleteProductInQueue(productNeedUpdate.uid);
                 }
               } else {
                 if (productNeedUpdate?.productShopifyId) {
@@ -1013,8 +991,6 @@ export async function productWebhook(webhookData) {
                     syncStatus: 'new',
                     updatedAt: FieldValue.serverTimestamp()
                   });
-                } else {
-                  return addProduct(shop.shopifyId, newStockData);
                 }
               }
             }
@@ -1062,7 +1038,7 @@ function getSizeQuantityDelta(a, b) {
  * @param shopifyId
  * @returns {Promise<{[p: string]: FirebaseFirestore.DocumentFieldValue, uid: string}|null>}
  */
-async function getAllProductByStockId(stockId, shopifyId) {
+async function getProductByStockId(stockId, shopifyId) {
   const docs = await collection
     .where('stockId', '==', stockId)
     .where('shopifyId', '==', shopifyId)
