@@ -121,6 +121,48 @@ mutation UpdateProduct($product: ProductInput!, $media: [CreateMediaInput!]) {
     }
 }`;
 
+export const PRODUCT_OPTION_UPDATE_MUTATION = `
+mutation updateOption($productId: ID!, $option: OptionUpdateInput!, $optionValuesToAdd: [OptionValueCreateInput!], $optionValuesToUpdate: [OptionValueUpdateInput!], $optionValuesToDelete: [ID!]) {
+  productOptionUpdate(productId: $productId, option: $option, optionValuesToAdd: $optionValuesToAdd, optionValuesToUpdate: $optionValuesToUpdate, optionValuesToDelete: $optionValuesToDelete) {
+    userErrors {
+      field
+      message
+      code
+    }
+    product {
+      id
+      options {
+        id
+        name
+        values
+        position
+        optionValues {
+          id
+          name
+          hasVariants
+        }
+      }
+    }
+  }
+}
+`;
+
+export const PRODUCT_VARIANTS_BULK_DELETE_MUTATION = `
+mutation bulkDeleteProductVariants($productId: ID!, $variantsIds: [ID!]!) {
+  productVariantsBulkDelete(productId: $productId, variantsIds: $variantsIds) {
+    product {
+      id
+      title
+      productType
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
 export const CREATE_PRODUCT_VARIANTS_BULK_MUTATION = `
 mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
   productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: REMOVE_STANDALONE_VARIANT) {
@@ -438,6 +480,66 @@ export async function runProductVariantsBulkMutation({
     }
 
     return {product, productVariants};
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runProductVariantsDeleteMutation({
+  shop,
+  variables,
+  query = PRODUCT_VARIANTS_BULK_DELETE_MUTATION
+}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {product, userErrors} = data.productVariantsBulkDelete;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return product;
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runProductOptionUpdateMutation({shop, variables, query = PRODUCT_OPTION_UPDATE_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {product, userErrors} = data.productOptionUpdate;
+    if (userErrors.length) {
+      console.error(userErrors);
+      return '';
+    }
+
+    return product;
   } catch (error) {
     console.error(error);
     return '';

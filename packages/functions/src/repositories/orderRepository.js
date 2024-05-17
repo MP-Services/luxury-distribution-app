@@ -105,7 +105,7 @@ async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
     if (luxuryProduct && productOption) {
       products = [
         ...products,
-        ...[{stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalSize}]
+        ...[{stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalValue}]
       ];
     }
   }

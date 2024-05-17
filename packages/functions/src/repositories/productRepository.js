@@ -18,7 +18,8 @@ import {
   runProductVariantsBulkMutation,
   runProductUpdateMutation,
   runMetafieldsSetMutation,
-  UPDATE_PRODUCT_VARIANTS_BULK_MUTATION
+  UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
+  runProductVariantsDeleteMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -81,7 +82,7 @@ export async function syncProducts(shopId) {
     const brandFilterSetting = await getBrandSettingShopId(shopId);
     const productsQuery = await getProductsQuery(shopId, 3);
     const shop = await getShopByIdIncludeAccessToken(shopId);
-    const getSizeAttributeMapping = await getAttributeMappingData(shopId);
+    const sizeAttributeMapping = await getAttributeMappingData(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
     if (
       productsQuery.empty ||
@@ -105,7 +106,7 @@ export async function syncProducts(shopId) {
             categoryMappings,
             syncSetting,
             generalSetting,
-            getSizeAttributeMapping,
+            sizeAttributeMapping,
             defaultLocationId,
             onlineStore,
             docId,
@@ -118,6 +119,7 @@ export async function syncProducts(shopId) {
             syncSetting,
             generalSetting,
             categoryMappings,
+            sizeAttributeMapping,
             defaultLocationId,
             docId,
             productData
@@ -136,7 +138,7 @@ export async function syncProducts(shopId) {
  * @param categoryMappings
  * @param syncSetting
  * @param generalSetting
- * @param getSizeAttributeMapping
+ * @param sizeAttributeMapping
  * @param defaultLocationId
  * @param onlineStore
  * @param docId
@@ -148,7 +150,7 @@ async function actionQueueCreate({
   categoryMappings,
   syncSetting,
   generalSetting,
-  getSizeAttributeMapping,
+  sizeAttributeMapping,
   defaultLocationId,
   onlineStore,
   docId,
@@ -162,7 +164,7 @@ async function actionQueueCreate({
       generalSetting,
       syncSetting,
       productData,
-      getSizeAttributeMapping,
+      sizeAttributeMapping,
       onlineStore
     })
   );
@@ -171,11 +173,13 @@ async function actionQueueCreate({
     variables: productVariables
   });
   if (productShopify) {
-    const productVariantsVariables = getProductVariantsVariables(
+    const productVariantsVariables = getProductVariantsVariables({
+      productShopifyId: productShopify.id,
       productData,
-      productShopify,
+      productOptionId: productShopify.options[0].id,
+      optionValuesProduct: productShopify.options[0].optionValues,
       margin
-    );
+    });
     const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation({
       shop,
       variables: productVariantsVariables
@@ -193,7 +197,7 @@ async function actionQueueCreate({
       return updateProduct(docId, {
         productOptionsAfterMap: sizeOptionMapping(
           productData.size_quantity_delta.map(item => Object.keys(item)[0]),
-          getSizeAttributeMapping,
+          sizeAttributeMapping,
           productShopify.options[0].optionValues,
           productAdjustQuantitiesVariables.variants,
           productShopify.options[0].id
@@ -220,6 +224,7 @@ async function actionQueueCreate({
  * @param syncSetting
  * @param generalSetting
  * @param categoryMappings
+ * @param sizeAttributeMapping
  * @param defaultLocationId
  * @param docId
  * @param productData
@@ -230,13 +235,16 @@ async function actionQueueUpdate({
   syncSetting,
   generalSetting,
   categoryMappings,
+  sizeAttributeMapping,
   defaultLocationId,
   docId,
   productData
 }) {
+  const productId = productData.productShopifyId;
+  const productOptionId = productData?.productOptionsAfterMap[0]?.productOptionId;
   const initProductVariables = {
     product: {
-      id: productData.productShopifyId,
+      id: productId,
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
@@ -251,9 +259,16 @@ async function actionQueueUpdate({
     initProductVariables
   );
 
-  const productVariantsUpdateVariables = getProductVariantsUpdateVariables(productData, margin);
+  const sizesNeedAdd = getSizesNeedAdd(productData);
+  const sizesNeedUpdate = getSizesNeedUpdate(productData);
+  const sizesNeedDelete = generalSetting?.deleteOutStock ? getSizesNeedDelete(productData) : [];
 
-  const updateMutations = [
+  const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
+  const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
+  const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
+  let productOptionsAfterMap = [];
+
+  await Promise.all([
     runProductUpdateMutation({
       shop,
       variables: productVariables
@@ -261,35 +276,171 @@ async function actionQueueUpdate({
     runMetafieldsSetMutation({
       shop,
       variables: {metafields: getMetafieldsData(productData)}
-    }),
-    runProductVariantsBulkMutation({
-      shop,
-      variables: productVariantsUpdateVariables,
-      query: UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
-      key: 'productVariantsBulkUpdate'
     })
-  ];
+  ]);
 
-  if (productData.size_quantity_delta.length) {
-    const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
-      productData.productOptionsAfterMap,
-      productData.size_quantity_delta,
-      defaultLocationId
-    );
-    updateMutations.push(
-      runProductAdjustQuantitiesMutation({
+  const productOptionUpdate = await runProductOptionUpdateMutation({
+    shop,
+    variables: {
+      productId,
+      option: {
+        id: productOptionId
+      },
+      optionValuesToUpdate,
+      optionValuesToAdd,
+      optionValuesToDelete
+    }
+  });
+
+  if (productOptionUpdate && productOptionUpdate?.options?.optionValues) {
+    const optionsValues = productOptionUpdate.options.optionValues;
+    const variantsNeedAdd = optionsValues.filter(option => !option.hasVariants);
+    const variantsNeedUpdate = optionsValues.filter(option => !option.hasVariants);
+    let productVariantsReturn = [];
+
+    // Add Variant
+    if (variantsNeedAdd.length) {
+      const productVariantsVariables = getProductVariantsVariables({
+        productShopifyId: productId,
+        productData,
+        productOptionId,
+        optionValuesProduct: variantsNeedAdd,
+        margin
+      });
+      const {productVariants: productVariantsAddReturn} = await runProductVariantsBulkMutation({
+        shop,
+        variables: productVariantsVariables
+      });
+      if (productVariantsAddReturn) {
+        productVariantsReturn = [...productVariantsReturn, ...productVariantsAddReturn];
+      }
+    }
+
+    // Update Variant
+    if (variantsNeedUpdate.length) {
+      const productVariantsUpdateVariables = getProductVariantsUpdateVariables(
+        productData,
+        sizesNeedUpdate,
+        margin
+      );
+      const {productVariants: productVariantsUpdateReturn} = await runProductVariantsBulkMutation({
+        shop,
+        variables: productVariantsUpdateVariables,
+        query: UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
+        key: 'productVariantsBulkUpdate'
+      });
+      if (productVariantsUpdateReturn) {
+        productVariantsReturn = [...productVariantsReturn, ...productVariantsUpdateReturn];
+      }
+    }
+
+    if (productData.size_quantity_delta.length && productVariantsReturn.length) {
+      const variantsToMap = productVariantsUpdateReturn.map(item => ({
+        id: item.id,
+        title: item.title,
+        inventoryItem: item.inventoryItem
+      }));
+      productOptionsAfterMap = sizeOptionMapping(
+        productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+        sizeAttributeMapping,
+        optionsValues,
+        variantsToMap,
+        productOptionId
+      );
+      const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+        productOptionsAfterMap,
+        productData.size_quantity_delta,
+        defaultLocationId
+      );
+
+      await runProductAdjustQuantitiesMutation({
         shop,
         variables: productAdjustQuantitiesUpdate.variables
-      })
-    );
+      });
+    }
   }
-
-  await Promise.all(updateMutations);
 
   return updateProduct(docId, {
     syncStatus: 'success',
     queueStatus: 'synced',
+    productOptionsAfterMap,
     updatedAt: FieldValue.serverTimestamp()
+  });
+}
+
+/**
+ *
+ * @param options
+ * @returns {*}
+ */
+function getOptionValuesToDelete(options) {
+  return options.map(option => option.productOptionValueId);
+}
+
+/**
+ *
+ * @param options
+ * @param sizeAttributeMapping
+ * @returns {*}
+ */
+function getOptionValuesToAdd(options, sizeAttributeMapping) {
+  const sizes = options.map(item => ({name: Object.keys(item)[0]}));
+  return convertOptionMappingToSizeValue(sizes, sizeAttributeMapping);
+}
+
+/**
+ *
+ * @param options
+ * @param sizeAttributeMapping
+ * @returns {*}
+ */
+function getOptionValuesToUpdate(options, sizeAttributeMapping) {
+  return options.map(option => {
+    let value = option.mappingValue;
+    if (sizeAttributeMapping) {
+      const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
+      const sizeOption = sizeOptionMapping.find(
+        item => item.retailerOptionName === option.originalValue
+      );
+      value = sizeOption?.dropshipperOptionName ?? option.originalValue;
+    }
+    return {id: option.productOptionValueId, value};
+  });
+}
+
+/**
+ *
+ * @param productData
+ * @returns {*}
+ */
+function getSizesNeedAdd(productData) {
+  return productData.size_quantity_delta.filter(size => {
+    return !productData.productOptionsAfterMap.find(
+      option => Object.keys(size)[0] === option.originalValue
+    );
+  });
+}
+
+/**
+ *
+ * @param productData
+ * @returns {*}
+ */
+function getSizesNeedUpdate(productData) {
+  return productData.productOptionsAfterMap.filter(option => {
+    return productData.size_quantity.find(size => option.originalValue === Object.keys(size)[0]);
+  });
+}
+
+/**
+ *
+ * @param productData
+ * @returns {*}
+ */
+
+function getSizesNeedDelete(productData) {
+  return productData.productOptionsAfterMap.filter(option => {
+    return !productData.size_quantity.find(size => option.originalValue === Object.keys(size)[0]);
   });
 }
 
@@ -346,7 +497,7 @@ function addCollectionsToProductVariables(
  * @param generalSetting
  * @param syncSetting
  * @param productData
- * @param getSizeAttributeMapping
+ * @param sizeAttributeMapping
  * @param onlineStore
  * @returns {{product: {metafields: *, productOptions: [{values: *, name: string}], descriptionHtml: (*|string), title: (string|*), collectionsToJoin: *[], status: (string), publications: ([{publicationId}]|*[])}, media: (*|*[])}}
  */
@@ -354,17 +505,16 @@ function getProductVariables({
   generalSetting,
   syncSetting,
   productData,
-  getSizeAttributeMapping,
+  sizeAttributeMapping,
   onlineStore
 }) {
   const sizeOptionsMap = convertOptionMappingToSizeValue(
     productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
-    getSizeAttributeMapping
+    sizeAttributeMapping
   );
   const productOptionsData = [
     {
       name: 'Size',
-      // values: productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]}))
       values: sizeOptionsMap
     }
   ];
@@ -420,25 +570,33 @@ function getMetafieldsData(productData) {
 
 /**
  *
+ * @param productShopifyId
  * @param productData
- * @param productShopify
+ * @param productOptionId
+ * @param optionValuesProduct
  * @param margin
  * @returns {{productId, variants: *}}
  */
-function getProductVariantsVariables(productData, productShopify, margin) {
-  const productVariants = productShopify.options[0].optionValues.map((optionValue, index) => ({
-    sku: `${productData.sku}-${index + 1}`,
+function getProductVariantsVariables({
+  productShopifyId,
+  productData,
+  productOptionId,
+  optionValuesProduct,
+  margin
+}) {
+  const productVariants = optionValuesProduct.map((optionValue, index) => ({
+    sku: productData.sku,
     price: productData.selling_price * margin,
     compareAtPrice: productData.original_price,
     optionValues: [
       {
-        optionId: productShopify.options[0].id,
+        optionId: productOptionId,
         id: optionValue.id
       }
     ]
   }));
   return {
-    productId: productShopify.id,
+    productId: productShopifyId,
     variants: productVariants
   };
 }
@@ -446,12 +604,12 @@ function getProductVariantsVariables(productData, productShopify, margin) {
 /**
  *
  * @param productData
+ * @param sizesNeedUpdate
  * @param margin
  * @returns {{productId, variants: *}}
  */
-function getProductVariantsUpdateVariables(productData, margin) {
-  const productOptions = productData.productOptionsAfterMap;
-  const productVariants = productOptions.map(item => ({
+function getProductVariantsUpdateVariables(productData, sizesNeedUpdate, margin) {
+  const productVariants = sizesNeedUpdate.map(item => ({
     price: productData.selling_price * margin,
     compareAtPrice: productData.original_price,
     id: item.productVariantId
@@ -503,24 +661,19 @@ function getProductAdjustQuantitiesVariables(
 
 /**
  *
- * @param productOptionsAfterMap
+ * @param sizesNeedUpdate
  * @param sizeQuantityDelta
  * @param defaultLocationId
  * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
  */
-function getProductAdjustQuantitiesUpdate(
-  productOptionsAfterMap,
-  sizeQuantityDelta,
-  defaultLocationId
-) {
-  const changesData = productOptionsAfterMap.map((item, index) => {
+function getProductAdjustQuantitiesUpdate(sizesNeedUpdate, sizeQuantityDelta, defaultLocationId) {
+  const changesData = sizesNeedUpdate.map(item => {
     const deltaItem = sizeQuantityDelta.find(size => {
-      return Object.keys(size)[0] == item.originalSize;
+      return Object.keys(size)[0] == item.originalValue;
     });
-    const delta = deltaItem ? Object.values(deltaItem)[0] : 0;
     return {
       inventoryItemId: item.inventoryItemId,
-      delta: Number(delta),
+      delta: Number(Object.values(deltaItem)[0]),
       locationId: defaultLocationId
     };
   });
@@ -625,12 +778,12 @@ export async function createMetafields(shopId) {
 /**
  *
  * @param sizes
- * @param getSizeAttributeMapping
+ * @param sizeAttributeMapping
  * @returns {*}
  */
-function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
-  if (getSizeAttributeMapping) {
-    const sizeOptionMapping = getSizeAttributeMapping.optionsMapping;
+function convertOptionMappingToSizeValue(sizes, sizeAttributeMapping) {
+  if (sizeAttributeMapping) {
+    const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
     return sizes.map(size => {
       const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
       return sizeOption?.dropshipperOptionName ?? size;
@@ -642,7 +795,7 @@ function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
 /**
  *
  * @param sizes
- * @param getSizeAttributeMapping
+ * @param sizeAttributeMapping
  * @param productOptions
  * @param productVariants
  * @param productOptionId
@@ -650,13 +803,13 @@ function convertOptionMappingToSizeValue(sizes, getSizeAttributeMapping) {
  */
 function sizeOptionMapping(
   sizes,
-  getSizeAttributeMapping,
+  sizeAttributeMapping,
   productOptions,
   productVariants,
   productOptionId
 ) {
-  if (getSizeAttributeMapping) {
-    const sizeOptionMapping = getSizeAttributeMapping.optionsMapping;
+  if (sizeAttributeMapping) {
+    const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
     return sizes.map(size => {
       const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
       return sizeOption?.dropshipperOptionName
@@ -692,8 +845,8 @@ function sizeOptionMapping(
 
   return sizes.map(size => ({
     type: 'size',
-    originalSize: size,
-    mappingSize: size,
+    originalValue: size,
+    mappingValue: size,
     productOptionValueId: getProductOptionIdByName(productOptions, size),
     productVariantId: getVariantIdByTitle(productVariants, size),
     inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
