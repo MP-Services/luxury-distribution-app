@@ -253,7 +253,7 @@ mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!, $loc
 
 export const METAFIELDS_DEFINITIONS_QUERY = `
 query {
-  metafieldDefinitions(first: 250, ownerType: PRODUCT) {
+  metafieldDefinitions(first: 250, ownerType: PRODUCT, namespace: "luxury") {
     edges {
       node {
         name
