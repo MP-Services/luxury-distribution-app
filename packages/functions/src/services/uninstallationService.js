@@ -22,7 +22,7 @@ export async function uninstallApp(ctx) {
 
     await Promise.all([
       deleteLuxuryShop(shopifyId),
-      deleteProductsWhenUninstallByShopId(shopifyId),
+      deleteProductsWhenUninstallByShopId(shopifyId, shop),
       deleteOrdersByShopId(shopifyId),
       deleteAttributeMapping(shopifyId),
       deleteBrandFilterByShopId(shopifyId),

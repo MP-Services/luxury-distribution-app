@@ -1305,13 +1305,22 @@ export async function getProductByShopifyProductId(shopId, productShopifyId) {
 /**
  *
  * @param shopId
- * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ * @param shop
+ * @returns {Promise<Promise<void>[]|void|null>}
  */
-export async function deleteProductsWhenUninstallByShopId(shopId) {
+export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
   const docs = await collection.where('shopifyId', '==', shopId).get();
+  const docsSynced = await collection
+    .where('shopifyId', '==', shopId)
+    .where('productShopifyId', '!=', '')
+    .get();
   if (docs.empty) {
     return null;
   }
-
+  if (!docsSynced.empty) {
+    return docsSynced.docs.map(doc => {
+      return actionQueueDelete(shop, doc.id, doc.data());
+    });
+  }
   return batchDelete(firestore, docs.docs);
 }
