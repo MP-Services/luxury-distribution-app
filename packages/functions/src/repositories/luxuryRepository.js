@@ -2,6 +2,7 @@ import {LUXURY_API_V1_URL, LUXURY_API_V2_URL} from '@functions/const/app';
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
+import {runMetafieldsDelete, runMetafieldsQuery} from '@functions/services/shopify/graphqlService';
 
 const firestore = new Firestore();
 const collection = firestore.collection('luxuryShopInfos');
@@ -234,4 +235,27 @@ export async function deleteLuxuryShop(shopId) {
   }
 
   return docs.docs[0].ref.delete();
+}
+
+/**
+ *
+ * @param shopId
+ * @param shop
+ * @returns {Promise<void>}
+ */
+export async function deleteMetafields(shopId, shop) {
+  const metafieldsQuery = await runMetafieldsQuery({shop});
+  if (metafieldsQuery) {
+    const metafields = metafieldsQuery.map(edge => ({
+      key: edge?.node?.key,
+      namespace: edge?.node.namespace,
+      ownerType: edge?.node?.ownerType
+    }));
+    return runMetafieldsDelete({
+      shop,
+      variables: {
+        metafields
+      }
+    });
+  }
 }

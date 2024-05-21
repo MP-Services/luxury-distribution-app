@@ -1,5 +1,5 @@
 import * as shopRepository from '../repositories/shopRepository';
-import {deleteLuxuryShop} from '@functions/repositories/luxuryRepository';
+import {deleteLuxuryShop, deleteMetafields} from '@functions/repositories/luxuryRepository';
 import {deleteOrdersByShopId} from '@functions/repositories/orderRepository';
 import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productRepository';
 import {deleteAttributeMapping} from '@functions/repositories/settings/attributeMappingRepository';
@@ -22,6 +22,7 @@ export async function uninstallApp(ctx) {
 
     await Promise.all([
       deleteLuxuryShop(shopifyId),
+      deleteMetafields(shopifyId, shop),
       deleteProductsWhenUninstallByShopId(shopifyId, shop),
       deleteOrdersByShopId(shopifyId),
       deleteAttributeMapping(shopifyId),

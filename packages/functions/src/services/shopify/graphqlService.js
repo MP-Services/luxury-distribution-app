@@ -251,6 +251,35 @@ mutation InventoryAdjustQuantities($input: InventoryAdjustQuantitiesInput!, $loc
 }
 `;
 
+export const METAFIELDS_DEFINITIONS_QUERY = `
+query {
+  metafieldDefinitions(first: 250, ownerType: PRODUCT) {
+    edges {
+      node {
+        name
+        id
+        key
+        ownerType
+        namespace
+      }
+    }
+  }
+}
+`;
+
+export const METAFIELDS_DELETE_MUTATION = `
+mutation metafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
+  metafieldsDelete(metafields: $metafields) {
+    deletedMetafields {
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
 /**
  *
  * @param shop
@@ -270,6 +299,54 @@ export async function getLocationQuery({shop, variables, query = GET_LOCATION_QU
     const {location} = data;
 
     return location.id;
+  } catch (e) {
+    console.log(e);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runMetafieldsDelete({shop, variables, query = METAFIELDS_DELETE_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runMetafieldsQuery({shop, query = METAFIELDS_DEFINITIONS_QUERY}) {
+  try {
+    const graphqlQuery = {query};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+
+    const {metafieldDefinitions} = data;
+
+    return metafieldDefinitions?.edges;
   } catch (e) {
     console.log(e);
     return '';
@@ -525,7 +602,11 @@ export async function runProductVariantsDeleteMutation({
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runProductOptionUpdateMutation({shop, variables, query = PRODUCT_OPTION_UPDATE_MUTATION}) {
+export async function runProductOptionUpdateMutation({
+  shop,
+  variables,
+  query = PRODUCT_OPTION_UPDATE_MUTATION
+}) {
   try {
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
