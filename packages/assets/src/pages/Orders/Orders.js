@@ -55,10 +55,6 @@ export default function Orders() {
     if (isReFetch) handleReFetch({...toUpdate, [key]: value});
   };
 
-  const handleChangePage = pageNumber => {
-    console.log(pageNumber);
-  };
-
   useEffect(() => {
     setLoader(dispatch, loading);
   }, [loading]);

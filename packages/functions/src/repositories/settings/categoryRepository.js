@@ -22,9 +22,10 @@ const collection = firestore.collection('categoryMappingSettings');
  */
 export async function getMappingData(id, query = {}) {
   try {
-    const queriedRef = collection.where('shopifyId', '==', id);
-    // const {sortField, direction} = getOrderBy(null);
-    // queriedRef = queriedRef.orderBy(sortField, direction);
+    let queriedRef = collection.where('shopifyId', '==', id);
+    const {order} = query;
+    const {sortField, direction} = getOrderBy(order);
+    queriedRef = queriedRef.orderBy(sortField, direction);
     return await paginateQuery({queriedRef, collection, query});
   } catch (e) {
     console.log(e);
@@ -115,7 +116,8 @@ export async function saveCategoryMapping(shopID, shopifyDomain, postData) {
           shopifyId: shopID,
           shopifyDomain,
           ...data,
-          updatedAt: FieldValue.serverTimestamp()
+          updatedAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp()
         };
       });
       await batchCreate(firestore, collection, dataArr);

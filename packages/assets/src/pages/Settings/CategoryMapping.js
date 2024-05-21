@@ -10,6 +10,18 @@ import {api} from '@assets/helpers';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import useDeleteApi from '@assets/hooks/api/useDeleteApi';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
+import querystring from 'querystring';
+
+const defaultParams = {
+  page: 1,
+  order: 'createdAt desc',
+  before: '',
+  after: '',
+  limit: 1,
+  hasCount: true
+};
+
+const url = '/setting/categorymapping';
 
 /**
  * Render a home page for overview
@@ -18,10 +30,12 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
  * @constructor
  */
 export default function CategoryMapping() {
+  const [searchParams, setSearchParams] = useState({...defaultParams});
+  const reFetchUrl = `${url}?${querystring.stringify(searchParams)}`;
   const {data: dropShipperCollections} = useFetchApi({url: '/setting/categorymapping/collections'});
   const {data: retailerCategories} = useFetchApi({url: '/setting/categorymapping/retailercat'});
-  const {data: catMappingData, fetchApi, fetched} = useFetchApi({
-    url: '/setting/categorymapping'
+  const {data: catMappingData, fetchApi: reFetch, fetched, pageInfo, loading} = useFetchApi({
+    url: reFetchUrl
   });
   const {creating, handleCreate} = useCreateApi({
     url: '/setting/categorymapping',
@@ -32,6 +46,7 @@ export default function CategoryMapping() {
   const {deleting, handleDelete} = useDeleteApi({
     url: '/setting/categorymapping/delete'
   });
+  const {page, before, after, limit} = searchParams;
 
   const [newMappingRows, setNewMappingRows] = useState([]);
   const [editMappingRows, setEditMappingRows] = useState([]);
@@ -39,6 +54,25 @@ export default function CategoryMapping() {
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
+
+  const handleReFetch = (query = searchParams) => {
+    reFetch(`${url}?${querystring.stringify(query)}`);
+  };
+  const handleChangeSearchParams = (key, value, isReFetch = true) => {
+    const toUpdate = (() => {
+      const updated = {...searchParams, [key]: value};
+      switch (key) {
+        case 'before':
+          return {...updated, after: '', page: updated.page - 1};
+        case 'after':
+          return {...updated, before: '', page: updated.page + 1};
+        case 'page':
+          return {...updated, page: value};
+      }
+    })();
+    setSearchParams(toUpdate);
+    if (isReFetch) handleReFetch({...toUpdate, [key]: value});
+  };
 
   const handleAddMappingRow = () => {
     const newRow = {
@@ -80,12 +114,16 @@ export default function CategoryMapping() {
   useEffect(() => {
     const showLoader = creating || deleting;
     if (!showLoader && fetched) {
-      fetchApi().then(() => {
+      reFetch().then(() => {
         setIsEdits([]);
       });
     }
     setLoader(dispatch, showLoader);
   }, [creating, deleting]);
+
+  useEffect(() => {
+    setLoader(dispatch, loading);
+  }, [loading]);
 
   const handleEdit = (index, row) => {
     setIsEdits(prev => [...prev, {id: index}]);
@@ -288,19 +326,39 @@ export default function CategoryMapping() {
               </div>
               <div className="row-bottom">
                 <div className="table-paging">
-                  <button type="button" className="paging-option">
+                  <button
+                    type="button"
+                    className="paging-option"
+                    onClick={() => handleChangeSearchParams('before', catMappingData[0].id)}
+                  >
                     <i className="arrow-left"></i>
                     <span className="pre-label">Previous</span>
                   </button>
-                  <div className="pagination paging-option">
-                    <span className="active">1</span>
-                    <span>2</span>
-                    <span className="pg-sm">3</span>
-                    <span className="pg-sm">4</span>
-                    <span>...</span>
-                    <span>10</span>
-                  </div>
-                  <button type="button" className="paging-option">
+                  {!!pageInfo?.totalPage && (
+                    <div className="pagination paging-option">
+                      {Array(pageInfo.totalPage)
+                        .fill(0)
+                        .map((item, index) => (
+                          <span
+                            key={index}
+                            className={`${index + 1 === page ? 'active' : 'pg-sm'}`}
+                            onClick={() => handleChangeSearchParams('page', index + 1)}
+                          >
+                            {index + 1}
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className="paging-option"
+                    onClick={() =>
+                      handleChangeSearchParams(
+                        'after',
+                        catMappingData[catMappingData.length - 1].id
+                      )
+                    }
+                  >
                     <span className="next-label">Next</span>
                     <i className="arrow-right"></i>
                   </button>
