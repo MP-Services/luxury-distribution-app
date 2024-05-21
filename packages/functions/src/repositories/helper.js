@@ -86,12 +86,12 @@ export async function paginateQuery({
     total = (await queriedRef.count().get()).data().count;
     totalPage = Math.ceil(total / limit);
   }
-
   const getAll = query.All || !limit;
   let hasPre = false;
   let hasNext = false;
 
   if (pickedFields.length) queriedRef = queriedRef.select(...pickedFields);
+
   if (!getAll) {
     if (query.after) {
       const after = await collection.doc(query.after).get();
@@ -103,6 +103,14 @@ export async function paginateQuery({
       queriedRef = queriedRef.endBefore(before).limitToLast(limit);
       hasNext = true;
     } else {
+      if (query.page && query.page > 1) {
+        const afterDocs = await collection.limit((query.page - 1) * limit).get();
+        if (!afterDocs.empty) {
+          const after = afterDocs.docs[afterDocs.docs.length - 1];
+          queriedRef = queriedRef.startAfter(after);
+          hasPre = true;
+        }
+      }
       queriedRef = queriedRef.limit(limit);
     }
   }

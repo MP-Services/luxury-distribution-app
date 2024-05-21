@@ -7,6 +7,7 @@ import * as brandSettingController from '@functions/controllers/settings/brandCo
 import * as generalSettingController from '@functions/controllers/settings/generalController';
 import * as categorySettingController from '@functions/controllers/settings/categoryController';
 import * as dashboardController from '@functions/controllers/dashboardController';
+import * as orderController from '@functions/controllers/orderController';
 import * as attributeMappingController from '@functions/controllers/settings/attributeMappingController';
 import {getApiPrefix} from '@functions/const/app';
 
@@ -46,6 +47,7 @@ export default function apiRouter(isEmbed = false) {
   );
 
   router.get('/dashboard', dashboardController.getDashboardInfo);
+  router.get('/orders', orderController.getList);
 
   return router;
 }

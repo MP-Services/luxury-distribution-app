@@ -1,7 +1,22 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import {useMenu} from '../../reducers/menuReducer';
 import '../../styles/pages/orders.scss';
+import useFetchApi from '@assets/hooks/api/useFetchApi';
+import querystring from 'querystring';
+import {useStore} from '@assets/reducers/storeReducer';
+import {setLoader} from '@assets/actions/storeActions';
+import {formatDateTimeWithShortMonth} from '@avada/functions/src/helpers/datetime/formatFullTime';
+
+const url = '/orders';
+const defaultParams = {
+  page: 1,
+  order: 'createdAt desc',
+  before: '',
+  after: '',
+  limit: 8,
+  hasCount: true
+};
 
 /**
  * Just render a sample page
@@ -11,6 +26,42 @@ import '../../styles/pages/orders.scss';
  */
 export default function Orders() {
   const {isActiveMenu} = useMenu();
+  const [searchParams, setSearchParams] = useState({...defaultParams});
+  const {dispatch} = useStore();
+  const {page, before, after, limit} = searchParams;
+  const reFetchUrl = `${url}?${querystring.stringify(searchParams)}`;
+  const {data, fetchApi: reFetch, fetched, loading, pageInfo} = useFetchApi({
+    url: reFetchUrl
+  });
+  const handleReFetch = (query = searchParams) => {
+    reFetch(`${url}?${querystring.stringify(query)}`);
+  };
+
+  const handleChangeSearchParams = (key, value, isReFetch = true) => {
+    const toUpdate = (() => {
+      const updated = {...searchParams, [key]: value};
+      switch (key) {
+        case 'before':
+          return {...updated, after: '', page: updated.page - 1};
+        case 'after':
+          return {...updated, before: '', page: updated.page + 1};
+        case 'page':
+          return {...updated, page: value};
+        case 'limit':
+          return {...updated, limit: value};
+      }
+    })();
+    setSearchParams(toUpdate);
+    if (isReFetch) handleReFetch({...toUpdate, [key]: value});
+  };
+
+  const handleChangePage = pageNumber => {
+    console.log(pageNumber);
+  };
+
+  useEffect(() => {
+    setLoader(dispatch, loading);
+  }, [loading]);
 
   return (
     <div className={`main ${isActiveMenu ? 'opacity' : ''}`}>
@@ -25,7 +76,13 @@ export default function Orders() {
           <div className="table-header">
             <span className="span-table-title">Data table</span>
             <div className="items-per-page">
-              <select name="" id="" defaultValue={8} className="per-page-select">
+              <select
+                name=""
+                id=""
+                defaultValue={8}
+                className="per-page-select"
+                onChange={e => handleChangeSearchParams('limit', e.target.value)}
+              >
                 <option value="1">01 items per page</option>
                 <option value="2">02 items per page</option>
                 <option value="3">03 items per page</option>
@@ -45,87 +102,48 @@ export default function Orders() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Successful
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
-                <tr>
-                  <td data-th="Retail Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Dropshipper Order Id">JKAKDKKAA4454S</td>
-                  <td data-th="Successful" className="order-status">
-                    Processing
-                  </td>
-                  <td data-th="Created">Feb 13, 2024 10:16 AM</td>
-                </tr>
+                {data.map((order, index) => (
+                  <tr key={index}>
+                    <td data-th="Retail Order Id">{order?.retailerOrderId}</td>
+                    <td data-th="Dropshipper Order Id">{order.id}</td>
+                    <td data-th="Successful" className="order-status">
+                      {`${order?.retailerOrderId ? 'Successful' : 'Processing'}`}
+                    </td>
+                    <td data-th="Created">{formatDateTimeWithShortMonth(order.createdAt)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <div className="pagination-wrapper">
-            <button className="paging-option">
+            <button
+              className="paging-option"
+              disabled={!pageInfo?.hasPre}
+              onClick={() => handleChangeSearchParams('before', data[0].id)}
+            >
               <i className="fa-solid fa-angle-left"></i>
               <span>Previous</span>
             </button>
-            <div className="pagination-items">
-              <div className="pagi-item pagi-active">1</div>
-              <div className="pagi-item">2</div>
-              <div className="pagi-item">3</div>
-              <div className="pagi-item pg-sm">4</div>
-              <div className="pagi-item">...</div>
-              <div className="pagi-item">10</div>
-            </div>
-            <button className="paging-option">
+            {!!pageInfo?.totalPage && (
+              <div className="pagination-items">
+                {Array(pageInfo.totalPage)
+                  .fill(0)
+                  .map((item, index) => (
+                    <div
+                      key={index}
+                      className={`pagi-item ${index + 1 === page ? 'pagi-active' : ''}`}
+                      onClick={() => handleChangeSearchParams('page', index + 1)}
+                    >
+                      {index + 1}
+                    </div>
+                  ))}
+              </div>
+            )}
+            <button
+              disabled={!pageInfo?.hasNext}
+              className="paging-option"
+              onClick={() => handleChangeSearchParams('after', data[data.length - 1].id)}
+            >
               <span>Next</span>
               <i className="fa-solid fa-angle-right"></i>
             </button>

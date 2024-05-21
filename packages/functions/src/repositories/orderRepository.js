@@ -1,7 +1,7 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getProductByShopifyProductId} from '@functions/repositories/productRepository';
 import {createOrder} from '@functions/repositories/luxuryRepository';
-import {batchDelete} from '@functions/repositories/helper';
+import {batchDelete, paginateQuery, getOrderBy} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -22,6 +22,7 @@ export async function addOrder(shopifyId, data) {
         orderDataConverted,
         shopifyId,
         syncStatus: 'new',
+        retailerOrderId: '',
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       });
@@ -39,26 +40,33 @@ export async function addOrder(shopifyId, data) {
  * @returns {Promise<unknown[]|boolean>}
  */
 export async function syncOrder(shop) {
+  let orderUUID = '';
   try {
     const {shopifyId} = shop;
-    const orders = await getOrderToSyncQuery(shopifyId);
-    if (orders) {
-      return orders.map(async order => {
-        const luxuryOrder = await createOrder(shop, order.orderDataConverted);
-        if (luxuryOrder) {
-          return updateOrder(order.uuid, {
-            luxuryOrderId: luxuryOrder?.id,
-            luxuryReferenceNumber: luxuryOrder?.reference_number,
-            luxuryCreatedAt: luxuryOrder?.create_at
-          });
-        }
-      });
+    const order = await getOrderToSyncQuery(shopifyId);
+    if (order) {
+      orderUUID = order.uuid;
+      const luxuryOrder = await createOrder(shop, order.orderDataConverted);
+      if (luxuryOrder) {
+        return updateOrder(order.uuid, {
+          luxuryOrderId: luxuryOrder?.id,
+          luxuryReferenceNumber: luxuryOrder?.reference_number,
+          luxuryCreatedAt: luxuryOrder?.create_at
+        });
+      }
     }
-    return true;
   } catch (e) {
     console.log(e);
-    return false;
   }
+
+  if (orderUUID) {
+    return updateOrder(orderUUID, {
+      updatedAt: FieldValue.serverTimestamp(),
+      syncStatus: 'failed'
+    });
+  }
+
+  return false;
 }
 
 /**
@@ -118,21 +126,23 @@ async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
 /**
  *
  * @param shopifyId
- * @param limit
  * @returns {Promise<Array<FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>>|null>}
  */
-async function getOrderToSyncQuery(shopifyId, limit = 3) {
+async function getOrderToSyncQuery(shopifyId) {
   const docs = await collection
     .where('shopifyId', '==', shopifyId)
     .where('syncStatus', '!=', 'success')
-    .limit(limit)
+    .orderBy('updatedAt')
+    .limit(1)
     .get();
 
   if (docs.empty) {
     return null;
   }
 
-  return docs.docs.map(doc => ({uuid: doc.id, ...doc.data()}));
+  const doc = docs[0];
+
+  return {uuid: doc.id, ...doc.data()};
 }
 
 /**
@@ -147,4 +157,23 @@ export async function deleteOrdersByShopId(shopId) {
   }
 
   return batchDelete(firestore, docs.docs);
+}
+
+/**
+ *
+ * @param shopId
+ * @param query
+ * @returns {Promise<{data: *[], count: number, pageInfo: {hasNext: boolean, hasPre: boolean}, error}|{data: *[], count: number, pageInfo: {hasNext: boolean, hasPre: boolean}}>}
+ */
+export async function getOrders(shopId, query = {}) {
+  try {
+    let queriedRef = collection.where('shopifyId', '==', shopId);
+    const {order} = query;
+    const {sortField, direction} = getOrderBy(order);
+    queriedRef = queriedRef.orderBy(sortField, direction);
+    return await paginateQuery({queriedRef, collection, query});
+  } catch (e) {
+    console.log(e);
+    return {data: [], count: 0, pageInfo: {hasNext: false, hasPre: false}, error: e.message};
+  }
 }
