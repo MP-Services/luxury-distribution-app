@@ -11,6 +11,7 @@ import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrand
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
 import subscribeCategoryMappingSaveHandling from './handlers/pubsub/subscribeCategoryMappingSaveHandling';
 import subscribeGeneralSettingSaveHandling from './handlers/pubsub/subscribeGeneralSettingSaveHandling';
+import subscribeAttributeMappingSaveHandling from './handlers/pubsub/subscribeAttributeMappingSaveHandling';
 
 export const api = functions.https.onRequest(apiHandler.callback());
 export const apiSa = functions.https.onRequest(apiSaHandler.callback());
@@ -58,3 +59,8 @@ export const generalSettingSaveHandling = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.topic('generalSettingSaveHandling')
   .onPublish(subscribeGeneralSettingSaveHandling);
+
+export const attributeMappingSaveHandling = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.topic('attributeMappingSaveHandling')
+  .onPublish(subscribeAttributeMappingSaveHandling);

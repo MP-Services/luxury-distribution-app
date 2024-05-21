@@ -1,5 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
+import publishTopic from "@functions/helpers/pubsub/publishTopic";
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -47,6 +48,7 @@ export async function saveAttributeMapping(shopId, data) {
     } else {
       await docs.docs[0].ref.update({...saveData, updatedAt: FieldValue.serverTimestamp()});
     }
+    await publishTopic('attributeMappingSaveHandling', {shopId, saveData});
     return true;
   } catch (e) {
     console.log(e);

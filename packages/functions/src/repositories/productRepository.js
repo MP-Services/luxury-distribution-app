@@ -7,7 +7,12 @@ import {
 } from '@functions/repositories/luxuryRepository';
 import {getBrandSettingShopId} from '@functions/repositories/settings/brandRepository';
 import {getSyncSettingShopId} from '@functions/repositories/settings/syncRepository';
-import {batchCreate, batchDelete, batchUpdate} from '@functions/repositories/helper';
+import {
+  batchCreate,
+  batchDelete,
+  batchUpdate,
+  hasCommonElement
+} from '@functions/repositories/helper';
 import {
   getLocationQuery,
   getOnlineStorePublication,
@@ -712,7 +717,7 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
       .where('shopifyId', '==', shopifyId)
       .where('productShopifyId', '!=', '')
       .where('queueStatus', '==', 'synced')
-      .where('syncStatus', '==', ['success', 'failed'])
+      .where('syncStatus', 'in', ['success', 'failed'])
       .where('product_category_id', 'in', retailerCategories)
       .get();
     if (!docs.empty) {
@@ -721,6 +726,43 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
         syncStatus: 'new',
         updatedAt: FieldValue.serverTimestamp()
       });
+    }
+  }
+}
+
+/**
+ *
+ * @param shopId
+ * @param attributeMappingData
+ * @returns {Promise<void>}
+ */
+export async function updateProductBulkWhenSaveAttributeMapping(shopId, attributeMappingData) {
+  if (attributeMappingData?.optionsMapping && attributeMappingData.optionsMapping.length) {
+    const retailerOptionNames = attributeMappingData.optionsMapping.map(
+      attributeOption => attributeOption.retailerOptionName
+    );
+    const docs = await collection
+      .where('shopifyId', '==', shopId)
+      .where('productShopifyId', '!=', '')
+      .where('queueStatus', '==', 'synced')
+      .where('syncStatus', 'in', ['success', 'failed'])
+      .get();
+    if (!docs.empty) {
+      const docsNeedUpdate = docs.docs.filter(doc => {
+        const stockItem = doc.data();
+        if (stockItem?.productOptionsAfterMap && stockItem.productOptionsAfterMap.length) {
+          const originalValues = stockItem.productOptionsAfterMap.map(item => item.originalValue);
+          return hasCommonElement(retailerOptionNames, originalValues);
+        }
+        return false;
+      });
+      if (docsNeedUpdate.length) {
+        await batchUpdate(firestore, docsNeedUpdate, {
+          queueStatus: 'update',
+          syncStatus: 'new',
+          updatedAt: FieldValue.serverTimestamp()
+        });
+      }
     }
   }
 }

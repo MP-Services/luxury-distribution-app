@@ -190,3 +190,20 @@ export function getOrderBy(sortType) {
 
   return {sortField, direction};
 }
+
+/**
+ *
+ * @param arr1
+ * @param arr2
+ * @returns {boolean}
+ */
+export function hasCommonElement(arr1, arr2) {
+  const set1 = new Set(arr1);
+
+  for (const item of arr2) {
+    if (set1.has(item)) {
+      return true;
+    }
+  }
+  return false;
+}
