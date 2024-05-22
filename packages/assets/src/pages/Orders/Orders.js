@@ -7,6 +7,7 @@ import querystring from 'querystring';
 import {useStore} from '@assets/reducers/storeReducer';
 import {setLoader} from '@assets/actions/storeActions';
 import {formatDateTimeWithShortMonth} from '@avada/functions/src/helpers/datetime/formatFullTime';
+import {generateArrays, isExistPage, handleChangeSearch} from '@assets/helpers/paginate';
 
 const url = '/orders';
 const defaultParams = {
@@ -27,10 +28,11 @@ const defaultParams = {
 export default function Orders() {
   const {isActiveMenu} = useMenu();
   const [searchParams, setSearchParams] = useState({...defaultParams});
+  const [pageArrays, setPageArrays] = useState([]);
   const {dispatch} = useStore();
-  const {page, before, after, limit} = searchParams;
+  const {page} = searchParams;
   const reFetchUrl = `${url}?${querystring.stringify(searchParams)}`;
-  const {data, fetchApi: reFetch, fetched, loading, pageInfo} = useFetchApi({
+  const {data, fetchApi: reFetch, loading, pageInfo} = useFetchApi({
     url: reFetchUrl
   });
   const handleReFetch = (query = searchParams) => {
@@ -38,22 +40,12 @@ export default function Orders() {
   };
 
   const handleChangeSearchParams = (key, value, isReFetch = true) => {
-    const toUpdate = (() => {
-      const updated = {...searchParams, [key]: value};
-      switch (key) {
-        case 'before':
-          return {...updated, after: '', page: updated.page - 1};
-        case 'after':
-          return {...updated, before: '', page: updated.page + 1};
-        case 'page':
-          return {...updated, page: value, before: '', after: ''};
-        case 'limit':
-          return {...updated, limit: value};
-      }
-    })();
-    setSearchParams(toUpdate);
-    if (isReFetch) handleReFetch({...toUpdate, [key]: value});
+    handleChangeSearch({key, value, isReFetch, handleReFetch, searchParams, setSearchParams});
   };
+
+  useEffect(() => {
+    setPageArrays(generateArrays(pageInfo?.totalPage ? pageInfo.totalPage : 0));
+  }, [pageInfo]);
 
   useEffect(() => {
     setLoader(dispatch, loading);
@@ -124,15 +116,23 @@ export default function Orders() {
               <div className="pagination-items">
                 {Array(pageInfo.totalPage)
                   .fill(0)
-                  .map((item, index) => (
-                    <div
-                      key={index}
-                      className={`pagi-item ${index + 1 === page ? 'pagi-active' : ''}`}
-                      onClick={() => handleChangeSearchParams('page', index + 1)}
-                    >
-                      {index + 1}
-                    </div>
-                  ))}
+                  .map((item, index) =>
+                    index === 0 ||
+                    index + 1 === pageInfo?.totalPage ||
+                    isExistPage(page, index, pageArrays).isPage ? (
+                      <div
+                        key={index}
+                        className={`pagi-item ${index + 1 === page ? 'pagi-active' : ''}`}
+                        onClick={() => handleChangeSearchParams('page', index + 1)}
+                      >
+                        {index + 1}
+                      </div>
+                    ) : isExistPage(page, index, pageArrays).showDotPage ? (
+                      <div key={index}>...</div>
+                    ) : (
+                      <React.Fragment></React.Fragment>
+                    )
+                  )}
               </div>
             )}
             <button

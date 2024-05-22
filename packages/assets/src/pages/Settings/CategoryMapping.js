@@ -11,6 +11,7 @@ import useCreateApi from '@assets/hooks/api/useCreateApi';
 import useDeleteApi from '@assets/hooks/api/useDeleteApi';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import querystring from 'querystring';
+import {generateArrays, isExistPage, handleChangeSearch} from '@assets/helpers/paginate';
 
 const defaultParams = {
   page: 1,
@@ -31,6 +32,7 @@ const url = '/setting/categorymapping';
  */
 export default function CategoryMapping() {
   const [searchParams, setSearchParams] = useState({...defaultParams});
+  const [pageArrays, setPageArrays] = useState([]);
   const reFetchUrl = `${url}?${querystring.stringify(searchParams)}`;
   const {data: dropShipperCollections} = useFetchApi({url: '/setting/categorymapping/collections'});
   const {data: retailerCategories} = useFetchApi({url: '/setting/categorymapping/retailercat'});
@@ -46,7 +48,7 @@ export default function CategoryMapping() {
   const {deleting, handleDelete} = useDeleteApi({
     url: '/setting/categorymapping/delete'
   });
-  const {page, before, after, limit} = searchParams;
+  const {page} = searchParams;
 
   const [newMappingRows, setNewMappingRows] = useState([]);
   const [editMappingRows, setEditMappingRows] = useState([]);
@@ -59,19 +61,7 @@ export default function CategoryMapping() {
     reFetch(`${url}?${querystring.stringify(query)}`);
   };
   const handleChangeSearchParams = (key, value, isReFetch = true) => {
-    const toUpdate = (() => {
-      const updated = {...searchParams, [key]: value};
-      switch (key) {
-        case 'before':
-          return {...updated, after: '', page: updated.page - 1};
-        case 'after':
-          return {...updated, before: '', page: updated.page + 1};
-        case 'page':
-          return {...updated, page: value, before: '', after: ''};
-      }
-    })();
-    setSearchParams(toUpdate);
-    if (isReFetch) handleReFetch({...toUpdate, [key]: value});
+    handleChangeSearch({key, value, isReFetch, handleReFetch, searchParams, setSearchParams});
   };
 
   const handleAddMappingRow = () => {
@@ -110,6 +100,10 @@ export default function CategoryMapping() {
       return 0;
     });
   }
+
+  useEffect(() => {
+    setPageArrays(generateArrays(pageInfo?.totalPage ? pageInfo.totalPage : 0));
+  }, [pageInfo]);
 
   useEffect(() => {
     const showLoader = creating || deleting;
@@ -337,17 +331,36 @@ export default function CategoryMapping() {
                   </button>
                   {!!pageInfo?.totalPage && (
                     <div className="pagination paging-option">
+                      {/* {Array(pageInfo.totalPage)*/}
+                      {/*  .fill(0)*/}
+                      {/*  .map((item, index) => (*/}
+                      {/*    <span*/}
+                      {/*      key={index}*/}
+                      {/*      className={`${index + 1 === page ? 'active' : 'pg-sm'}`}*/}
+                      {/*      onClick={() => handleChangeSearchParams('page', index + 1)}*/}
+                      {/*    >*/}
+                      {/*      {index + 1}*/}
+                      {/*    </span>*/}
+                      {/*  ))}*/}
                       {Array(pageInfo.totalPage)
                         .fill(0)
-                        .map((item, index) => (
-                          <span
-                            key={index}
-                            className={`${index + 1 === page ? 'active' : 'pg-sm'}`}
-                            onClick={() => handleChangeSearchParams('page', index + 1)}
-                          >
-                            {index + 1}
-                          </span>
-                        ))}
+                        .map((item, index) =>
+                          index === 0 ||
+                          index + 1 === pageInfo?.totalPage ||
+                          isExistPage(page, index, pageArrays).isPage ? (
+                            <span
+                              key={index}
+                              className={`${index + 1 === page ? 'active' : 'pg-sm'}`}
+                              onClick={() => handleChangeSearchParams('page', index + 1)}
+                            >
+                              {index + 1}
+                            </span>
+                          ) : isExistPage(page, index, pageArrays).showDotPage ? (
+                            <span key={index}>...</span>
+                          ) : (
+                            <React.Fragment></React.Fragment>
+                          )
+                        )}
                     </div>
                   )}
                   <button
