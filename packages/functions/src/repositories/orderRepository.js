@@ -173,7 +173,7 @@ export async function getOrders(shopId, query = {}) {
     const {order} = query;
     const {sortField, direction} = getOrderBy(order);
     queriedRef = queriedRef.orderBy(sortField, direction);
-    return await paginateQuery({queriedRef, collection, query});
+    return await paginateQuery({queriedRef, collection, query, sortField, direction, shopId});
   } catch (e) {
     console.log(e);
     return {data: [], count: 0, pageInfo: {hasNext: false, hasPre: false}, error: e.message};

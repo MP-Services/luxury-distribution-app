@@ -76,6 +76,9 @@ export async function paginateQuery({
   queriedRef,
   collection,
   query,
+  sortField,
+  direction,
+  shopId,
   defaultLimit = query.limit,
   pickedFields = []
 }) {
@@ -103,12 +106,18 @@ export async function paginateQuery({
       queriedRef = queriedRef.endBefore(before).limitToLast(limit);
       hasNext = true;
     } else {
-      if (query.page && query.page > 1) {
-        const afterDocs = await collection.limit((query.page - 1) * limit).get();
-        if (!afterDocs.empty) {
-          const after = afterDocs.docs[afterDocs.docs.length - 1];
-          queriedRef = queriedRef.startAfter(after);
-          hasPre = true;
+      if (query.page && query.page > 1 && !query.after) {
+        if (sortField && direction && shopId) {
+          const afterDocs = await collection
+            .where('shopifyId', '==', shopId)
+            .orderBy(sortField, direction)
+            .limit((query.page - 1) * limit)
+            .get();
+          if (!afterDocs.empty) {
+            const after = afterDocs.docs[afterDocs.docs.length - 1];
+            queriedRef = queriedRef.startAfter(after);
+            hasPre = true;
+          }
         }
       }
       queriedRef = queriedRef.limit(limit);

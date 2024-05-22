@@ -67,7 +67,7 @@ export default function CategoryMapping() {
         case 'after':
           return {...updated, before: '', page: updated.page + 1};
         case 'page':
-          return {...updated, page: value};
+          return {...updated, page: value, before: '', after: ''};
       }
     })();
     setSearchParams(toUpdate);
@@ -328,6 +328,7 @@ export default function CategoryMapping() {
                 <div className="table-paging">
                   <button
                     type="button"
+                    disabled={!pageInfo?.hasPre}
                     className="paging-option"
                     onClick={() => handleChangeSearchParams('before', catMappingData[0].id)}
                   >
@@ -352,6 +353,7 @@ export default function CategoryMapping() {
                   <button
                     type="button"
                     className="paging-option"
+                    disabled={!pageInfo?.hasNext}
                     onClick={() =>
                       handleChangeSearchParams(
                         'after',

@@ -46,7 +46,7 @@ export default function Orders() {
         case 'after':
           return {...updated, before: '', page: updated.page + 1};
         case 'page':
-          return {...updated, page: value};
+          return {...updated, page: value, before: '', after: ''};
         case 'limit':
           return {...updated, limit: value};
       }
