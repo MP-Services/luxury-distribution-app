@@ -183,7 +183,8 @@ async function actionQueueCreate({
       productData,
       productOptionId: productShopify.options[0].id,
       optionValuesProduct: productShopify.options[0].optionValues,
-      margin
+      margin,
+      generalSetting
     });
     const {productVariants: productVariantsReturn} = await runProductVariantsBulkMutation({
       shop,
@@ -310,7 +311,8 @@ async function actionQueueUpdate({
         productData,
         productOptionId,
         optionValuesProduct: variantsNeedAdd,
-        margin
+        margin,
+        generalSetting
       });
       const {productVariants: productVariantsAddReturn} = await runProductVariantsBulkMutation({
         shop,
@@ -587,12 +589,14 @@ function getProductVariantsVariables({
   productData,
   productOptionId,
   optionValuesProduct,
-  margin
+  margin,
+  generalSetting
 }) {
+  const currencyValue = generalSetting?.currency?.value ?? 1;
   const productVariants = optionValuesProduct.map((optionValue, index) => ({
     sku: productData.sku,
-    price: productData.selling_price * margin,
-    compareAtPrice: productData.original_price,
+    price: productData.selling_price * margin * Number(currencyValue),
+    compareAtPrice: productData.original_price * Number(currencyValue),
     optionValues: [
       {
         optionId: productOptionId,
