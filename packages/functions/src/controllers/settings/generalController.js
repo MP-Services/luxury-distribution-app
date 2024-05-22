@@ -40,7 +40,7 @@ export async function get(ctx) {
  */
 export async function getCurrencies(ctx) {
   try {
-    const currencies = await sendRequestCurrency({});
+    const currencies = await sendRequestCurrency({base_currency: 'EUR'});
     ctx.body = {success: true, data: currencies};
   } catch (e) {
     ctx.body = {success: false, error: e.string};
