@@ -25,6 +25,7 @@ export default function AppFullLayout({children}) {
       <React.Fragment>
         {children}
         {loader && <Loader />}
+        {toast && <Toast onDismiss={() => closeToast(dispatch)} {...toast} />}
       </React.Fragment>
     );
   }
