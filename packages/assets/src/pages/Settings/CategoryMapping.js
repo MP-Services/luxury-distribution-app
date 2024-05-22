@@ -331,17 +331,6 @@ export default function CategoryMapping() {
                   </button>
                   {!!pageInfo?.totalPage && (
                     <div className="pagination paging-option">
-                      {/* {Array(pageInfo.totalPage)*/}
-                      {/*  .fill(0)*/}
-                      {/*  .map((item, index) => (*/}
-                      {/*    <span*/}
-                      {/*      key={index}*/}
-                      {/*      className={`${index + 1 === page ? 'active' : 'pg-sm'}`}*/}
-                      {/*      onClick={() => handleChangeSearchParams('page', index + 1)}*/}
-                      {/*    >*/}
-                      {/*      {index + 1}*/}
-                      {/*    </span>*/}
-                      {/*  ))}*/}
                       {Array(pageInfo.totalPage)
                         .fill(0)
                         .map((item, index) =>
