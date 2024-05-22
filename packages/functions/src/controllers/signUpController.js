@@ -23,7 +23,8 @@ export async function signUp(ctx) {
         });
         if (luxuryInfos) {
           return (ctx.body = {
-            success: true
+            success: true,
+            data: luxuryInfos
           });
         }
       }

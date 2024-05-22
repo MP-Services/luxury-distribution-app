@@ -5,6 +5,7 @@ import luxuryLogo from '../../resources/logo/luxury-logo-white.svg';
 import {api} from '../../helpers';
 import {useHistory} from 'react-router-dom';
 import {setLuxuryInfos} from '@assets/actions/storeActions';
+import {setLoader, setToast} from '@assets/actions/storeActions';
 
 /**
  * Render a home page for overview
@@ -14,7 +15,6 @@ import {setLuxuryInfos} from '@assets/actions/storeActions';
  */
 export default function SignUp() {
   const [input, setInput] = useState([]);
-  const [loading, setLoading] = useState(false);
   const {state, dispatch} = useStore();
   const history = useHistory();
 
@@ -28,7 +28,7 @@ export default function SignUp() {
   const handleSubmit = async event => {
     try {
       event.preventDefault();
-      setLoading(true);
+      setLoader(dispatch);
       const resp = await api('/signup', {method: 'POST', body: input});
       if (resp.success) {
         setLuxuryInfos(dispatch, resp.data);
@@ -38,8 +38,9 @@ export default function SignUp() {
       }
     } catch (e) {
       console.log('error\n', e);
+      setToast(dispatch, 'Something went wrong!');
     } finally {
-      setLoading(false);
+      setLoader(dispatch, false);
     }
   };
 

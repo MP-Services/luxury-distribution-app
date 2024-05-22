@@ -182,19 +182,19 @@ export async function getLuxuryShops() {
  * @returns {Promise<DocumentReference<FirebaseFirestore.DocumentData>|*>}
  */
 export async function addLuxuryShopInfo(shopId, data) {
-  const luxuryInfos = await getLuxuryShopInfoByShopifyId(shopId);
-  if (!luxuryInfos) {
-    const luxuryRef = await collection.add({
-      ...data,
-      shopifyId: shopId,
-      tokenCreationTime: FieldValue.serverTimestamp()
-    });
-    if (luxuryRef) {
-      const luxuryDoc = await collection.doc(luxuryRef.id).get();
+  // const luxuryInfos = await getLuxuryShopInfoByShopifyId(shopId);
+  // if (!luxuryInfos) {
+  //   const luxuryRef = await collection.add({
+  //     ...data,
+  //     shopifyId: shopId,
+  //     tokenCreationTime: FieldValue.serverTimestamp()
+  //   });
+  //   if (luxuryRef) {
+      const luxuryDoc = await collection.doc('l7QXnP5VcVwks1Mkirna').get();
 
-      return presentDataAndFormatDate(luxuryDoc);
-    }
-  }
+      return {id: luxuryDoc.id, ...presentDataAndFormatDate(luxuryDoc)};
+    // }
+  // }
 }
 
 /**

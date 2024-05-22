@@ -51,18 +51,6 @@ export function closeToast(dispatch) {
   dispatch(storeTypes.CLOSE_TOAST);
 }
 
-export async function logout(dispatch) {
-  try {
-    setLoading(dispatch, true);
-    await auth.signOut();
-    window.location.href = '/auth/login';
-  } catch (e) {
-    handleError(e);
-    setLoading(dispatch, false);
-    setToast(dispatch, e.message, true);
-  }
-}
-
 export function setSubscription(dispatch, payload = null) {
   dispatch(storeTypes.SET_SUBSCRIPTION, payload);
 }

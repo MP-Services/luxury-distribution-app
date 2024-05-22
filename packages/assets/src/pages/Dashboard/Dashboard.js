@@ -1,11 +1,9 @@
 import React, {useState} from 'react';
-import {Layout, Page, SettingToggle, Text} from '@shopify/polaris';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/dashboard.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
 import {useMenu} from '@assets/reducers/menuReducer';
-import {setLoader, setToast} from '@assets/actions/storeActions';
-import {apiTest} from '@assets/helpers';
+import {setLoader} from '@assets/actions/storeActions';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 
 /**
@@ -15,25 +13,15 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
  * @constructor
  */
 export default function Dashboard() {
-  const [enabled, setEnabled] = useState(false);
   const {data: productsData, fetchApi} = useFetchApi({url: '/dashboard'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
 
   const handleRefresh = async () => {
-    try {
-      const resp = await apiTest('/orders', {method: 'POST', body: {test: 'fsdfsdffs'}});
-      if (resp.success) {
-        return true;
-      }
-    } catch (e) {
-      console.log('error\n', e);
-    } finally {
-    }
-    // setLoader(dispatch);
-    // fetchApi().then(() => {
-    //   setLoader(dispatch, false);
-    // });
+    setLoader(dispatch);
+    fetchApi().then(() => {
+      setLoader(dispatch, false);
+    });
   };
 
   return (

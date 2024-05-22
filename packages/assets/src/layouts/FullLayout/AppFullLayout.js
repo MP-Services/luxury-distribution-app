@@ -19,22 +19,14 @@ export default function AppFullLayout({children}) {
   const {state, dispatch} = useStore();
   const {loading, toast, loader} = state;
 
-  const [isNavOpen, setIsNavOpen] = useState(!isEmbeddedApp);
-  const toggleOpenNav = () => setIsNavOpen(prev => !prev);
-
-  const navigationClass = [
-    'Avada-ScrollBar--isSubdued',
-    'Avada-Frame__Navigation',
-    isNavOpen && 'Avada-Frame__Navigation--isExpanded'
-  ].filter(Boolean);
-
-  const contentClass = [
-    'Avada-Frame__Content',
-    isNavOpen && 'Avada-Frame__Content--isExpanded'
-  ].filter(Boolean);
   const location = useLocation();
   if (location.pathname === '/embed/signup' || location.pathname === '/signup') {
-    return <React.Fragment>{children}</React.Fragment>;
+    return (
+      <React.Fragment>
+        {children}
+        {loader && <Loader />}
+      </React.Fragment>
+    );
   }
 
   return (
