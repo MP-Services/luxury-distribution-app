@@ -3,6 +3,7 @@ import {
   getGeneralSettingShopId,
   saveGeneralSetting
 } from '@functions/repositories/settings/generalRepository';
+import {sendRequestCurrency} from '@functions/repositories/luxuryRepository';
 
 /**
  * Get current subscription of a shop
@@ -27,6 +28,20 @@ export async function get(ctx) {
     const generalSetting = await getGeneralSettingShopId(shopId);
 
     ctx.body = {success: true, data: generalSetting};
+  } catch (e) {
+    ctx.body = {success: false, error: e.string};
+  }
+}
+
+/**
+ *
+ * @param ctx
+ * @returns {Promise<void>}
+ */
+export async function getCurrencies(ctx) {
+  try {
+    const currencies = await sendRequestCurrency({});
+    ctx.body = {success: true, data: currencies};
   } catch (e) {
     ctx.body = {success: false, error: e.string};
   }

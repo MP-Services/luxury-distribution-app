@@ -8,3 +8,5 @@ export const getApiPrefix = isEmbedApp => (isEmbedApp ? apiPrefix.embed : apiPre
 export const LUXURY_API_URL = 'https://api.luxury-distribution.com/api';
 export const LUXURY_API_V1_URL = 'https://api.luxury-distribution.com/api/v1';
 export const LUXURY_API_V2_URL = 'https://api.luxury-distribution.com/api/v2';
+
+export const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';

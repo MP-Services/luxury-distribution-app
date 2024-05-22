@@ -19,18 +19,24 @@ import {InlineError} from '@shopify/polaris';
  */
 export default function GeneralSetting() {
   const {data: input, setData: setInput} = useFetchApi({url: '/setting/general'});
+  const {data: currencies} = useFetchApi({url: '/setting/general/currencies'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
   const [showRequiredFields, setShowRequiredFields] = useState({});
 
   const handleChangeInput = (key, value) => {
-    setInput(prevInput => ({
-      ...prevInput,
-      [key]: value
-    }));
+    let data = value;
+    setInput(prevInput => {
+      if (key === 'currency' && currencies && currencies.length) {
+        data = currencies.find(item => item.code === value);
+      }
+      return {
+        ...prevInput,
+        [key]: data
+      };
+    });
   };
-
   const handleChangeRequiredFields = (key, value) => {
     setShowRequiredFields(prev => ({
       ...prev,
@@ -169,7 +175,7 @@ export default function GeneralSetting() {
                       Language<span className="required-asterisk"> *</span>
                     </label>
                     <select
-                      defaultValue={input.language ? input.language : 'en'}
+                      value={input?.language ?? 'en'}
                       name="language"
                       onChange={e => handleChangeInput('language', e.target.value)}
                     >
@@ -182,11 +188,19 @@ export default function GeneralSetting() {
                       Currency<span className="required-asterisk"> *</span>
                     </label>
                     <select
-                      defaultValue={input.currency ? input.currency : 'eur'}
+                      value={input?.currency?.code ?? 'EUR'}
                       name="currency"
                       onChange={e => handleChangeInput('currency', e.target.value)}
                     >
-                      <option value="eur">EUR</option>
+                      {currencies && currencies.length ? (
+                        currencies.map((currency, index) => (
+                          <option key={index} value={currency.code}>
+                            {currency.code}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="1">EUR</option>
+                      )}
                     </select>
                   </div>
                 </div>
@@ -199,7 +213,9 @@ export default function GeneralSetting() {
                     name="price"
                     onChange={e => handleChangeInput('pricesRounding', e.target.value)}
                   >
+                    <option value="not-to-round">Not to round</option>
                     <option value="xxx9.00">XXX9.00</option>
+                    <option value="xxxx.00 up">XXXX.00 up</option>
                   </select>
                 </div>
                 <div className="checkboxes">

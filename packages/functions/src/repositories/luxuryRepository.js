@@ -1,4 +1,4 @@
-import {LUXURY_API_V1_URL, LUXURY_API_V2_URL} from '@functions/const/app';
+import {LUXURY_API_V1_URL, LUXURY_API_V2_URL, CURRENCY_API_URL} from '@functions/const/app';
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
@@ -6,6 +6,8 @@ import {runMetafieldsDelete, runMetafieldsQuery} from '@functions/services/shopi
 
 const firestore = new Firestore();
 const collection = firestore.collection('luxuryShopInfos');
+
+const CURRENCY_API_KEY = 'cur_live_VdJkKvqmHQul2RNVCxxIad7KGe8SU8uprCSH7Iw2';
 
 /**
  *
@@ -27,6 +29,26 @@ export async function sendTokenRequest(data) {
   }
 
   return false;
+}
+
+/**
+ *
+ * @param headerParams
+ * @returns {Promise<any>}
+ */
+export async function sendRequestCurrency(headerParams) {
+  const result = await api(CURRENCY_API_URL, {
+    method: 'GET',
+    options: {
+      headers: {...headerParams, apiKey: CURRENCY_API_KEY}
+    }
+  });
+
+  if (result?.data) {
+    return Object.values(result.data).map(obj => ({code: obj.code, value: obj.value}));
+  }
+
+  return [];
 }
 
 /**
