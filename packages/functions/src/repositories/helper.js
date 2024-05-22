@@ -95,8 +95,6 @@ export async function paginateQuery({
   if (!getAll) {
     if (query.after) {
       const after = await collection.doc(query.after).get();
-      console.log('afterDocsData');
-      console.log(after.docs[0].data());
       queriedRef = queriedRef.startAfter(after);
       hasPre = true;
     }

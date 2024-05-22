@@ -17,8 +17,10 @@ export async function addOrder(shopifyId, data) {
   try {
     const orderDataConverted = await convertShopifyOrderDataToSync(shopifyId, data);
     if (orderDataConverted.order.products.length) {
+      const {id: shopifyOrderId, ...restData} = data;
       await collection.add({
-        ...data,
+        ...restData,
+        shopifyOrderId,
         orderDataConverted,
         shopifyId,
         syncStatus: 'new',

@@ -101,7 +101,7 @@ export default function Orders() {
                 {data.map((order, index) => (
                   <tr key={index}>
                     <td data-th="Retail Order Id">{order?.retailerOrderId}</td>
-                    <td data-th="Dropshipper Order Id">{order.id}</td>
+                    <td data-th="Dropshipper Order Id">{order.shopifyOrderId}</td>
                     <td data-th="Successful" className="order-status">
                       {`${order?.retailerOrderId ? 'Successful' : 'Processing'}`}
                     </td>
