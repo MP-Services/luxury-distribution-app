@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import {useMenu} from '../../reducers/menuReducer';
 import '../../styles/pages/helpdesk.scss';
@@ -11,6 +11,17 @@ import '../../styles/pages/helpdesk.scss';
  */
 export default function Helpdesk() {
   const {isActiveMenu} = useMenu();
+  const [activeAnswerItem, setActiveAnswerItem] = useState({});
+
+  const handleShowAnswerDetail = key => {
+    setActiveAnswerItem(prevInput => {
+      const value = !prevInput[key];
+      return {
+        ...prevInput,
+        [key]: value
+      };
+    });
+  };
 
   return (
     <div className={`main ${isActiveMenu ? 'opacity' : ''}`}>
@@ -27,7 +38,11 @@ export default function Helpdesk() {
               <div className="question-detail">
                 <span className="question-label">Understanding how 'Category Mapping' works</span>
               </div>
-              <button className="action-btn" data-hide="true">
+              <button
+                className="action-btn"
+                data-hide="true"
+                onClick={e => handleShowAnswerDetail('number1')}
+              >
                 <svg
                   width="32"
                   height="32"
@@ -50,20 +65,27 @@ export default function Helpdesk() {
                 </svg>
               </button>
             </div>
-            <div className="answer-item">
-              <p className="answer-detail">
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
-                Ipsum has been the industry's standard dummy text ever since the 1500s, when an
-                unknown printer took a galley of type and scrambled it to make a type specimen book.
-              </p>
-            </div>
+            {activeAnswerItem?.number1 && (
+              <div className={`answer-item ${activeAnswerItem?.number1 ? 'answer-active' : ''}`}>
+                <p className="answer-detail">
+                  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
+                  Ipsum has been the industry's standard dummy text ever since the 1500s, when an
+                  unknown printer took a galley of type and scrambled it to make a type specimen
+                  book.
+                </p>
+              </div>
+            )}
           </div>
           <div className="questions-answer">
             <div className="question-item">
               <div className="question-detail">
                 <span className="question-label">Performing 'Category Mapping'</span>
               </div>
-              <button className="action-btn" data-hide="true">
+              <button
+                  className="action-btn"
+                  data-hide="true"
+                  onClick={e => handleShowAnswerDetail('number2')}
+              >
                 <svg
                   width="32"
                   height="32"
@@ -86,7 +108,7 @@ export default function Helpdesk() {
                 </svg>
               </button>
             </div>
-            <div className="answer-item">
+            <div className={`answer-item ${activeAnswerItem?.number2 ? 'answer-active' : ''}`}>
               <p className="answer-detail">
                 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
                 Ipsum has been the industry's standard dummy text ever since the 1500s, when an
