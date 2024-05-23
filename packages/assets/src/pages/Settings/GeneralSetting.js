@@ -20,11 +20,11 @@ import {InlineError} from '@shopify/polaris';
 export default function GeneralSetting() {
   const {data: input, setData: setInput, loading} = useFetchApi({url: '/setting/general'});
   const {data: currencies} = useFetchApi({url: '/setting/general/currencies'});
-  const {dispatch} = useStore();
+  const {dispatch, state} = useStore();
+  const {shop} = state;
   const {isActiveMenu} = useMenu();
   const history = useHistory();
   const [showRequiredFields, setShowRequiredFields] = useState({});
-
   const handleChangeInput = (key, value) => {
     setInput(prevInput => ({
       ...prevInput,
@@ -110,47 +110,6 @@ export default function GeneralSetting() {
           </p>
         </div>
         <div className="form-check-wrapper">
-          <div className="table-wrapper">
-            <div className="table-info-top">
-              <div className="info-card info-retailer">
-                <p className="info-url">
-                  Retailer: <span>luxury-distribution.com</span>
-                </p>
-              </div>
-              <div className="info-card info-dropshipper">
-                <p className="info-url">
-                  Dropshipper: <span>elixiremarketing.myshopify.com</span>
-                </p>
-              </div>
-            </div>
-            <div className="customer-email">
-              <form
-                action=""
-                className="check-customer"
-                onSubmit={e => handleSave(e, 'customerEmail')}
-              >
-                <label className="customer-title" htmlFor="email">
-                  Customer Email<span className="required-asterisk"> *</span>
-                </label>
-                <input
-                  value={input.customerEmail ? input.customerEmail : ''}
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  onChange={e => handleChangeInput('customerEmail', e.target.value)}
-                />
-                {showRequiredFields.customerEmail && (
-                  <InlineError
-                    message={validateMessage('customerEmail', input.customerEmail)}
-                    fieldID={'customer-email-error'}
-                  />
-                )}
-                <button name="check-email-btn" className="checksave-btn">
-                  Run Check & Save
-                </button>
-              </form>
-            </div>
-          </div>
           <div className="table-wrapper">
             <div className="table-info-top">
               <div className="info-card info-retailer">
@@ -311,7 +270,7 @@ export default function GeneralSetting() {
                   Access Token<span className="required-asterisk"> *</span>
                 </label>
                 <input
-                  value={input.shopifyToken ? input.shopifyToken : ''}
+                  value={shop?.accessToken ?? ''}
                   type="text"
                   name="token"
                   placeholder="token"
@@ -323,9 +282,9 @@ export default function GeneralSetting() {
                     fieldID={'access-token-error'}
                   />
                 )}
-                <button name="check-token-btn" className="checksave-btn">
-                  Run Check & Save
-                </button>
+                {/*<button name="check-token-btn" className="checksave-btn">*/}
+                {/*  Run Check & Save*/}
+                {/*</button>*/}
               </form>
             </div>
           </div>

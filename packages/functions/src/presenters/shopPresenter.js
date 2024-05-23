@@ -6,7 +6,7 @@
  */
 export default function presentShop(data) {
   // eslint-disable-next-line no-unused-vars
-  const {accessToken, ...shop} = data;
+  const {...shop} = data;
 
   return shop;
 }

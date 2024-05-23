@@ -17,10 +17,6 @@ import '@shopify/polaris/build/esm/styles.css';
         collectActiveShopData({shop, shopInfo}),
         {email: shop.email, displayName: shopInfo.shopOwner}
       ];
-  // if (activeShop) {
-  //   loadCrisp('WEBSITE_ID', shop.crispSessionToken);
-  //   pushDataToCrisp({shopData: activeShop, user});
-  // }
 
   const loading = document.getElementById('PreLoading');
   if (loading !== null) {

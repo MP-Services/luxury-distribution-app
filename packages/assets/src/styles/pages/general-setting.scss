@@ -67,6 +67,14 @@ $background-color_1: #fff;
     border: 1px solid #1768F7;
     border-radius: 10px;
   }
+  input[name='token'] {
+    -webkit-text-security: disc;
+    text-security: disc;
+  }
+  input[name='token']:hover {
+    -webkit-text-security: none;
+    text-security: none;
+  }
 }
 button.checksave-btn {
   margin-top: 20px;
