@@ -598,8 +598,8 @@ async function getProductVariantsVariables({
   const currencyValue = await getCurrencyValue(generalSetting);
   const productVariants = optionValuesProduct.map((optionValue, index) => ({
     sku: productData.sku,
-    price: productData.selling_price * margin * Number(currencyValue),
-    compareAtPrice: productData.original_price * Number(currencyValue),
+    price: roundingPrice(productData.selling_price * margin * currencyValue, generalSetting),
+    compareAtPrice: roundingPrice(productData.original_price * currencyValue, generalSetting),
     optionValues: [
       {
         optionId: productOptionId,
@@ -611,6 +611,26 @@ async function getProductVariantsVariables({
     productId: productShopifyId,
     variants: productVariants
   };
+}
+
+/**
+ *
+ * @param price
+ * @param generalSetting
+ * @returns {*|number}
+ */
+function roundingPrice(price, generalSetting) {
+  let priceRounding = price;
+  if (generalSetting?.pricesRounding) {
+    if (generalSetting.pricesRounding === 'xxx9.00') {
+      priceRounding = Math.round(price);
+    }
+    if (generalSetting.pricesRounding === 'XXXX.00 up') {
+      priceRounding = Math.ceil(price);
+    }
+  }
+
+  return Number(priceRounding);
 }
 
 /**
@@ -643,8 +663,8 @@ async function getProductVariantsUpdateVariables(
 ) {
   const currencyValue = await getCurrencyValue(generalSetting);
   const productVariants = sizesNeedUpdate.map(item => ({
-    price: productData.selling_price * margin * currencyValue,
-    compareAtPrice: productData.original_price * currencyValue,
+    price: roundingPrice(productData.selling_price * margin * currencyValue, generalSetting),
+    compareAtPrice: roundingPrice(productData.original_price * currencyValue, generalSetting),
     id: item.productVariantId
   }));
   return {
