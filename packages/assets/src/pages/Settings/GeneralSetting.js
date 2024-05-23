@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/general-setting.scss';
 import '../../styles/pages/category-mapping.scss';
@@ -18,7 +18,7 @@ import {InlineError} from '@shopify/polaris';
  * @constructor
  */
 export default function GeneralSetting() {
-  const {data: input, setData: setInput} = useFetchApi({url: '/setting/general'});
+  const {data: input, setData: setInput, loading} = useFetchApi({url: '/setting/general'});
   const {data: currencies} = useFetchApi({url: '/setting/general/currencies'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
@@ -38,6 +38,9 @@ export default function GeneralSetting() {
     }));
   };
 
+  useEffect(() => {
+    setLoader(dispatch, loading);
+  }, [loading]);
   const validateMessage = key => {
     const value = input[key];
     if (!value) {

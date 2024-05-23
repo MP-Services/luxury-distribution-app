@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/dashboard.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
@@ -13,7 +13,7 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
  * @constructor
  */
 export default function Dashboard() {
-  const {data: productsData, fetchApi} = useFetchApi({url: '/dashboard'});
+  const {data: productsData, fetchApi, loading} = useFetchApi({url: '/dashboard'});
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
 
@@ -23,6 +23,10 @@ export default function Dashboard() {
       setLoader(dispatch, false);
     });
   };
+
+  useEffect(() => {
+    setLoader(dispatch, loading);
+  }, [loading]);
 
   return (
     <div className="main">

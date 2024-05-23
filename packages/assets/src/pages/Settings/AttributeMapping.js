@@ -21,7 +21,8 @@ export default function AttributeMapping() {
     data: attributeMappingData,
     setData: setAttributeMappingData,
     fetchApi,
-    fetched
+    fetched,
+    loading
   } = useFetchApi({
     url: '/setting/attributemapping',
     defaultData: [
@@ -32,7 +33,7 @@ export default function AttributeMapping() {
       }
     ]
   });
-  const {data: sizeOptionsMappingData} = useFetchApi({
+  const {data: sizeOptionsMappingData, loading: optionsLoading} = useFetchApi({
     url: '/setting/attributemapping/optionsmapping'
   });
   const {creating, handleCreate} = useCreateApi({
@@ -81,6 +82,11 @@ export default function AttributeMapping() {
     }
     setLoader(dispatch, creating);
   }, [creating]);
+
+  useEffect(() => {
+    console.log('test')
+    setLoader(dispatch, loading || optionsLoading);
+  }, [loading, optionsLoading]);
 
   return (
     <div className="main">
