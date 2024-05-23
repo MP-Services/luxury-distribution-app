@@ -32,7 +32,7 @@ export default function SignUp() {
       const resp = await api('/signup', {method: 'POST', body: input});
       if (resp.success) {
         setLuxuryInfos(dispatch, resp.data);
-        history.replace('/');
+        history.replace('/setting/brandfilter');
 
         return true;
       }
