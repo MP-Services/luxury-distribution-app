@@ -2,6 +2,7 @@ import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getProductByShopifyProductId} from '@functions/repositories/productRepository';
 import {createOrder} from '@functions/repositories/luxuryRepository';
 import {batchDelete, paginateQuery, getOrderBy} from '@functions/repositories/helper';
+import {addLog} from '@functions/repositories/logRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -59,6 +60,7 @@ export async function syncOrder(shop) {
     }
   } catch (e) {
     console.log(e);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(e)});
   }
 
   if (orderUUID) {

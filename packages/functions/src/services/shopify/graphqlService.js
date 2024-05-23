@@ -1,4 +1,5 @@
 import {makeGraphQlApi} from '@functions/helpers/api';
+import {addLog} from '@functions/repositories/logRepository';
 
 export const GET_LOCATION_QUERY = `
 query location($id: ID){
@@ -324,6 +325,7 @@ export async function runMetafieldsDelete({shop, variables, query = METAFIELDS_D
     return true;
   } catch (e) {
     console.log(e);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(e)});
     return false;
   }
 }
@@ -349,6 +351,7 @@ export async function runMetafieldsQuery({shop, query = METAFIELDS_DEFINITIONS_Q
     return metafieldDefinitions?.edges;
   } catch (e) {
     console.log(e);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(e)});
     return '';
   }
 }
@@ -371,12 +374,14 @@ export async function runMetafieldsSetMutation({shop, variables, query = METAFIE
     const {metafields, userErrors} = data.metafieldsSet;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return metafields;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -403,12 +408,14 @@ export async function runMetafieldDefinitionMutation({
     const {createdDefinition, userErrors} = data.metafieldDefinitionCreate;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return createdDefinition;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -431,12 +438,14 @@ export async function runDeleteProductMutation({shop, variables, query = DELETE_
     const {deletedProductId, userErrors} = data.productDelete;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return deletedProductId;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -459,12 +468,14 @@ export async function runProductCreateMutation({shop, variables, query = CREATE_
     const {product, userErrors} = data.productCreate;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return product;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -487,12 +498,14 @@ export async function runProductUpdateMutation({shop, variables, query = UPDATE_
     const {product, userErrors} = data.productUpdate;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return product;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -519,12 +532,14 @@ export async function runProductAdjustQuantitiesMutation({
     const {inventoryAdjustmentGroup, userErrors} = data.inventoryAdjustQuantities;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return inventoryAdjustmentGroup;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -553,12 +568,14 @@ export async function runProductVariantsBulkMutation({
     const {product, productVariants, userErrors} = data[key];
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return {product, productVariants};
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -585,12 +602,14 @@ export async function runProductVariantsDeleteMutation({
     const {product, userErrors} = data.productVariantsBulkDelete;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return product;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }
@@ -617,12 +636,14 @@ export async function runProductOptionUpdateMutation({
     const {product, userErrors} = data.productOptionUpdate;
     if (userErrors.length) {
       console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
     }
 
     return product;
   } catch (error) {
     console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
     return '';
   }
 }

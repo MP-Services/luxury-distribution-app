@@ -178,6 +178,7 @@ async function actionQueueCreate({
     shop,
     variables: productVariables
   });
+
   if (productShopify) {
     const productVariantsVariables = await getProductVariantsVariables({
       productShopifyId: productShopify.id,
@@ -407,7 +408,7 @@ function getOptionValuesToUpdate(options, sizeAttributeMapping) {
   return options.map(option => {
     let value = option.mappingValue;
     if (sizeAttributeMapping) {
-      const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
+      const sizeOptionMapping = sizeAttributeMapping[0]?.optionsMapping ?? [];
       const sizeOption = sizeOptionMapping.find(
         item => item.retailerOptionName === option.originalValue
       );
@@ -873,11 +874,13 @@ export async function createMetafields(shopId) {
  */
 function convertOptionMappingToSizeValue(sizes, sizeAttributeMapping) {
   if (sizeAttributeMapping) {
-    const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
-    return sizes.map(size => {
-      const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
-      return sizeOption?.dropshipperOptionName ?? size;
-    });
+    const sizeOptionMapping = sizeAttributeMapping[0]?.optionsMapping;
+    if (sizeOptionMapping) {
+      return sizes.map(size => {
+        const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
+        return sizeOption?.dropshipperOptionName ?? size;
+      });
+    }
   }
   return sizes;
 }
@@ -899,38 +902,40 @@ function sizeOptionMapping(
   productOptionId
 ) {
   if (sizeAttributeMapping) {
-    const sizeOptionMapping = sizeAttributeMapping.optionsMapping;
-    return sizes.map(size => {
-      const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
-      return sizeOption?.dropshipperOptionName
-        ? {
-            type: 'size',
-            originalOption: size,
-            mappingOption: sizeOption.dropshipperOptionName,
-            productOptionValueId: getProductOptionIdByName(
-              productOptions,
-              sizeOption.dropshipperOptionName
-            ),
-            productVariantId: getVariantIdByTitle(
-              productVariants,
-              sizeOption.dropshipperOptionName
-            ),
-            inventoryItemId: getInventoryItemIdByTitle(
-              productVariants,
-              sizeOption.dropshipperOptionName
-            ),
-            productOptionId
-          }
-        : {
-            type: 'size',
-            originalOption: size,
-            mappingOption: size,
-            productOptionValueId: getProductOptionIdByName(productOptions, size),
-            productVariantId: getVariantIdByTitle(productVariants, size),
-            inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
-            productOptionId
-          };
-    });
+    const sizeOptionMapping = sizeAttributeMapping[0].optionsMapping;
+    if (sizeOptionMapping) {
+      return sizes.map(size => {
+        const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
+        return sizeOption?.dropshipperOptionName
+          ? {
+              type: 'size',
+              originalOption: size,
+              mappingOption: sizeOption.dropshipperOptionName,
+              productOptionValueId: getProductOptionIdByName(
+                productOptions,
+                sizeOption.dropshipperOptionName
+              ),
+              productVariantId: getVariantIdByTitle(
+                productVariants,
+                sizeOption.dropshipperOptionName
+              ),
+              inventoryItemId: getInventoryItemIdByTitle(
+                productVariants,
+                sizeOption.dropshipperOptionName
+              ),
+              productOptionId
+            }
+          : {
+              type: 'size',
+              originalOption: size,
+              mappingOption: size,
+              productOptionValueId: getProductOptionIdByName(productOptions, size),
+              productVariantId: getVariantIdByTitle(productVariants, size),
+              inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
+              productOptionId
+            };
+      });
+    }
   }
 
   return sizes.map(size => ({

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {API_VERSION} from '../services/shopifyService';
 import {delay} from '@avada/utils';
+import {addLog} from '@functions/repositories/logRepository';
 
 const client = axios.create({
   timeout: 60000
@@ -56,6 +57,10 @@ export async function makeGraphQlApi(
       errors.map(x => x.message).join('. '),
       resp?.extensions?.cost
     );
+    await addLog(shopifyDomain, {
+      graphqlQuery: JSON.stringify(graphqlQuery),
+      errors: errors.map(x => x.message).join('. ')
+    });
     return {errors};
   }
   return resp;
