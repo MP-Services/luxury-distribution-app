@@ -5,13 +5,13 @@ import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
-import {setLoader, setToast} from '@assets/actions/storeActions';
-import {api} from '@assets/helpers';
+import {setLoader} from '@assets/actions/storeActions';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import useDeleteApi from '@assets/hooks/api/useDeleteApi';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import querystring from 'querystring';
 import {generateArrays, isExistPage, handleChangeSearch} from '@assets/helpers/paginate';
+import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
 
 const defaultParams = {
   page: 1,
@@ -235,26 +235,7 @@ export default function CategoryMapping() {
         </div>
         {!!(retailerCategories.length && dropShipperCollections.length) && (
           <div className="table-wrapper">
-            <div className="table-info-top">
-              <div className="info-card info-retailer">
-                <p className="info-url">
-                  Retailer: <span>luxury-distribution.com</span>
-                </p>
-                <hr />
-                <p className="info-currency">
-                  Currency: <span>EUR</span>
-                </p>
-              </div>
-              <div className="info-card info-dropshipper">
-                <p className="info-url">
-                  Retailer: <span>elixiremarketing.myshopify.com</span>
-                </p>
-                <hr />
-                <p className="info-currency">
-                  Currency: <span>EUR</span>
-                </p>
-              </div>
-            </div>
+            <TableCurrencyHeader />
             <SyncSettingHeader />
             <div className="table-main">
               <div className="row-top"></div>

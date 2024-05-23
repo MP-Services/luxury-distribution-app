@@ -12,8 +12,6 @@ import {NavLink} from 'react-router-dom';
  * @constructor
  */
 export default function MainSettings() {
-  const [enabled, setEnabled] = useState(false);
-  const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
 
   return (

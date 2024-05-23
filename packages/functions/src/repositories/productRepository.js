@@ -33,6 +33,7 @@ import {prepareDoc} from './helper';
 import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
+import {getCurrencies} from '@functions/repositories/currencyRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -178,7 +179,7 @@ async function actionQueueCreate({
     variables: productVariables
   });
   if (productShopify) {
-    const productVariantsVariables = getProductVariantsVariables({
+    const productVariantsVariables = await getProductVariantsVariables({
       productShopifyId: productShopify.id,
       productData,
       productOptionId: productShopify.options[0].id,
@@ -306,7 +307,7 @@ async function actionQueueUpdate({
 
     // Add Variant
     if (variantsNeedAdd.length) {
-      const productVariantsVariables = getProductVariantsVariables({
+      const productVariantsVariables = await getProductVariantsVariables({
         productShopifyId: productId,
         productData,
         productOptionId,
@@ -325,10 +326,11 @@ async function actionQueueUpdate({
 
     // Update Variant
     if (variantsNeedUpdate.length) {
-      const productVariantsUpdateVariables = getProductVariantsUpdateVariables(
+      const productVariantsUpdateVariables = await getProductVariantsUpdateVariables(
         productData,
         sizesNeedUpdate,
-        margin
+        margin,
+        generalSetting
       );
       const {productVariants: productVariantsUpdateReturn} = await runProductVariantsBulkMutation({
         shop,
@@ -582,9 +584,10 @@ function getMetafieldsData(productData) {
  * @param productOptionId
  * @param optionValuesProduct
  * @param margin
- * @returns {{productId, variants: *}}
+ * @param generalSetting
+ * @returns {Promise<{productId, variants: *}>}
  */
-function getProductVariantsVariables({
+async function getProductVariantsVariables({
   productShopifyId,
   productData,
   productOptionId,
@@ -592,7 +595,7 @@ function getProductVariantsVariables({
   margin,
   generalSetting
 }) {
-  const currencyValue = generalSetting?.currency?.value ?? 1;
+  const currencyValue = await getCurrencyValue(generalSetting);
   const productVariants = optionValuesProduct.map((optionValue, index) => ({
     sku: productData.sku,
     price: productData.selling_price * margin * Number(currencyValue),
@@ -612,15 +615,36 @@ function getProductVariantsVariables({
 
 /**
  *
+ * @param generalSetting
+ * @returns {Promise<number|*|number>}
+ */
+async function getCurrencyValue(generalSetting) {
+  const currencies = await getCurrencies();
+  if (!currencies || !generalSetting?.currency) {
+    return 1;
+  }
+  const currency = currencies.data.find(item => item.code === generalSetting.currency);
+  return currency?.value ?? 1;
+}
+
+/**
+ *
  * @param productData
  * @param sizesNeedUpdate
  * @param margin
- * @returns {{productId, variants: *}}
+ * @param generalSetting
+ * @returns {Promise<{productId: (string|*), variants: *}>}
  */
-function getProductVariantsUpdateVariables(productData, sizesNeedUpdate, margin) {
+async function getProductVariantsUpdateVariables(
+  productData,
+  sizesNeedUpdate,
+  margin,
+  generalSetting
+) {
+  const currencyValue = await getCurrencyValue(generalSetting);
   const productVariants = sizesNeedUpdate.map(item => ({
-    price: productData.selling_price * margin,
-    compareAtPrice: productData.original_price,
+    price: productData.selling_price * margin * currencyValue,
+    compareAtPrice: productData.original_price * currencyValue,
     id: item.productVariantId
   }));
   return {

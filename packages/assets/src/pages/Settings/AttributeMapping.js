@@ -7,6 +7,7 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import {setLoader} from '@assets/actions/storeActions';
+import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
 
 /**
  * Render a home page for overview
@@ -67,7 +68,7 @@ export default function AttributeMapping() {
     );
   };
 
-  const getOptionMappingValue = (retailerOptionName) => {
+  const getOptionMappingValue = retailerOptionName => {
     const option = attributeMappingData[0].optionsMapping.find(
       option => option.retailerOptionName === retailerOptionName
     );
@@ -108,26 +109,7 @@ export default function AttributeMapping() {
           </p>
         </div>
         <div className="table-wrapper">
-          <div className="table-info-top">
-            <div className="info-card info-retailer">
-              <p className="info-url">
-                Retailer: <span>luxury-distribution.com</span>
-              </p>
-              <hr />
-              <p className="info-currency">
-                Currency: <span>EUR</span>
-              </p>
-            </div>
-            <div className="info-card info-dropshipper">
-              <p className="info-url">
-                Dropshipper: <span>elixiremarketing.myshopify.com</span>
-              </p>
-              <hr />
-              <p className="info-currency">
-                Currency: <span>EUR</span>
-              </p>
-            </div>
-          </div>
+          <TableCurrencyHeader />
           <div className="table-sync-setting">
             <div className="sync-title">
               <p>Sync setting</p>

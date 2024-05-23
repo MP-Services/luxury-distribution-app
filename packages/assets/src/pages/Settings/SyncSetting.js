@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import '../../styles/pages/sync-setting.scss';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
@@ -17,7 +17,7 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
  * @constructor
  */
 export default function SyncSetting() {
-  const {data: input, setData: setInput, fetched} = useFetchApi({
+  const {data: input, setData: setInput} = useFetchApi({
     url: '/setting/sync',
     defaultData: syncSetting
   });

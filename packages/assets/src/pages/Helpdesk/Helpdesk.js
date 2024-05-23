@@ -82,9 +82,9 @@ export default function Helpdesk() {
                 <span className="question-label">Performing 'Category Mapping'</span>
               </div>
               <button
-                  className="action-btn"
-                  data-hide="true"
-                  onClick={e => handleShowAnswerDetail('number2')}
+                className="action-btn"
+                data-hide="true"
+                onClick={e => handleShowAnswerDetail('number2')}
               >
                 <svg
                   width="32"

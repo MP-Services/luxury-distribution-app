@@ -26,16 +26,10 @@ export default function GeneralSetting() {
   const [showRequiredFields, setShowRequiredFields] = useState({});
 
   const handleChangeInput = (key, value) => {
-    let data = value;
-    setInput(prevInput => {
-      if (key === 'currency' && currencies && currencies.length) {
-        data = currencies.find(item => item.code === value);
-      }
-      return {
-        ...prevInput,
-        [key]: data
-      };
-    });
+    setInput(prevInput => ({
+      ...prevInput,
+      [key]: value
+    }));
   };
   const handleChangeRequiredFields = (key, value) => {
     setShowRequiredFields(prev => ({
@@ -188,7 +182,7 @@ export default function GeneralSetting() {
                       Currency<span className="required-asterisk"> *</span>
                     </label>
                     <select
-                      value={input?.currency?.code ?? 'EUR'}
+                      value={input?.currency ?? 'EUR'}
                       name="currency"
                       onChange={e => handleChangeInput('currency', e.target.value)}
                     >
@@ -199,7 +193,7 @@ export default function GeneralSetting() {
                           </option>
                         ))
                       ) : (
-                        <option value="1">EUR</option>
+                        <option value="EUR">EUR</option>
                       )}
                     </select>
                   </div>
@@ -209,7 +203,7 @@ export default function GeneralSetting() {
                     Price Rounding<span className="required-asterisk"> *</span>
                   </label>
                   <select
-                    defaultValue={input.pricesRounding ? input.pricesRounding : 'xxx9.00'}
+                    value={input.pricesRounding ? input.pricesRounding : 'not-to-round'}
                     name="price"
                     onChange={e => handleChangeInput('pricesRounding', e.target.value)}
                   >

@@ -7,6 +7,7 @@ import apiHookV1Handler from './handlers/apiHookV1';
 import restApiHandler from './handlers/restApi';
 import syncProductData from './handlers/schedule/syncProduct';
 import syncOrderData from './handlers/schedule/syncOrder';
+import createCurrenciesData from './handlers/schedule/createCurrencies';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
 import subscribeCategoryMappingSaveHandling from './handlers/pubsub/subscribeCategoryMappingSaveHandling';
@@ -38,6 +39,11 @@ export const syncOrder = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.schedule('* * * * *')
   .onRun(syncOrderData);
+
+export const createCurrencies = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.schedule('0 0 * * *')
+  .onRun(createCurrenciesData);
 
 // ---------------------- Subscriber handlers ----------------------
 export const brandFilterCreateHandling = functions

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {useStore} from '@assets/reducers/storeReducer';
 import '../../styles/pages/dashboard.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';

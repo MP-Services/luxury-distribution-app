@@ -8,6 +8,7 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
 import {setToast, setLoader} from '@assets/actions/storeActions';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
+import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
 
 /**
  * Render a home page for overview
@@ -18,7 +19,6 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 export default function BrandFilter() {
   const {data: brandLX} = useFetchApi({url: '/setting/brandlist'});
   const {data: input, setData: setInput} = useFetchApi({url: '/setting/brandfilter'});
-  const [loading, setLoading] = useState(false);
   const {dispatch} = useStore();
 
   const {isActiveMenu} = useMenu();
@@ -93,26 +93,7 @@ export default function BrandFilter() {
         </div>
         <SyncSettingHeader />
         <div className="table-wrapper">
-          <div className="table-info-top">
-            <div className="info-card info-retailer">
-              <p className="info-url">
-                Retailer: <span>luxury-distribution.com</span>
-              </p>
-              <hr />
-              <p className="info-currency">
-                Currency: <span>EUR</span>
-              </p>
-            </div>
-            <div className="info-card info-dropshipper">
-              <p className="info-url">
-                Dropshipper: <span>elixiremarketing.myshopify.com</span>
-              </p>
-              <hr />
-              <p className="info-currency">
-                Currency: <span>EUR</span>
-              </p>
-            </div>
-          </div>
+          <TableCurrencyHeader />
           {!!brandLX.length && (
             <div className="table-main">
               <div className="row-top">
