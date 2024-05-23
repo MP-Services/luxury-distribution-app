@@ -49,7 +49,7 @@ export default function SignUp() {
   }, []);
 
   return (
-    <div className="wrapper">
+    <div className="signup-wrapper">
       <div className="content-left">
         <div className="signup-header">
           <div className="logo">
