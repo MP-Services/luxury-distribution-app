@@ -24,7 +24,9 @@ import {
   runProductUpdateMutation,
   runMetafieldsSetMutation,
   UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
-  runProductVariantsDeleteMutation
+  runProductVariantsDeleteMutation,
+  getProductMediaQuery,
+  runFileDeleteMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -250,6 +252,11 @@ async function actionQueueUpdate({
 }) {
   const productId = productData.productShopifyId;
   const productOptionId = productData?.productOptionsAfterMap[0]?.productOptionId;
+  const fileIdsToDelete = await getFileIdsToDelete(shop, productId);
+  if (fileIdsToDelete) {
+    await runFileDeleteMutation({shop, variables: {fileIds: fileIdsToDelete}});
+  }
+  const productMediaData = getProductMediaData(productData);
   const initProductVariables = {
     product: {
       id: productId,
@@ -257,7 +264,8 @@ async function actionQueueUpdate({
         ? `${productData.name} ${productData.brand}`
         : productData.name,
       descriptionHtml: syncSetting.description ? productData.desscription : ''
-    }
+    },
+    media: syncSetting?.images ? productMediaData : []
   };
 
   const {productVariables, margin} = addCollectionsToProductVariables(
@@ -380,6 +388,40 @@ async function actionQueueUpdate({
 
 /**
  *
+ * @param productData
+ * @returns {*}
+ */
+function getProductMediaData(productData) {
+  return productData?.images
+    ? productData.images.map(item => ({
+        mediaContentType: 'IMAGE',
+        originalSource: item.replace(/\s/g, '%20')
+      }))
+    : [];
+}
+
+/**
+ *
+ * @param shop
+ * @param shopifyProductId
+ * @returns {Promise<*|null>}
+ */
+async function getFileIdsToDelete(shop, shopifyProductId) {
+  const mediaFiles = await getProductMediaQuery({
+    shop,
+    variables: {
+      id: shopifyProductId
+    }
+  });
+  if (mediaFiles && mediaFiles.length) {
+    return mediaFiles.map(file => file.node.id);
+  }
+
+  return null;
+}
+
+/**
+ *
  * @param options
  * @returns {*}
  */
@@ -462,14 +504,22 @@ function getSizesNeedDelete(productData) {
  * @returns {Promise<void>}
  */
 async function actionQueueDelete(shop, docId, productData) {
-  await runDeleteProductMutation({
-    shop,
-    variables: {
-      product: {
-        id: productData.productShopifyId
+  const productFilesToDelete = await getFileIdsToDelete(shop, productData.productShopifyId);
+  const deleteActions = [];
+  if (productFilesToDelete) {
+    deleteActions.push(runFileDeleteMutation({shop, variables: {fileIds: productFilesToDelete}}));
+  }
+  deleteActions.push(
+    runDeleteProductMutation({
+      shop,
+      variables: {
+        product: {
+          id: productData.productShopifyId
+        }
       }
-    }
-  });
+    })
+  );
+  await Promise.all(deleteActions);
   return deleteProductInQueue(docId);
 }
 
@@ -528,10 +578,7 @@ function getProductVariables({
       values: sizeOptionsMap
     }
   ];
-  const productMediaData = productData.images.map(item => ({
-    mediaContentType: 'IMAGE',
-    originalSource: item.replace(/\s/g, '%20')
-  }));
+  const productMediaData = getProductMediaData(productData);
 
   const metafieldsData = getMetafieldsData(productData);
   return {
@@ -546,7 +593,7 @@ function getProductVariables({
       status: generalSetting?.productAsDraft ? 'DRAFT' : 'ACTIVE',
       publications: onlineStore ? [{publicationId: onlineStore}] : []
     },
-    media: syncSetting.images ? productMediaData : []
+    media: syncSetting?.images ? productMediaData : []
   };
 }
 

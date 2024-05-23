@@ -22,6 +22,8 @@ export default {
     'read_metaobjects',
     'write_metaobjects',
     'read_publications',
-    'write_publications'
+    'write_publications',
+    'write_files',
+    'read_files'
   ]
 };

@@ -281,6 +281,94 @@ mutation metafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
 }
 `;
 
+export const PRODUCT_MEDIA_QUERY = `
+query product($id: ID!){
+  product(id: $id) {
+    id
+    title
+    media(first: 50) {
+      edges {
+        node {
+          ... on MediaImage {
+            id
+            image {
+              src
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`;
+
+export const FILE_DELETE_MUTATION = `
+mutation fileDelete($fileIds: [ID!]!) {
+  fileDelete(fileIds: $fileIds) {
+    deletedFileIds
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`;
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function getProductMediaQuery({shop, variables, query = PRODUCT_MEDIA_QUERY}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+
+    const {product} = data;
+
+    return product?.media?.edges;
+  } catch (e) {
+    console.log(e);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param variables
+ * @param query
+ * @returns {Promise<*|string>}
+ */
+export async function runFileDeleteMutation({shop, variables, query = FILE_DELETE_MUTATION}) {
+  try {
+    const graphqlQuery = {query, variables};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {deletedFileIds, userErrors} = data.fileDelete;
+    if (userErrors.length) {
+      console.error(userErrors);
+      await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
+      return '';
+    }
+
+    return deletedFileIds;
+  } catch (error) {
+    console.error(error);
+    await addLog(shop.shopifyDomain, {errors: JSON.stringify(error)});
+    return '';
+  }
+}
+
 /**
  *
  * @param shop
