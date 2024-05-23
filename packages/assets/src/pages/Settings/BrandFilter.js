@@ -17,8 +17,10 @@ import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCur
  * @constructor
  */
 export default function BrandFilter() {
-  const {data: brandLX} = useFetchApi({url: '/setting/brandlist'});
-  const {data: input, setData: setInput} = useFetchApi({url: '/setting/brandfilter'});
+  const {data: brandLX, loading: brandListLoading} = useFetchApi({url: '/setting/brandlist'});
+  const {data: input, setData: setInput, loading: brandFilterLoading} = useFetchApi({
+    url: '/setting/brandfilter'
+  });
   const {dispatch} = useStore();
 
   const {isActiveMenu} = useMenu();
@@ -42,6 +44,10 @@ export default function BrandFilter() {
       brandLxConverted = brandLX.map(item => item.brand);
     }
   }, [brandLX]);
+
+  useEffect(() => {
+    setLoader(dispatch, brandListLoading || brandFilterLoading);
+  }, [brandListLoading, brandFilterLoading]);
 
   const handleSave = async () => {
     try {
