@@ -21,11 +21,11 @@ export default function BrandFilter() {
   const {data: input, setData: setInput, loading: brandFilterLoading} = useFetchApi({
     url: '/setting/brandfilter'
   });
+  const [brandLxConverted, setBrandLxConverted] = useState([]);
   const {dispatch} = useStore();
 
   const {isActiveMenu} = useMenu();
   const history = useHistory();
-  let brandLxConverted = [];
 
   const handleChangeInput = value => {
     if (input.includes(value)) {
@@ -41,7 +41,7 @@ export default function BrandFilter() {
 
   useEffect(() => {
     if (brandLX.length) {
-      brandLxConverted = brandLX.map(item => item.brand);
+      setBrandLxConverted(brandLX.map(item => item.brand));
     }
   }, [brandLX]);
 
