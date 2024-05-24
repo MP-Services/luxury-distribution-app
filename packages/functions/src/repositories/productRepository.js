@@ -1199,6 +1199,7 @@ export async function getProductCounts(shopId) {
     const [totalProduct, createQueue, updateQueue, deleteQueue] = await Promise.all([
       collection
         .where('shopifyId', '==', shopId)
+        .where('productShopifyId', '!=', '')
         .count()
         .get(),
       collection
