@@ -84,7 +84,6 @@ export default function AttributeMapping() {
   }, [creating]);
 
   useEffect(() => {
-    console.log('test')
     setLoader(dispatch, loading || optionsLoading);
   }, [loading, optionsLoading]);
 
@@ -176,6 +175,8 @@ export default function AttributeMapping() {
                     <input
                       className="dropshipper-attribute-name clearable"
                       name="dropshipper_attribute_name"
+                      value={'Size'}
+                      readOnly={true}
                     />
                   </div>
                   {!!sizeOptionsMappingData.length && (
