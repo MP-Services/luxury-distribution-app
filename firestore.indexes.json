@@ -291,6 +291,24 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "shopifyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "productShopifyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "queueStatus",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

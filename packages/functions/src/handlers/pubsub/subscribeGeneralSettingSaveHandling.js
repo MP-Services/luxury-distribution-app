@@ -8,8 +8,12 @@ import {updateProductBulkWhenSaveGeneralSetting} from '../../repositories/produc
 export default async function subscribeGeneralSettingSaveHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-    const {shopId, generalSetting} = data;
-    await updateProductBulkWhenSaveGeneralSetting(shopId, generalSetting);
+    const {shopId, generalSettingBefore, generalSettingAfter} = data;
+    await updateProductBulkWhenSaveGeneralSetting(
+      shopId,
+      generalSettingBefore,
+      generalSettingAfter
+    );
   } catch (e) {
     console.error(e);
   }

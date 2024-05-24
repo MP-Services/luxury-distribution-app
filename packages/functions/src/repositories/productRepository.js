@@ -866,11 +866,43 @@ export async function updateProductBulkWhenSaveAttributeMapping(shopId, attribut
 /**
  *
  * @param shopifyId
- * @param generalSetting
+ * @param generalSettingBefore
+ * @param generalSettingAfter
  * @returns {Promise<void>}
  */
-export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, generalSetting) {
-  if (generalSetting?.deleteOutStock) {
+export async function updateProductBulkWhenSaveGeneralSetting(
+  shopifyId,
+  generalSettingBefore,
+  generalSettingAfter
+) {
+  if (
+    generalSettingBefore &&
+    (generalSettingBefore?.currency !== generalSettingAfter?.currency ||
+      generalSettingBefore?.pricesRounding !== generalSettingAfter?.pricesRounding)
+  ) {
+    const docsNeedUpdate = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('productShopifyId', '!=', '')
+      .where('queueStatus', '==', 'synced')
+      .get();
+
+    if (!docsNeedUpdate.empty) {
+      await batchUpdate(firestore, docsNeedUpdate.docs, {
+        queueStatus: 'update',
+        syncStatus: 'new',
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
+  }
+
+  if (
+    (!generalSettingBefore && generalSettingAfter?.deleteOutStock) ||
+    (generalSettingBefore &&
+      generalSettingAfter?.deleteOutStock &&
+      generalSettingAfter?.deleteOutStock &&
+      !generalSettingBefore?.deleteOutStock)
+  ) {
+    const actions = [];
     const outOfStockDocsCreate = await collection
       .where('shopifyId', '==', shopifyId)
       .where('queueStatus', '==', 'create')
@@ -881,7 +913,6 @@ export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, general
       .where('qty', '==', 0)
       .where('productShopifyId', '!=', '')
       .get();
-    const actions = [];
     if (!outOfStockDocsCreate.empty) {
       actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
     }
@@ -894,7 +925,6 @@ export async function updateProductBulkWhenSaveGeneralSetting(shopifyId, general
         })
       );
     }
-
     await Promise.all(actions);
   }
 }

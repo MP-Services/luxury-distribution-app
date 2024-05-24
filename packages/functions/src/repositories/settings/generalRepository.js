@@ -43,10 +43,19 @@ export async function saveGeneralSetting(shopId, shopifyDomain, data) {
         shopifyDomain,
         ...data
       });
+      await publishTopic('generalSettingSaveHandling', {
+        shopId,
+        generalSettingBefore: null,
+        generalSettingAfter: data
+      });
     } else {
       await docs.docs[0].ref.update({...data});
+      await publishTopic('generalSettingSaveHandling', {
+        shopId,
+        generalSettingBefore: docs.docs[0].data(),
+        generalSettingAfter: data
+      });
     }
-    await publishTopic('generalSettingSaveHandling', {shopId, generalSetting: data});
 
     return {success: true};
   } catch (error) {
