@@ -36,6 +36,7 @@ import {getGeneralSettingShopId} from '@functions/repositories/settings/generalR
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
+import {addLog} from "@functions/repositories/logRepository";
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -176,6 +177,7 @@ async function actionQueueCreate({
       onlineStore
     })
   );
+  await addLog(shop.shopifyDomain, JSON.stringify(productVariables))
   const productShopify = await runProductCreateMutation({
     shop,
     variables: productVariables
