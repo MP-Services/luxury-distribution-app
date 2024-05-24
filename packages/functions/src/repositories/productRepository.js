@@ -24,7 +24,6 @@ import {
   runProductUpdateMutation,
   runMetafieldsSetMutation,
   UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
-  runProductVariantsDeleteMutation,
   getProductMediaQuery,
   runFileDeleteMutation
 } from '@functions/services/shopify/graphqlService';
@@ -36,7 +35,6 @@ import {getGeneralSettingShopId} from '@functions/repositories/settings/generalR
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
-import {addLog} from "@functions/repositories/logRepository";
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -177,7 +175,6 @@ async function actionQueueCreate({
       onlineStore
     })
   );
-  await addLog(shop.shopifyDomain, JSON.stringify(productVariables.product.metafields))
   const productShopify = await runProductCreateMutation({
     shop,
     variables: productVariables
