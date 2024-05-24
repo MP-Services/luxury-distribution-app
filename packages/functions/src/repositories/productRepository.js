@@ -177,7 +177,7 @@ async function actionQueueCreate({
       onlineStore
     })
   );
-  await addLog(shop.shopifyDomain, JSON.stringify(productVariables))
+  await addLog(shop.shopifyDomain, JSON.stringify(productVariables.product.metafields))
   const productShopify = await runProductCreateMutation({
     shop,
     variables: productVariables
