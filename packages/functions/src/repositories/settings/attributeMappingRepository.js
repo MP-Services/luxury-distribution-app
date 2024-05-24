@@ -1,6 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getLuxuryStockList} from '@functions/repositories/luxuryRepository';
-import publishTopic from "@functions/helpers/pubsub/publishTopic";
+import publishTopic from '@functions/helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -45,10 +45,19 @@ export async function saveAttributeMapping(shopId, data) {
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       });
+      await publishTopic('attributeMappingSaveHandling', {
+        shopId,
+        saveDataBefore: null,
+        saveDataAfter: saveData
+      });
     } else {
       await docs.docs[0].ref.update({...saveData, updatedAt: FieldValue.serverTimestamp()});
+      await publishTopic('attributeMappingSaveHandling', {
+        shopId,
+        saveDataBefore: docs.docs[0].data(),
+        saveDataAfter: saveData
+      });
     }
-    await publishTopic('attributeMappingSaveHandling', {shopId, saveData});
     return true;
   } catch (e) {
     console.log(e);

@@ -8,8 +8,8 @@ import {updateProductBulkWhenSaveAttributeMapping} from '../../repositories/prod
 export default async function subscribeAttributeMappingSaveHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-    const {shopId, saveDAta: attributeMappingData} = data;
-    await updateProductBulkWhenSaveAttributeMapping(shopId, attributeMappingData);
+    const {shopId, saveDataBefore, saveDataAfter} = data;
+    await updateProductBulkWhenSaveAttributeMapping(shopId, saveDataBefore, saveDataAfter);
   } catch (e) {
     console.error(e);
   }

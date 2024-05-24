@@ -829,38 +829,76 @@ export async function updateProductBulkWhenSaveMapping(shopifyId, mappingData) {
 /**
  *
  * @param shopId
- * @param attributeMappingData
+ * @param saveDataBefore
+ * @param saveDataAfter
  * @returns {Promise<void>}
  */
-export async function updateProductBulkWhenSaveAttributeMapping(shopId, attributeMappingData) {
-  if (attributeMappingData?.optionsMapping && attributeMappingData.optionsMapping.length) {
-    const retailerOptionNames = attributeMappingData.optionsMapping.map(
-      attributeOption => attributeOption.retailerOptionName
-    );
-    const docs = await collection
-      .where('shopifyId', '==', shopId)
-      .where('productShopifyId', '!=', '')
-      .where('queueStatus', '==', 'synced')
-      .where('syncStatus', 'in', ['success', 'failed'])
-      .get();
-    if (!docs.empty) {
-      const docsNeedUpdate = docs.docs.filter(doc => {
-        const stockItem = doc.data();
-        if (stockItem?.productOptionsAfterMap && stockItem.productOptionsAfterMap.length) {
-          const originalValues = stockItem.productOptionsAfterMap.map(item => item.originalValue);
-          return hasCommonElement(retailerOptionNames, originalValues);
-        }
-        return false;
-      });
-      if (docsNeedUpdate.length) {
-        await batchUpdate(firestore, docsNeedUpdate, {
-          queueStatus: 'update',
-          syncStatus: 'new',
-          updatedAt: FieldValue.serverTimestamp()
-        });
-      }
+export async function updateProductBulkWhenSaveAttributeMapping(
+  shopId,
+  saveDataBefore,
+  saveDataAfter
+) {
+  if (!saveDataBefore) {
+    if (saveDataAfter?.optionsMapping && saveDataAfter.optionsMapping.length) {
+      await productQueueUpdateWhenChangeOptionMapping(shopId, saveDataAfter.optionsMapping);
+    }
+  } else {
+    if (saveDataBefore?.optionsMapping && saveDataAfter?.optionsMapping) {
+      const optionMappingChange = filterByRetailerOptionName(
+        saveDataBefore.optionsMapping,
+        saveDataAfter.optionsMapping
+      );
+      await productQueueUpdateWhenChangeOptionMapping(shopId, optionMappingChange);
     }
   }
+}
+
+async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping) {
+  const retailerOptionNames = optionsMapping.map(
+    attributeOption => attributeOption.retailerOptionName
+  );
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .where('productShopifyId', '!=', '')
+    .where('queueStatus', '==', 'synced')
+    .where('syncStatus', 'in', ['success', 'failed'])
+    .get();
+  if (!docs.empty) {
+    const docsNeedUpdate = docs.docs.filter(doc => {
+      const stockItem = doc.data();
+      if (stockItem?.productOptionsAfterMap && stockItem.productOptionsAfterMap.length) {
+        const originalValues = stockItem.productOptionsAfterMap.map(item => item.originalValue);
+        return hasCommonElement(retailerOptionNames, originalValues);
+      }
+      return false;
+    });
+    if (docsNeedUpdate.length) {
+      await batchUpdate(firestore, docsNeedUpdate, {
+        queueStatus: 'update',
+        syncStatus: 'new',
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
+  }
+}
+
+/**
+ *
+ * @param a
+ * @param b
+ * @returns {*}
+ */
+function filterByRetailerOptionName(a, b) {
+  const aSet = new Set(a.map(item => item.retailerOptionName));
+  const filteredB = b.filter(bItem => {
+    const {retailerOptionName, dropshipperOptionName} = bItem;
+    if (!aSet.has(retailerOptionName)) {
+      return true;
+    }
+    const matchingAItem = a.find(aItem => aItem.retailerOptionName === retailerOptionName);
+    return matchingAItem && matchingAItem.dropshipperOptionName !== dropshipperOptionName;
+  });
+  return filteredB;
 }
 
 /**
