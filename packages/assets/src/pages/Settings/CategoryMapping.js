@@ -11,7 +11,7 @@ import useDeleteApi from '@assets/hooks/api/useDeleteApi';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import querystring from 'querystring';
 import {generateArrays, isExistPage, handleChangeSearch} from '@assets/helpers/paginate';
-import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
+import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 
 const defaultParams = {
   page: 1,
@@ -235,7 +235,7 @@ export default function CategoryMapping() {
         </div>
         {!!(retailerCategories.length && dropShipperCollections.length) && (
           <div className="table-wrapper">
-            <TableCurrencyHeader />
+            <TableInfoHeader />
             <SyncSettingHeader />
             <div className="table-main">
               <div className="row-top"></div>

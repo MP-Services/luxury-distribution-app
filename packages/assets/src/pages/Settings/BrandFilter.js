@@ -8,7 +8,7 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
 import {setToast, setLoader} from '@assets/actions/storeActions';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
-import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
+import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 
 /**
  * Render a home page for overview
@@ -99,7 +99,7 @@ export default function BrandFilter() {
         </div>
         <SyncSettingHeader />
         <div className="table-wrapper">
-          <TableCurrencyHeader />
+          <TableInfoHeader />
           {!!brandLX.length && (
             <div className="table-main">
               <div className="row-top">

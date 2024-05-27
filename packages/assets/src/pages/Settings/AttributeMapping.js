@@ -7,7 +7,7 @@ import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import {setLoader} from '@assets/actions/storeActions';
-import TableCurrencyHeader from '@assets/components/TableCurrencyHeader/TableCurrencyHeader';
+import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 
 /**
  * Render a home page for overview
@@ -114,7 +114,7 @@ export default function AttributeMapping() {
           </p>
         </div>
         <div className="table-wrapper">
-          <TableCurrencyHeader />
+          <TableInfoHeader />
           <div className="table-sync-setting">
             <div className="sync-title">
               <p>Sync setting</p>

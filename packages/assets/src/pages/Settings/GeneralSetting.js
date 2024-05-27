@@ -10,6 +10,7 @@ import {setToast, setLoader} from '@assets/actions/storeActions';
 import {api} from '@assets/helpers';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {InlineError} from '@shopify/polaris';
+import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 
 /**
  * Render a home page for overview
@@ -111,18 +112,7 @@ export default function GeneralSetting() {
         </div>
         <div className="form-check-wrapper">
           <div className="table-wrapper">
-            <div className="table-info-top">
-              <div className="info-card info-retailer">
-                <p className="info-url">
-                  Retailer: <span>luxury-distribution.com</span>
-                </p>
-              </div>
-              <div className="info-card info-dropshipper">
-                <p className="info-url">
-                  Dropshipper: <span>elixiremarketing.myshopify.com</span>
-                </p>
-              </div>
-            </div>
+            <TableInfoHeader isDisplayCurrency={false} />
             <div className="customer-email">
               <form action="" className="check-customer" onSubmit={handleSave}>
                 <div className="language-currency">
@@ -248,18 +238,7 @@ export default function GeneralSetting() {
             </div>
           </div>
           <div className="table-wrapper">
-            <div className="table-info-top">
-              <div className="info-card info-retailer">
-                <p className="info-url">
-                  Retailer: <span>luxury-distribution.com</span>
-                </p>
-              </div>
-              <div className="info-card info-dropshipper">
-                <p className="info-url">
-                  Dropshipper: <span>elixiremarketing.myshopify.com</span>
-                </p>
-              </div>
-            </div>
+            <TableInfoHeader isDisplayCurrency={false} />
             <div className="customer-email">
               <form
                 action=""
@@ -282,9 +261,9 @@ export default function GeneralSetting() {
                     fieldID={'access-token-error'}
                   />
                 )}
-                {/*<button name="check-token-btn" className="checksave-btn">*/}
+                {/* <button name="check-token-btn" className="checksave-btn">*/}
                 {/*  Run Check & Save*/}
-                {/*</button>*/}
+                {/* </button>*/}
               </form>
             </div>
           </div>

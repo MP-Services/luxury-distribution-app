@@ -9,6 +9,7 @@ import syncSetting from '@avada/functions/src/const/settings/sync';
 import {setToast, setLoader} from '@assets/actions/storeActions';
 import {useStore} from '@assets/reducers/storeReducer';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
+import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 
 /**
  * Render a home page for overview
@@ -78,18 +79,7 @@ export default function SyncSetting() {
           </p>
         </div>
         <div className="table-wrapper">
-          <div className="table-info-top">
-            <div className="info-card info-retailer">
-              <p className="info-url">
-                Retailer: <span>luxury-distribution.com</span>
-              </p>
-            </div>
-            <div className="info-card info-dropshipper">
-              <p className="info-url">
-                Dropshipper: <span>elixiremarketing.myshopify.com</span>
-              </p>
-            </div>
-          </div>
+          <TableInfoHeader isDisplayCurrency={false} />
           <SyncSettingHeader syncSettingData={input} />
           <div className="table-main">
             <div className="row-middle">
