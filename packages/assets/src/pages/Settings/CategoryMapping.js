@@ -119,11 +119,10 @@ export default function CategoryMapping() {
     setLoader(dispatch, loading);
   }, [loading]);
 
-  const handleEdit = (index, row) => {
-    setIsEdits(prev => [...prev, {id: index}]);
+  const handleEdit = row => {
+    setIsEdits(prev => [...prev, {id: row.id}]);
     setEditMappingRows(prev => [...prev, row]);
   };
-
   const handleClose = id => {
     setIsEdits(prev => prev.filter(item => item.id !== id));
     setEditMappingRows(prev => prev.filter(item => item.id !== id));
@@ -253,7 +252,7 @@ export default function CategoryMapping() {
                   <tbody>
                     {catMappingData.map((catMapping, index) => (
                       <tr key={index}>
-                        {isEdits.findIndex(item => item.id === index) !== -1 ? (
+                        {isEdits.findIndex(item => item.id === catMapping.id) !== -1 ? (
                           <TableRow
                             rowData={editMappingRows.find(
                               editElement => editElement.id === catMapping.id
@@ -275,7 +274,7 @@ export default function CategoryMapping() {
                               <button
                                 type="button"
                                 className="action edit"
-                                onClick={() => handleEdit(index, catMapping)}
+                                onClick={() => handleEdit(catMapping)}
                               >
                                 <i className="edit"></i>
                               </button>
