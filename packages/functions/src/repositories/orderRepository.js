@@ -115,11 +115,11 @@ async function convertShopifyOrderDataToSync(shopifyId, shopifyOrderData) {
           option => option.productVariantId === `gid://shopify/ProductVariant/${item.variant_id}`
         )
       : null;
-    if (luxuryProduct && productOption) {
+    if (productOption) {
       products = [
         ...products,
         ...[
-          {stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalValue}
+          {stock_id: luxuryProduct.stockId, qty: item.quantity, size: productOption.originalOption}
         ]
       ];
     }
