@@ -18,7 +18,7 @@ const defaultParams = {
   order: 'createdAt desc',
   before: '',
   after: '',
-  limit: 1,
+  limit: 8,
   hasCount: true
 };
 
