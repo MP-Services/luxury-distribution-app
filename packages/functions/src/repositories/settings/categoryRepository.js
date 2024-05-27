@@ -188,3 +188,21 @@ export async function deleteCategoryMappingsByShopId(shopId) {
 
   return batchDelete(firestore, docs.docs);
 }
+
+/**
+ *
+ * @param shopId
+ * @param dropShipperId
+ * @returns {Promise<void|null>}
+ */
+export async function deleteCategoryMappingsByCollectionId(shopId, dropShipperId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopId)
+    .where('dropShipperId', '==', `gid://shopify/Collection/${dropShipperId}`)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
+}
