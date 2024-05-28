@@ -268,18 +268,17 @@ query {
 }
 `;
 
-export const METAFIELDS_DELETE_MUTATION = `
-mutation metafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
-  metafieldsDelete(metafields: $metafields) {
-    deletedMetafields {
-    }
+export const METAFIELD_DELETE_MUTATION = `
+mutation DeleteMetafieldDefinition($id: ID!, $deleteAllAssociatedMetafields: Boolean!) {
+  metafieldDefinitionDelete(id: $id, deleteAllAssociatedMetafields: $deleteAllAssociatedMetafields) {
+    deletedDefinitionId
     userErrors {
       field
       message
+      code
     }
   }
-}
-`;
+}`;
 
 export const PRODUCT_MEDIA_QUERY = `
 query product($id: ID!){
@@ -401,7 +400,7 @@ export async function getLocationQuery({shop, variables, query = GET_LOCATION_QU
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function runMetafieldsDelete({shop, variables, query = METAFIELDS_DELETE_MUTATION}) {
+export async function runMetafieldDelete({shop, variables, query = METAFIELD_DELETE_MUTATION}) {
   try {
     const graphqlQuery = {query, variables};
     const {errors} = await makeGraphQlApi({...shop, graphqlQuery});

@@ -1472,7 +1472,7 @@ export async function getProductByShopifyProductId(shopId, productShopifyId) {
  *
  * @param shopId
  * @param shop
- * @returns {Promise<Promise<void>[]|void|null>}
+ * @returns {Promise<void|null>}
  */
 export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
   const docs = await collection.where('shopifyId', '==', shopId).get();
@@ -1484,7 +1484,7 @@ export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
     return null;
   }
   if (!docsSynced.empty) {
-    return docsSynced.docs.map(doc => {
+    await docsSynced.docs.map(doc => {
       return actionQueueDelete(shop, doc.id, doc.data());
     });
   }
