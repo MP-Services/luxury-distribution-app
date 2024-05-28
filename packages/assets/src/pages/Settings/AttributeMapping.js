@@ -8,6 +8,7 @@ import useFetchApi from '@assets/hooks/api/useFetchApi';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
 import {setLoader} from '@assets/actions/storeActions';
 import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
+import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 
 /**
  * Render a home page for overview
@@ -115,45 +116,7 @@ export default function AttributeMapping() {
         </div>
         <div className="table-wrapper">
           <TableInfoHeader />
-          <div className="table-sync-setting">
-            <div className="sync-title">
-              <p>Sync setting</p>
-            </div>
-            <div className="sync-items">
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>SKU</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Title</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Price</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Desc</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Categories</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Images</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>Tags</span>
-              </span>
-              <span className="sync-item">
-                <i className="check"></i>
-                <span>EAN</span>
-              </span>
-            </div>
-          </div>
+          <SyncSettingHeader />
           <div className="table-main">
             <div className="row-top"></div>
             <div className="row-middle">
