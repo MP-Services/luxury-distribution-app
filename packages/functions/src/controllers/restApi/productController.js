@@ -1,4 +1,5 @@
 import {productWebhook} from '@functions/repositories/productRepository';
+import {addLog} from '@functions/repositories/productWebhookLogRepository';
 
 /**
  * Get current subscription of a shop
@@ -9,6 +10,7 @@ import {productWebhook} from '@functions/repositories/productRepository';
 export async function webhook(ctx) {
   try {
     const hookResult = await productWebhook(ctx.req.body);
+    await addLog(ctx.req.body);
     ctx.body = {
       success: hookResult
     };
