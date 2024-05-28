@@ -1,6 +1,7 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import presentShop from '@functions/presenters/shopPresenter';
+import {isEmpty} from '@avada/utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
