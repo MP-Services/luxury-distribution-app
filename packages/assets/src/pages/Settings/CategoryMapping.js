@@ -40,9 +40,7 @@ export default function CategoryMapping() {
     url: reFetchUrl
   });
   const {creating, handleCreate} = useCreateApi({
-    url: '/setting/categorymapping',
-    successMsg: 'Saved successfully!',
-    errorMsg: 'Failed to save'
+    url: '/setting/categorymapping'
   });
 
   const {deleting, handleDelete} = useDeleteApi({

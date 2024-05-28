@@ -38,9 +38,7 @@ export default function AttributeMapping() {
     url: '/setting/attributemapping/optionsmapping'
   });
   const {creating, handleCreate} = useCreateApi({
-    url: '/setting/attributemapping',
-    successMsg: 'Saved successfully!',
-    errorMsg: 'Failed to save'
+    url: '/setting/attributemapping'
   });
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();

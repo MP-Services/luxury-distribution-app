@@ -29,7 +29,7 @@ export async function getAttributeMappingData(shopId) {
  *
  * @param shopId
  * @param data
- * @returns {Promise<boolean>}
+ * @returns {Promise<{success: boolean}>}
  */
 export async function saveAttributeMapping(shopId, data) {
   try {
@@ -58,10 +58,10 @@ export async function saveAttributeMapping(shopId, data) {
         saveDataAfter: saveData
       });
     }
-    return true;
+    return {success: true};
   } catch (e) {
     console.log(e);
-    return false;
+    return {success: false, error: e.message};
   }
 }
 
