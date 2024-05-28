@@ -989,13 +989,19 @@ export async function createMetafields(shopId) {
 function convertOptionMappingToSizeValue(sizes, sizeAttributeMapping) {
   if (sizeAttributeMapping) {
     const sizeOptionMapping = sizeAttributeMapping[0]?.optionsMapping;
+
     if (sizeOptionMapping) {
       return sizes.map(size => {
-        const sizeOption = sizeOptionMapping.find(option => option.retailerOptionName === size);
-        return sizeOption?.dropshipperOptionName ?? size;
+        const sizeOption = sizeOptionMapping.find(
+          option => option.retailerOptionName === size.name
+        );
+        return sizeOption?.dropshipperOptionName
+          ? {name: sizeOption.dropshipperOptionName}
+          : {name: size.name};
       });
     }
   }
+
   return sizes;
 }
 
