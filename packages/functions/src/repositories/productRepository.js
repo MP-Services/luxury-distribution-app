@@ -262,7 +262,7 @@ async function actionQueueUpdate({
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
-      descriptionHtml: syncSetting.description ? productData.desscription : ''
+      descriptionHtml: syncSetting?.description ? productData.desscription : ''
     },
     media: syncSetting?.images ? productMediaData : []
   };
@@ -537,7 +537,7 @@ function addCollectionsToProductVariables(
   productVariables
 ) {
   let margin = 1;
-  if (!categoryMappings.empty && syncSetting.categories) {
+  if (!categoryMappings.empty && syncSetting?.categories) {
     const categoryMapping = categoryMappings.docs.find(
       e => e.data().retailerId == productData.categoryMapping
     );
@@ -585,7 +585,7 @@ function getProductVariables({
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
-      descriptionHtml: syncSetting.description ? productData.desscription : '',
+      descriptionHtml: syncSetting?.description ? productData.desscription : '',
       metafields: metafieldsData,
       productOptions: productOptionsData,
       collectionsToJoin: [],
