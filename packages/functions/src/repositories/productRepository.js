@@ -1335,14 +1335,6 @@ export async function productWebhook(webhookData) {
                 }
               } else {
                 if (productNeedUpdate?.productShopifyId) {
-                  // const sizeQuantityNeedUpdate = newStockData.size_quantity.filter(
-                  //   item => !Array.isArray(item)
-                  // );
-                  // const oldSize = sizeQuantityOfProduct.map(item => Object.keys(item)[0]);
-                  // const newSizeQuantity = sizeQuantityNeedUpdate.filter(
-                  //   a => !oldSize.includes(Object.keys(a)[0])
-                  // );
-                  // newStockData.size_quantity = sizeQuantityNeedUpdate;
                   newStockData.size_quantity_delta = getSizeQuantityDelta(
                     newStockData.size_quantity,
                     productNeedUpdate.size_quantity
