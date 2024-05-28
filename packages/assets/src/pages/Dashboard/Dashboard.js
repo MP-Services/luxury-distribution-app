@@ -16,6 +16,7 @@ export default function Dashboard() {
   const {data: productsData, fetchApi, loading} = useFetchApi({url: '/dashboard'});
   const {state, dispatch} = useStore();
   const {isActiveMenu} = useMenu();
+  const domain = state?.shop?.domain || state?.shop?.shopifyDomain;
 
   const handleRefresh = async () => {
     setLoader(dispatch);
@@ -54,7 +55,7 @@ export default function Dashboard() {
                 </div>
                 <div className="info-cell">
                   <h3>Dropshipper</h3>
-                  <p>{state?.shop?.domain ?? ''}</p>
+                  <p>{domain ?? ''}</p>
                 </div>
               </div>
               <div className="card-body-bottom">

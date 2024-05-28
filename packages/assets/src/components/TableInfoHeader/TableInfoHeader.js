@@ -4,6 +4,8 @@ import {useStore} from '@assets/reducers/storeReducer';
 export default function TableInfoHeader({isDisplayCurrency = true}) {
   const {data} = useFetchApi({url: '/setting/general'});
   const {state} = useStore();
+  const domain = state?.shop?.domain || state?.shop?.shopifyDomain;
+  console.log(state);
   return (
     <div className="table-info-top">
       <div className="info-card info-retailer">
@@ -21,7 +23,7 @@ export default function TableInfoHeader({isDisplayCurrency = true}) {
       </div>
       <div className="info-card info-dropshipper">
         <p className="info-url">
-          Dropshipper: <span>{state?.shop?.domain ?? ''}</span>
+          Dropshipper: <span>{domain ?? ''}</span>
         </p>
         {isDisplayCurrency && (
           <>
