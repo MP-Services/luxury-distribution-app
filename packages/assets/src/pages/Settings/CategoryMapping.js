@@ -62,6 +62,15 @@ export default function CategoryMapping() {
     handleChangeSearch({key, value, isReFetch, handleReFetch, searchParams, setSearchParams});
   };
 
+  const handleSave = async data => {
+    const result = await handleCreate(data);
+    if (result) {
+      setNewMappingRows([]);
+      setEditMappingRows([]);
+      setIsEdits([]);
+    }
+  };
+
   const handleAddMappingRow = () => {
     const newRow = {
       id: Date.now(),
@@ -356,7 +365,7 @@ export default function CategoryMapping() {
                     type="button"
                     className="btn btn-primary"
                     data-th="Save"
-                    onClick={async () => handleCreate({newMappingRows, editMappingRows})}
+                    onClick={async () => handleSave({newMappingRows, editMappingRows})}
                   >
                     <span>Save</span>
                   </button>
