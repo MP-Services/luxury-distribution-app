@@ -35,10 +35,12 @@ export default function SignUp() {
         history.replace('/setting/brandfilter');
 
         return true;
+      } else {
+        setToast(dispatch, 'Something went wrong!', true);
       }
     } catch (e) {
       console.log('error\n', e);
-      setToast(dispatch, 'Something went wrong!');
+      setToast(dispatch, 'Something went wrong!', true);
     } finally {
       setLoader(dispatch, false);
     }

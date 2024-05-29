@@ -1,8 +1,6 @@
 import React from 'react';
-import {Frame, Loading, Toast} from '@shopify/polaris';
+import {Frame} from '@shopify/polaris';
 import PropTypes from 'prop-types';
-import {useStore} from '@assets/reducers/storeReducer';
-import {closeToast} from '@assets/actions/storeActions';
 
 /**
  *
@@ -11,16 +9,7 @@ import {closeToast} from '@assets/actions/storeActions';
  * @constructor
  */
 function AppEmbeddedLayout({children}) {
-  const {state, dispatch} = useStore();
-  const {loading, toast} = state;
-
-  return (
-    <Frame>
-      {children}
-       <Loading />
-      {toast && <Toast onDismiss={() => closeToast(dispatch)} {...toast} />}
-    </Frame>
-  );
+  return <Frame>{children}</Frame>;
 }
 
 AppEmbeddedLayout.propTypes = {
