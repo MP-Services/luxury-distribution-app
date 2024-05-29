@@ -87,14 +87,18 @@ export default function CategoryMapping() {
   };
 
   const handleChangeInput = (key, id, value, action) => {
+    let newValue = value;
+    if (key === 'margin' && value <= 0) {
+      newValue = 1;
+    }
     if (action === 'new') {
       setNewMappingRows(prev =>
-        prev.map(item => (item.id === id ? {...item, [key]: value} : item))
+        prev.map(item => (item.id === id ? {...item, [key]: newValue} : item))
       );
     }
     if (action === 'edit') {
       setEditMappingRows(prev =>
-        prev.map(item => (item.id === id ? {...item, [key]: value} : item))
+        prev.map(item => (item.id === id ? {...item, [key]: newValue} : item))
       );
     }
   };
