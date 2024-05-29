@@ -26,6 +26,7 @@ export default function apiRouter(isEmbed = false) {
   router.get('/setting/brandlist', brandSettingController.getLXBrand);
 
   router.get('/setting/general', generalSettingController.get);
+  router.get('/setting/general/cleardata', generalSettingController.clear);
   router.get('/setting/general/currencies', generalSettingController.getCurrencies);
   router.post('/setting/general', jsonType, generalSettingController.save);
   router.get(

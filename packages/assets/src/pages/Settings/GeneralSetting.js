@@ -6,11 +6,12 @@ import '../../styles/pages/orders.scss';
 import ToggleMenu from '../../components/ToogleMenu/ToggleMenu';
 import {useMenu} from '@assets/reducers/menuReducer';
 import {useHistory} from 'react-router-dom';
-import {setToast, setLoader} from '@assets/actions/storeActions';
+import {setToast, setLoader, setLuxuryInfos} from '@assets/actions/storeActions';
 import {api} from '@assets/helpers';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {InlineError} from '@shopify/polaris';
 import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
+import useConfirmModal from '@assets/hooks/popup/useConfirmModal';
 
 /**
  * Render a home page for overview
@@ -72,6 +73,28 @@ export default function GeneralSetting() {
       const resp = await api('/setting/general', {method: 'POST', body: postData});
       if (resp.success) {
         setToast(dispatch, 'Saved successfully!');
+        return true;
+      }
+    } catch (e) {
+      setToast(dispatch, 'Something went wrong!', true);
+      console.log('error\n', e);
+    } finally {
+      setLoader(dispatch, false);
+    }
+  };
+
+  const {modal: deleteProductModal, openModal: openDeleteProductModal} = useConfirmModal({
+    confirmAction: () => handleClearData(),
+    content:
+      'All app information such as settings, products, orders, etc will be deleted. Please be careful because you cannot undo this action.'
+  });
+
+  const handleClearData = async () => {
+    try {
+      setLoader(dispatch);
+      const resp = await api('/setting/general/cleardata', {method: 'GET'});
+      if (resp.success) {
+        setLuxuryInfos(dispatch, null);
         return true;
       }
     } catch (e) {
@@ -266,6 +289,12 @@ export default function GeneralSetting() {
                 {/* </button>*/}
               </form>
             </div>
+          </div>
+          <div className="table-wrapper">
+            <button name="clear-data" className="checksave-btn" onClick={openDeleteProductModal}>
+              Delete Product Data
+            </button>
+            {deleteProductModal}
           </div>
         </div>
       </div>

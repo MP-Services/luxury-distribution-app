@@ -5,7 +5,6 @@ export default function TableInfoHeader({isDisplayCurrency = true}) {
   const {data} = useFetchApi({url: '/setting/general'});
   const {state} = useStore();
   const domain = state?.shop?.domain || state?.shop?.shopifyDomain;
-  console.log(state);
   return (
     <div className="table-info-top">
       <div className="info-card info-retailer">

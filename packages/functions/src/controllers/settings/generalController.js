@@ -1,5 +1,6 @@
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
+  deleteGeneralSettingByShopId,
   getGeneralSettingShopId,
   saveGeneralSetting
 } from '@functions/repositories/settings/generalRepository';
@@ -7,6 +8,14 @@ import {
   addCurrencies,
   getCurrencies as getCurrenciesData
 } from '@functions/repositories/currencyRepository';
+import {getShopById} from '@functions/repositories/shopRepository';
+import {deleteLuxuryShop, deleteMetafields} from '@functions/repositories/luxuryRepository';
+import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productRepository';
+import {deleteOrdersByShopId} from '@functions/repositories/orderRepository';
+import {deleteAttributeMapping} from '@functions/repositories/settings/attributeMappingRepository';
+import {deleteBrandFilterByShopId} from '@functions/repositories/settings/brandRepository';
+import {deleteCategoryMappingsByShopId} from '@functions/repositories/settings/categoryRepository';
+import {deleteSyncSettingByShopId} from '@functions/repositories/settings/syncRepository';
 
 /**
  * Get current subscription of a shop
@@ -54,6 +63,32 @@ export async function getCurrencies(ctx) {
         data: newCurrenciesData?.data ? newCurrenciesData.data : []
       });
     }
+  } catch (e) {
+    ctx.body = {success: false, error: e.string};
+  }
+}
+
+/**
+ *
+ * @param ctx
+ * @returns {Promise<void>}
+ */
+export async function clear(ctx) {
+  try {
+    const shopId = getCurrentShop(ctx);
+    const shop = await getShopById(shopId);
+    await Promise.all([
+      deleteLuxuryShop(shopId),
+      deleteMetafields(shopId, shop),
+      deleteProductsWhenUninstallByShopId(shopId, shop),
+      deleteOrdersByShopId(shopId),
+      deleteAttributeMapping(shopId),
+      deleteBrandFilterByShopId(shopId),
+      deleteCategoryMappingsByShopId(shopId),
+      deleteGeneralSettingByShopId(shopId),
+      deleteSyncSettingByShopId(shopId)
+    ]);
+    ctx.body = {success: true};
   } catch (e) {
     ctx.body = {success: false, error: e.string};
   }
