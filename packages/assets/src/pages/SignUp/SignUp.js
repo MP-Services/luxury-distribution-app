@@ -15,6 +15,7 @@ import {setLoader, setToast} from '@assets/actions/storeActions';
  */
 export default function SignUp() {
   const [input, setInput] = useState([]);
+  const [errors, setErrors] = useState({});
   const {state, dispatch} = useStore();
   const history = useHistory();
 
@@ -25,18 +26,35 @@ export default function SignUp() {
     }));
   };
 
+  const handleValidation = () => {
+    const errors = {};
+    let formIsValid = true;
+
+    for (const key of ['shopifyDomain', 'username', 'identifier', 'publicKey']) {
+      if (!input[key]) {
+        formIsValid = false;
+        errors[key] = 'Cannot be empty';
+      }
+    }
+    setErrors(errors);
+    return formIsValid;
+  };
+
   const handleSubmit = async event => {
     try {
       event.preventDefault();
-      setLoader(dispatch);
-      const resp = await api('/signup', {method: 'POST', body: input});
-      if (resp.success) {
-        setLuxuryInfos(dispatch, resp.data);
-        history.replace('/setting/brandfilter');
+      setErrors([]);
+      if (handleValidation()) {
+        setLoader(dispatch);
+        const resp = await api('/signup', {method: 'POST', body: input});
+        if (resp.success) {
+          setLuxuryInfos(dispatch, resp.data);
+          history.replace('/setting/brandfilter');
 
-        return true;
-      } else {
-        setToast(dispatch, 'Something went wrong!', true);
+          return true;
+        } else {
+          setToast(dispatch, 'Something went wrong!', true);
+        }
       }
     } catch (e) {
       console.log('error\n', e);
@@ -78,6 +96,7 @@ export default function SignUp() {
                   id="shopify-domain"
                   placeholder="Enter URL"
                 />
+                <span style={{color: 'red'}}>{errors?.shopifyDomain}</span>
               </div>
               <div className="form-group">
                 <label>
@@ -91,6 +110,7 @@ export default function SignUp() {
                   id="username"
                   placeholder="Enter user name"
                 />
+                <span style={{color: 'red'}}>{errors?.username}</span>
               </div>
               <div className="form-group">
                 <label>
@@ -104,6 +124,7 @@ export default function SignUp() {
                   id="identifier"
                   placeholder="Enter identifier"
                 />
+                <span style={{color: 'red'}}>{errors?.identifier}</span>
               </div>
               <div className="form-group">
                 <label>
@@ -118,6 +139,7 @@ export default function SignUp() {
                   placeholder="Enter public key"
                 />
               </div>
+              <span style={{color: 'red'}}>{errors?.publicKey}</span>
             </div>
             <div className="signup-form-actions">
               <button type="submit" className="singup-action-submit">
