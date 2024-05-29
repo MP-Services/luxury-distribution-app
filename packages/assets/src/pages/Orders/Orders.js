@@ -92,10 +92,10 @@ export default function Orders() {
               <tbody>
                 {data.map((order, index) => (
                   <tr key={index}>
-                    <td data-th="Retail Order Id">{order?.retailerOrderId}</td>
+                    <td data-th="Retail Order Id">{order?.luxuryOrderId}</td>
                     <td data-th="Dropshipper Order Id">{order.shopifyOrderId}</td>
                     <td data-th="Successful" className="order-status">
-                      {`${order?.retailerOrderId ? 'Successful' : 'Processing'}`}
+                      {`${order?.luxuryOrderId ? 'Successful' : 'Processing'}`}
                     </td>
                     <td data-th="Created">{formatDateTimeWithShortMonth(order.createdAt)}</td>
                   </tr>

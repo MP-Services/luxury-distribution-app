@@ -52,7 +52,7 @@ export async function syncOrder(shop) {
       const luxuryOrder = await createOrder(shop, order.orderDataConverted);
       if (luxuryOrder) {
         return updateOrder(order.uuid, {
-          luxuryOrderId: luxuryOrder?.id,
+          luxuryOrderId: luxuryOrder?.order_id,
           luxuryReferenceNumber: luxuryOrder?.reference_number,
           luxuryCreatedAt: luxuryOrder?.create_at
         });
