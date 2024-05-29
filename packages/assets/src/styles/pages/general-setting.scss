@@ -87,6 +87,10 @@ button.checksave-btn {
   border-radius: 10px;
   width: fit-content;
 }
+button.checksave-btn.clear-data-btn {
+  margin-top: 0;
+  margin-left: 20px;
+}
 .form-check-wrapper {
   display: flex;
   flex-direction: column;
