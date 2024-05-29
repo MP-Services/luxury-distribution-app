@@ -62,12 +62,16 @@ export default function CategoryMapping() {
     handleChangeSearch({key, value, isReFetch, handleReFetch, searchParams, setSearchParams});
   };
 
+  const handleResetMapping = () => {
+    setNewMappingRows([]);
+    setEditMappingRows([]);
+    setIsEdits([]);
+  };
+
   const handleSave = async data => {
     const result = await handleCreate(data);
     if (result) {
-      setNewMappingRows([]);
-      setEditMappingRows([]);
-      setIsEdits([]);
+      handleResetMapping();
     }
   };
 
@@ -358,7 +362,7 @@ export default function CategoryMapping() {
                   <button type="button" data-th="Add" onClick={handleAddMappingRow}>
                     <span>Add Mapping</span>
                   </button>
-                  <button type="button" data-th="Reset" onClick={() => setMappingRows([])}>
+                  <button type="button" data-th="Reset" onClick={handleResetMapping}>
                     <span> Reset Mapping</span>
                   </button>
                   <button
