@@ -291,10 +291,12 @@ export default function GeneralSetting() {
             </div>
           </div>
           <div className="table-wrapper">
-            <button name="clear-data" className="checksave-btn" onClick={openDeleteProductModal}>
-              Delete Product Data
-            </button>
-            {deleteProductModal}
+            <div className="customer-email">
+              <button name="clear-data" className="checksave-btn" onClick={openDeleteProductModal}>
+                Clear Data
+              </button>
+              {deleteProductModal}
+            </div>
           </div>
         </div>
       </div>
