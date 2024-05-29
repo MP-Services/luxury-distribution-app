@@ -2,12 +2,12 @@ import React from 'react';
 import {Redirect, Route} from 'react-router-dom';
 import {useStore} from '@assets/reducers/storeReducer';
 
-const PrivateRoute = props => {
+const PrivateSignUp = props => {
   const {component: Component, children, render, ...rest} = props;
   const {state} = useStore();
   const {luxuryInfos} = state;
 
-  return <Route {...rest}>{!luxuryInfos ? <Redirect push to="/signup" /> : <Component />}</Route>;
+  return <Route {...rest}>{luxuryInfos ? <Redirect push to="/" /> : <Component />}</Route>;
 };
 
-export default PrivateRoute;
+export default PrivateSignUp;

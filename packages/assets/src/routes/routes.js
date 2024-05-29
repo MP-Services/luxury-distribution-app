@@ -15,6 +15,7 @@ import Helpdesk from '@assets/loadables/Helpdesk/Helpdesk';
 import {routePrefix} from '@assets/config/app';
 import Loading from '@assets/components/Loading';
 import PrivateRoute from '@assets/helpers/PrivateRoute';
+import PrivateSignUp from '@assets/helpers/PrivateSignUp';
 
 // eslint-disable-next-line react/prop-types
 const Routes = ({prefix = routePrefix}) => (
@@ -30,7 +31,7 @@ const Routes = ({prefix = routePrefix}) => (
       <PrivateRoute exact path={prefix + '/setting/sync'} component={SyncSetting} />
       <PrivateRoute exact path={prefix + '/support'} component={Support} />
       <PrivateRoute exact path={prefix + '/helpdesk'} component={Helpdesk} />
-      <Route exact path={prefix + '/signup'} component={SignUp} />
+      <PrivateSignUp exact path={prefix + '/signup'} component={SignUp} />
       <PrivateRoute path="*" component={NotFound} />
     </Switch>
   </Suspense>
