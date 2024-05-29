@@ -1060,8 +1060,8 @@ function sizeOptionMapping(
 
   return sizes.map(size => ({
     type: 'size',
-    originalValue: size,
-    mappingValue: size,
+    originalOption: size,
+    mappingOption: size,
     productOptionValueId: getProductOptionIdByName(productOptions, size),
     productVariantId: getVariantIdByTitle(productVariants, size),
     inventoryItemId: getInventoryItemIdByTitle(productVariants, size),

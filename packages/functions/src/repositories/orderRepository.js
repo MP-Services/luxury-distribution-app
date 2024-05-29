@@ -144,7 +144,7 @@ async function getOrderToSyncQuery(shopifyId) {
     return null;
   }
 
-  const doc = docs[0];
+  const doc = docs.docs[0];
 
   return {uuid: doc.id, ...doc.data()};
 }
