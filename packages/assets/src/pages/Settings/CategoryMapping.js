@@ -275,7 +275,9 @@ export default function CategoryMapping() {
                           />
                         ) : (
                           <React.Fragment>
-                            <td data-th="#">{index + 1}</td>
+                            <td data-th="#">
+                              {searchParams.limit * (searchParams.page - 1) + 1 + index}
+                            </td>
                             <td data-th="Retailer Category">
                               {getCategoryName(catMapping.retailerId)}
                             </td>
