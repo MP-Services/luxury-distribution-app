@@ -25,7 +25,8 @@ import {
   runMetafieldsSetMutation,
   UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
   getProductMediaQuery,
-  runFileDeleteMutation
+  runFileDeleteMutation,
+  runProductOptionUpdateMutation
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -206,6 +207,7 @@ async function actionQueueCreate({
         shop,
         variables: productAdjustQuantitiesVariables.variables
       });
+
       return updateProduct(docId, {
         productOptionsAfterMap: sizeOptionMapping(
           productData.size_quantity_delta.map(item => Object.keys(item)[0]),
@@ -280,12 +282,10 @@ async function actionQueueUpdate({
   const sizesNeedAdd = getSizesNeedAdd(productData);
   const sizesNeedUpdate = getSizesNeedUpdate(productData);
   const sizesNeedDelete = generalSetting?.deleteOutStock ? getSizesNeedDelete(productData) : [];
-
   const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
   const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
   const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
-  let productOptionsAfterMap = [];
-
+  let productOptionsAfterMap = productData?.productOptionsAfterMap;
   await Promise.all([
     runProductUpdateMutation({
       shop,
@@ -296,7 +296,6 @@ async function actionQueueUpdate({
       variables: {metafields: getMetafieldsData(productData)}
     })
   ]);
-
   const productOptionUpdate = await runProductOptionUpdateMutation({
     shop,
     variables: {
@@ -454,11 +453,11 @@ function getOptionValuesToUpdate(options, sizeAttributeMapping) {
     if (sizeAttributeMapping) {
       const sizeOptionMapping = sizeAttributeMapping[0]?.optionsMapping ?? [];
       const sizeOption = sizeOptionMapping.find(
-        item => item.retailerOptionName === option.originalValue
+        item => item.retailerOptionName === option.originalOption
       );
-      value = sizeOption?.dropshipperOptionName ?? option.originalValue;
+      value = sizeOption?.dropshipperOptionName ?? option.mappingOption;
     }
-    return {id: option.productOptionValueId, value};
+    return {id: option.productOptionValueId, name: value};
   });
 }
 
@@ -470,7 +469,7 @@ function getOptionValuesToUpdate(options, sizeAttributeMapping) {
 function getSizesNeedAdd(productData) {
   return productData.size_quantity_delta.filter(size => {
     return !productData.productOptionsAfterMap.find(
-      option => Object.keys(size)[0] === option.originalValue
+      option => Object.keys(size)[0] === option.originalOption
     );
   });
 }
@@ -482,7 +481,7 @@ function getSizesNeedAdd(productData) {
  */
 function getSizesNeedUpdate(productData) {
   return productData.productOptionsAfterMap.filter(option => {
-    return productData.size_quantity.find(size => option.originalValue === Object.keys(size)[0]);
+    return productData.size_quantity.find(size => option.originalOption === Object.keys(size)[0]);
   });
 }
 
@@ -494,7 +493,7 @@ function getSizesNeedUpdate(productData) {
 
 function getSizesNeedDelete(productData) {
   return productData.productOptionsAfterMap.filter(option => {
-    return !productData.size_quantity.find(size => option.originalValue === Object.keys(size)[0]);
+    return !productData.size_quantity.find(size => option.originalOption === Object.keys(size)[0]);
   });
 }
 
@@ -608,23 +607,36 @@ function getMetafieldsData(productData) {
   if (!productData.productShopifyId) {
     return productMetafields.map(metafield => ({
       key: metafield.key,
-      value:
-        metafield.key === 'season_one' || metafield.key === 'season_two'
-          ? productData[metafield.key]?.name
-          : productData[metafield.key],
+      value: getMetafieldValue(productData, metafield),
       namespace: 'luxury'
     }));
   } else {
     return productMetafields.map(metafield => ({
       key: metafield.key,
-      value:
-        metafield.key === 'season_one' || metafield.key === 'season_two'
-          ? productData[metafield.key]?.name
-          : productData[metafield.key],
+      value: getMetafieldValue(productData, metafield),
       namespace: 'luxury',
+      type: metafield.type,
       ownerId: productData.productShopifyId
     }));
   }
+}
+
+/**
+ *
+ * @param productData
+ * @param metafield
+ * @returns {*|string|string}
+ */
+function getMetafieldValue(productData, metafield) {
+  const metafieldKey = metafield.key;
+  if (!productData[metafieldKey]) {
+    return '';
+  }
+  if (metafieldKey === 'season_one' || metafieldKey === 'season_two') {
+    return productData[metafieldKey]?.name ?? '';
+  }
+
+  return productData[metafieldKey];
 }
 
 /**
@@ -772,7 +784,7 @@ function getProductAdjustQuantitiesVariables(
 function getProductAdjustQuantitiesUpdate(sizesNeedUpdate, sizeQuantityDelta, defaultLocationId) {
   const changesData = sizesNeedUpdate.map(item => {
     const deltaItem = sizeQuantityDelta.find(size => {
-      return Object.keys(size)[0] == item.originalValue;
+      return Object.keys(size)[0] == item.originalOption;
     });
     return {
       inventoryItemId: item.inventoryItemId,
@@ -855,6 +867,12 @@ export async function updateProductBulkWhenSaveAttributeMapping(
   }
 }
 
+/**
+ *
+ * @param shopId
+ * @param optionsMapping
+ * @returns {Promise<void>}
+ */
 async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping) {
   const retailerOptionNames = optionsMapping.map(
     attributeOption => attributeOption.retailerOptionName
@@ -869,7 +887,7 @@ async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping)
     const docsNeedUpdate = docs.docs.filter(doc => {
       const stockItem = doc.data();
       if (stockItem?.productOptionsAfterMap && stockItem.productOptionsAfterMap.length) {
-        const originalValues = stockItem.productOptionsAfterMap.map(item => item.originalValue);
+        const originalValues = stockItem.productOptionsAfterMap.map(item => item.originalOption);
         return hasCommonElement(retailerOptionNames, originalValues);
       }
       return false;
