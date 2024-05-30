@@ -43,15 +43,18 @@ const collection = firestore.collection('products');
 /**
  *
  * @param shopId
- * @returns {Promise<FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>|boolean>}
+ * @returns {Promise<number>}
  */
-export async function getProducts(shopId) {
+export async function getProductsCount(shopId) {
   try {
-    const {docs} = await collection.where('shopifyId', '==', shopId).get();
-    return docs.map(doc => prepareDoc({doc}));
+    const productCounts = await collection
+      .where('shopifyId', '==', shopId)
+      .count()
+      .get();
+    return productCounts.data().count;
   } catch (e) {
     console.error(e);
-    return [];
+    return 0;
   }
 }
 
@@ -1169,7 +1172,8 @@ export async function addProducts(shopId) {
 export async function addProduct(shopId, stockData) {
   try {
     const brandFilter = await getBrandSettingShopId(shopId);
-    if (stockData && brandFilter && brandFilter.brands.includes(stockData.brand)) {
+    const productsCount = await getProductsCount(shopId);
+    if (stockData && brandFilter && productsCount && brandFilter.brands.includes(stockData.brand)) {
       let sizeQuantity = [];
       if (stockData.hasOwnProperty('size_quantity')) {
         sizeQuantity = stockData.size_quantity.filter(item => !Array.isArray(item));
