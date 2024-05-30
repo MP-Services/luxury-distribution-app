@@ -17,6 +17,19 @@ $background-color_4: #E53A3A;
     background: #F1F5FF;
   }
   th {
+    &:first-child {
+      width: 40px;
+      text-align: center;
+    }
+    &:nth-child(2) {
+      width: 35%;
+    }
+    &:nth-child(3) {
+      width: 35%;
+    }
+    &:nth-child(4) {
+      width: 20%;
+    }
     &:not(:first-child) {
       &:not(:last-child) {
         text-align: left;
@@ -31,17 +44,29 @@ $background-color_4: #E53A3A;
   td {
     padding: 0 15px;
     &:first-child {
-      width: 65px;
+      width: 40px;
       text-align: center;
     }
     &:nth-child(2) {
-      width: 425px;
+      width: 35%;
+      select {
+        width: 100%;
+        max-width: 370px;
+      }
     }
     &:nth-child(3) {
-      width: 425px;
+      width: 35%;
+      select {
+        width: 100%;
+        max-width: 269px;
+      }
     }
     &:nth-child(4) {
-      width: 275px;
+      width: 20%;
+      input {
+        width: 100%;
+        max-width: 123px;
+      }
     }
   }
   select {
@@ -71,6 +96,8 @@ $background-color_4: #E53A3A;
     .action {
       width: 32px;
       height: 32px;
+      margin-left: 5px;
+      margin-right: 5px;
       border: none;
       border-radius: 5px;
       vertical-align: middle;
@@ -229,7 +256,6 @@ $background-color_4: #E53A3A;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     height: inherit;
   }
 }
