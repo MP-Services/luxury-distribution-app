@@ -6,7 +6,8 @@ import {
   getMappingData,
   editCategoryMapping,
   deleteCategoryById,
-  hasDuplicate
+  hasDuplicate,
+  checkArrays
 } from '@functions/repositories/settings/categoryRepository';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 import publishTopic from '@functions/helpers/pubsub/publishTopic';
@@ -19,8 +20,20 @@ import publishTopic from '@functions/helpers/pubsub/publishTopic';
 export async function save(ctx) {
   const {newMappingRows, editMappingRows} = ctx.req.body.data;
   const {shopID, shopifyDomain} = getCurrentUser(ctx);
-  const mappingRows = [...editMappingRows, ...newMappingRows];
-  if (!hasDuplicate(mappingRows, 'retailerId')) {
+  const oldMappingData = await getMappingData(shopID);
+  const oldRows = oldMappingData?.data ?? [];
+  const currentRows = oldRows.map(row => {
+    const editRow = editMappingRows.find(item => item.id === row.id);
+    if (editRow) {
+      return editRow;
+    }
+
+    return row;
+  });
+  if (
+    !hasDuplicate([...currentRows, ...newMappingRows], 'retailerId') &&
+    !checkArrays(editMappingRows, oldRows, 'retailerId')
+  ) {
     const [saveResult, editResult] = await Promise.all([
       saveCategoryMapping(shopID, shopifyDomain, newMappingRows),
       editCategoryMapping(shopID, shopifyDomain, editMappingRows)

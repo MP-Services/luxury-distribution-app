@@ -69,10 +69,8 @@ export default function CategoryMapping() {
   };
 
   const handleSave = async data => {
-    const result = await handleCreate(data);
-    if (result) {
-      handleResetMapping();
-    }
+    await handleCreate(data);
+    handleResetMapping();
   };
 
   const handleAddMappingRow = () => {

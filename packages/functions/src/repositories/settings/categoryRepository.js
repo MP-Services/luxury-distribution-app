@@ -177,6 +177,24 @@ export function hasDuplicate(data, key) {
 
 /**
  *
+ * @param A
+ * @param B
+ * @param key
+ * @returns {boolean}
+ */
+export function checkArrays(A, B, key) {
+  for (const item of B) {
+    const editItem = A.find(i => i[key] == item[key]);
+    if (editItem && editItem.id !== item.id) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ *
  * @param shopId
  * @returns {Promise<FirebaseFirestore.WriteResult|null>}
  */
