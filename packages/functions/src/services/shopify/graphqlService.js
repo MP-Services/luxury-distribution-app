@@ -280,6 +280,19 @@ mutation DeleteMetafieldDefinition($id: ID!, $deleteAllAssociatedMetafields: Boo
   }
 }`;
 
+export const METAFIELDS_DELETE_VALUE_MUTATION = `
+mutation metafieldsDelete($metafields: [MetafieldIdentifierInput!]!) {
+  metafieldsDelete(metafields: $metafields) {
+    deletedMetafields {
+      key
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}`;
+
 export const PRODUCT_MEDIA_QUERY = `
 query product($id: ID!){
   product(id: $id) {

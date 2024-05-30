@@ -26,12 +26,13 @@ import {
   UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
   getProductMediaQuery,
   runFileDeleteMutation,
-  runProductOptionUpdateMutation
+  runProductOptionUpdateMutation,
+  runMetafieldDelete,
+  METAFIELDS_DELETE_VALUE_MUTATION
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
 import productMetafields from '@functions/const/productMetafields';
-import {prepareDoc} from './helper';
 import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
@@ -286,6 +287,21 @@ async function actionQueueUpdate({
   const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
   const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
   let productOptionsAfterMap = productData?.productOptionsAfterMap;
+  const metafieldsData = getMetafieldsData(productData);
+  const metafieldsDelete = metafieldsData.filter(metafield => !metafield.value);
+  const metafieldsUpdate = metafieldsData.filter(metafield => metafield.value);
+  if (metafieldsDelete.length) {
+    const metafieldsVariableDelete = metafieldsDelete.map(item => {
+      const {key, namespace, ownerId} = item;
+      return {key, namespace, ownerId};
+    });
+    await runMetafieldDelete({
+      shop,
+      variables: {metafields: metafieldsVariableDelete},
+      query: METAFIELDS_DELETE_VALUE_MUTATION
+    });
+  }
+
   await Promise.all([
     runProductUpdateMutation({
       shop,
@@ -293,7 +309,7 @@ async function actionQueueUpdate({
     }),
     runMetafieldsSetMutation({
       shop,
-      variables: {metafields: getMetafieldsData(productData)}
+      variables: {metafields: metafieldsUpdate}
     })
   ]);
   const productOptionUpdate = await runProductOptionUpdateMutation({
