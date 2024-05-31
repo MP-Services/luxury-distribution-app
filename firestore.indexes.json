@@ -363,6 +363,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "stockId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "queueStatus",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
