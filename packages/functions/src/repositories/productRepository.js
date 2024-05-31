@@ -1370,7 +1370,7 @@ export async function productWebhook(webhookData) {
               ) {
                 // If product is not in the brand filter or out of stock
                 if (productNeedUpdate?.productShopifyId) {
-                  return updateProduct(productNeedUpdate.id, {
+                  return updateProduct(productNeedUpdate.uid, {
                     queueStatus: 'delete',
                     updatedAt: FieldValue.serverTimestamp()
                   });
@@ -1384,7 +1384,7 @@ export async function productWebhook(webhookData) {
                     productNeedUpdate.size_quantity
                   );
                   const queueStatus = productNeedUpdate?.productShopifyId ? 'update' : 'create';
-                  return updateProduct(productNeedUpdate.id, {
+                  return updateProduct(productNeedUpdate.uid, {
                     ...newStockData,
                     queueStatus,
                     syncStatus: 'new',
