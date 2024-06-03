@@ -1383,13 +1383,14 @@ export async function productWebhook(webhookData) {
                     newStockData.size_quantity,
                     productNeedUpdate.size_quantity
                   );
-                  const queueStatus = productNeedUpdate?.productShopifyId ? 'update' : 'create';
                   return updateProduct(productNeedUpdate.uid, {
                     ...newStockData,
-                    queueStatus,
+                    queueStatus: 'update',
                     syncStatus: 'new',
                     updatedAt: FieldValue.serverTimestamp()
                   });
+                } else {
+                  return addProduct(shop.shopifyId, newStockData);
                 }
               }
             }
