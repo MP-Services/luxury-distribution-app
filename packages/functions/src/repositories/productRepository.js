@@ -1358,9 +1358,9 @@ export async function productWebhook(webhookData) {
           shops.map(async shop => {
             const {shopifyId} = shop;
             const productNeedUpdate = await getProductByStockId(stockId, shopifyId);
+            const newStockData = await getStockById(stockId, shop);
             if (productNeedUpdate) {
               const brandFilter = await getBrandSettingShopId(shopifyId);
-              const newStockData = await getStockById(stockId, shop);
               const isExistInBrandFilter =
                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
               const generalSetting = await getGeneralSettingShopId(shopifyId);
@@ -1389,10 +1389,10 @@ export async function productWebhook(webhookData) {
                     syncStatus: 'new',
                     updatedAt: FieldValue.serverTimestamp()
                   });
-                } else {
-                  return addProduct(shop.shopifyId, newStockData);
                 }
               }
+            } else {
+              return addProduct(shop.shopifyId, newStockData);
             }
           })
         );
