@@ -1391,9 +1391,9 @@ export async function productWebhook(webhookData) {
                   });
                 }
               }
-            } else {
-              return addProduct(shop.shopifyId, newStockData);
             }
+
+            return true;
           })
         );
         break;
