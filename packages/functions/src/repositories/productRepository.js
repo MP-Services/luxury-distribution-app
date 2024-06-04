@@ -186,6 +186,12 @@ async function actionQueueCreate({
   });
 
   if (productShopify) {
+    await updateProduct(docId, {
+      productShopifyId: productShopify.id,
+      queueStatus: 'synced',
+      syncStatus: 'success',
+      updatedAt: FieldValue.serverTimestamp()
+    });
     const productVariantsVariables = await getProductVariantsVariables({
       productShopifyId: productShopify.id,
       productData,
@@ -217,9 +223,6 @@ async function actionQueueCreate({
           productAdjustQuantitiesVariables.variants,
           productShopify.options[0].id
         ),
-        productShopifyId: productShopify.id,
-        queueStatus: 'synced',
-        syncStatus: 'success',
         updatedAt: FieldValue.serverTimestamp(),
         size_quantity_delta: []
       });
