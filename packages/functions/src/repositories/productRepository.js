@@ -92,7 +92,7 @@ export async function syncProducts(shopId) {
     const generalSetting = await getGeneralSettingShopId(shopId);
     const categoryMappings = await getMappingDataWithoutPaginate(shopId);
     const brandFilterSetting = await getBrandSettingShopId(shopId);
-    const productsQuery = await getProductsQuery(shopId, 3);
+    const productsQuery = await getProductsQuery(shopId, 15);
     const shop = await getShopByIdIncludeAccessToken(shopId);
     const sizeAttributeMapping = await getAttributeMappingData(shopId);
     const defaultLocationId = await getLocationQuery({shop, variables: {}});
