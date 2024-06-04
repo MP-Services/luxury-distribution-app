@@ -268,7 +268,7 @@ async function actionQueueUpdate({
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
-      descriptionHtml: syncSetting?.description ? productData.desscription : ''
+      descriptionHtml: syncSetting?.description ? productData.description : ''
     },
     media: syncSetting?.images ? productMediaData : []
   };
@@ -603,7 +603,7 @@ function getProductVariables({
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
-      descriptionHtml: syncSetting?.description ? productData.desscription : '',
+      descriptionHtml: syncSetting?.description ? productData.description : '',
       metafields: metafieldsData,
       productOptions: productOptionsData,
       collectionsToJoin: [],
