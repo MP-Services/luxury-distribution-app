@@ -1523,9 +1523,11 @@ export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
     return null;
   }
   if (!docsSynced.empty) {
-    await docsSynced.docs.map(doc => {
-      return actionQueueDelete(shop, doc.id, doc.data());
-    });
+    await Promise.all(
+      docsSynced.docs.map(doc => {
+        return actionQueueDelete(shop, doc.id, doc.data());
+      })
+    );
   }
   return batchDelete(firestore, docs.docs);
 }
