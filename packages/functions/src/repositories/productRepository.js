@@ -973,10 +973,39 @@ export async function updateProductBulkWhenSaveGeneralSetting(
   generalSettingAfter
 ) {
   if (
-    generalSettingBefore &&
-    (generalSettingBefore?.currency !== generalSettingAfter?.currency ||
-      generalSettingBefore?.pricesRounding !== generalSettingAfter?.pricesRounding)
+    !generalSettingBefore ||
+    (generalSettingBefore &&
+      (generalSettingBefore?.currency !== generalSettingAfter?.currency ||
+        generalSettingBefore?.pricesRounding !== generalSettingAfter?.pricesRounding ||
+        (!generalSettingBefore?.deleteOutStock && generalSettingAfter?.deleteOutStock)))
   ) {
+    if (generalSettingAfter?.deleteOutStock) {
+      const actions = [];
+      const outOfStockDocsCreate = await collection
+        .where('shopifyId', '==', shopifyId)
+        .where('queueStatus', '==', 'create')
+        .where('qty', '==', 0)
+        .get();
+      const outOfStockDocsSynced = await collection
+        .where('shopifyId', '==', shopifyId)
+        .where('qty', '==', 0)
+        .where('productShopifyId', '!=', '')
+        .get();
+      if (!outOfStockDocsCreate.empty) {
+        actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
+      }
+      if (!outOfStockDocsSynced.empty) {
+        actions.push(
+          batchUpdate(firestore, outOfStockDocsSynced.docs, {
+            queueStatus: 'delete',
+            syncStatus: 'new',
+            updatedAt: FieldValue.serverTimestamp()
+          })
+        );
+      }
+      await Promise.all(actions);
+    }
+
     const docsNeedUpdate = await collection
       .where('shopifyId', '==', shopifyId)
       .where('productShopifyId', '!=', '')
@@ -990,39 +1019,6 @@ export async function updateProductBulkWhenSaveGeneralSetting(
         updatedAt: FieldValue.serverTimestamp()
       });
     }
-  }
-
-  if (
-    (!generalSettingBefore && generalSettingAfter?.deleteOutStock) ||
-    (generalSettingBefore &&
-      generalSettingAfter?.deleteOutStock &&
-      generalSettingAfter?.deleteOutStock &&
-      !generalSettingBefore?.deleteOutStock)
-  ) {
-    const actions = [];
-    const outOfStockDocsCreate = await collection
-      .where('shopifyId', '==', shopifyId)
-      .where('queueStatus', '==', 'create')
-      .where('qty', '==', 0)
-      .get();
-    const outOfStockDocsSynced = await collection
-      .where('shopifyId', '==', shopifyId)
-      .where('qty', '==', 0)
-      .where('productShopifyId', '!=', '')
-      .get();
-    if (!outOfStockDocsCreate.empty) {
-      actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
-    }
-    if (!outOfStockDocsSynced.empty) {
-      actions.push(
-        batchUpdate(firestore, outOfStockDocsSynced.docs, {
-          queueStatus: 'delete',
-          syncStatus: 'new',
-          updatedAt: FieldValue.serverTimestamp()
-        })
-      );
-    }
-    await Promise.all(actions);
   }
 }
 
