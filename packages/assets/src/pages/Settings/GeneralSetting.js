@@ -85,8 +85,7 @@ export default function GeneralSetting() {
 
   const {modal: deleteProductModal, openModal: openDeleteProductModal} = useConfirmModal({
     confirmAction: () => handleClearData(),
-    content:
-      'All app information such as settings, products, orders, etc will be deleted. Please be careful because you cannot undo this action.'
+    content: `All app information such as settings, products, orders, etc will be deleted. This action will take a long time. Please be careful because you cannot undo this action.`
   });
 
   const handleClearData = async () => {
@@ -291,10 +290,14 @@ export default function GeneralSetting() {
             </div>
           </div>
           <div className="table-wrapper">
-              <button name="clear-data" className="checksave-btn clear-data-btn" onClick={openDeleteProductModal}>
-                Clear Data
-              </button>
-              {deleteProductModal}
+            <button
+              name="clear-data"
+              className="checksave-btn clear-data-btn"
+              onClick={openDeleteProductModal}
+            >
+              Clear Data
+            </button>
+            {deleteProductModal}
           </div>
         </div>
       </div>

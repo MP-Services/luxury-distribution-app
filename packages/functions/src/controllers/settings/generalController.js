@@ -77,10 +77,10 @@ export async function clear(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
     const shop = await getShopById(shopId);
+    await deleteProductsWhenUninstallByShopId(shopId, shop);
     await Promise.all([
       deleteLuxuryShop(shopId),
       deleteMetafields(shopId, shop),
-      deleteProductsWhenUninstallByShopId(shopId, shop),
       deleteOrdersByShopId(shopId),
       deleteAttributeMapping(shopId),
       deleteBrandFilterByShopId(shopId),

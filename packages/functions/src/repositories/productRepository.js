@@ -37,6 +37,7 @@ import {getGeneralSettingShopId} from '@functions/repositories/settings/generalR
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
+import {delay} from '@avada/utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -1526,11 +1527,29 @@ export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
     return null;
   }
   if (!docsSynced.empty) {
-    await Promise.all(
-      docsSynced.docs.map(doc => {
-        return actionQueueDelete(shop, doc.id, doc.data());
-      })
-    );
+    const shopifyProductsDelete = docsSynced.docs.map(doc => {
+      return actionQueueDelete(shop, doc.id, doc.data());
+    });
+    const shopifyProductsDeleteSplits = splitArrayIntoArrays(shopifyProductsDelete);
+    for (const shopifyProductsDeleteSplit of shopifyProductsDeleteSplits) {
+      await Promise.all(shopifyProductsDeleteSplit);
+      await delay(1000);
+    }
   }
   return batchDelete(firestore, docs.docs);
+}
+
+/**
+ *
+ * @param arr
+ * @returns {*}
+ */
+function splitArrayIntoArrays(arr) {
+  return arr.reduce((result, _, index) => {
+    if (index % 10 === 0) {
+      result.push([]);
+    }
+    result[Math.floor(index / 10)].push(arr[index]);
+    return result;
+  }, []);
 }
