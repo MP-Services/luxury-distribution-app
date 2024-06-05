@@ -43,13 +43,12 @@ export async function addOrder(shopifyId, data) {
  * @returns {Promise<unknown[]|boolean>}
  */
 export async function syncOrder(shop) {
+  if (shop?.deleteApp) {
+    return true;
+  }
   let orderUUID = '';
   try {
     const {shopifyId} = shop;
-    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopifyId);
-    if (luxuryInfo?.deleteApp) {
-      return true;
-    }
     const order = await getOrderToSyncQuery(shopifyId);
     if (order) {
       orderUUID = order.uuid;

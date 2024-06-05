@@ -1,6 +1,5 @@
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
-  deleteGeneralSettingByShopId,
   getGeneralSettingShopId,
   saveGeneralSetting
 } from '@functions/repositories/settings/generalRepository';
@@ -8,18 +7,7 @@ import {
   addCurrencies,
   getCurrencies as getCurrenciesData
 } from '@functions/repositories/currencyRepository';
-import {getShopById} from '@functions/repositories/shopRepository';
-import {
-  deleteLuxuryShop,
-  deleteMetafields,
-  updateLuxuryData
-} from '@functions/repositories/luxuryRepository';
-import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productRepository';
-import {deleteOrdersByShopId} from '@functions/repositories/orderRepository';
-import {deleteAttributeMapping} from '@functions/repositories/settings/attributeMappingRepository';
-import {deleteBrandFilterByShopId} from '@functions/repositories/settings/brandRepository';
-import {deleteCategoryMappingsByShopId} from '@functions/repositories/settings/categoryRepository';
-import {deleteSyncSettingByShopId} from '@functions/repositories/settings/syncRepository';
+import {updateLuxuryData} from '@functions/repositories/luxuryRepository';
 
 /**
  * Get current subscription of a shop

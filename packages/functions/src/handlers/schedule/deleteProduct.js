@@ -15,8 +15,8 @@ export default async function deleteProductData() {
     const shopChunks = chunk(shops, CHUNK_SIZE);
     for (const shopChunk of shopChunks) {
       await Promise.all(
-        shopChunk.map(shop => {
-          return deleteProductsWhenUninstallByShopId(shop);
+        shopChunk.map(luxuryShop => {
+          return deleteProductsWhenUninstallByShopId(luxuryShop);
         })
       );
     }

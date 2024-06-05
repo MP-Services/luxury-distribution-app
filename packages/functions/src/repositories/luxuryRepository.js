@@ -260,11 +260,10 @@ export async function deleteLuxuryShop(shopId) {
 
 /**
  *
- * @param shopId
  * @param shop
  * @returns {Promise<void>}
  */
-export async function deleteMetafields(shopId, shop) {
+export async function deleteMetafields(shop) {
   const metafieldsQuery = await runMetafieldsQuery({shop});
   if (metafieldsQuery) {
     return Promise.all(

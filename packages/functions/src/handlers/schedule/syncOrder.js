@@ -15,8 +15,8 @@ export default async function syncOrderData() {
     const shopChunks = chunk(shops, CHUNK_SIZE);
     for (const shopChunk of shopChunks) {
       await Promise.all(
-        shopChunk.map(shop => {
-          return syncOrder(shop);
+        shopChunk.map(luxuryShop => {
+          return syncOrder(luxuryShop);
         })
       );
     }

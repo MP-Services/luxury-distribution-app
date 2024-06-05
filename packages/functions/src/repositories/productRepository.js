@@ -1537,11 +1537,12 @@ export async function getProductByShopifyProductId(shopId, productShopifyId) {
 
 /**
  *
- * @param shop
+ * @param luxuryShop
  * @returns {Promise<void|null>}
  */
-export async function deleteProductsWhenUninstallByShopId(shop) {
-  const shopId = shop;
+export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
+  const {shopifyId: shopId} = luxuryShop;
+  const shop = await getShopByIdIncludeAccessToken(shopId);
   const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
   if (!luxuryInfo?.deleteApp) {
     return true;
@@ -1558,9 +1559,9 @@ export async function deleteProductsWhenUninstallByShopId(shop) {
     .get();
 
   if (!docsCounts.data().count) {
-    return deleteMetafields(shopId, shop);
+    await deleteMetafields(shop);
+    return batchDelete(firestore, docs.docs);
   }
-
   const docsSynced = await collection
     .where('shopifyId', '==', shopId)
     .where('productShopifyId', '!=', '')
@@ -1573,5 +1574,4 @@ export async function deleteProductsWhenUninstallByShopId(shop) {
       })
     );
   }
-  return batchDelete(firestore, docs.docs);
 }

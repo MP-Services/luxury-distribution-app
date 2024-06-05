@@ -15,8 +15,8 @@ export default async function syncProductData() {
     const shopChunks = chunk(shops, CHUNK_SIZE);
     for (const shopChunk of shopChunks) {
       await Promise.all(
-        shopChunk.map(shop => {
-          return syncProducts(shop.shopifyId);
+        shopChunk.map(luxuryShop => {
+          return syncProducts(luxuryShop.shopifyId);
         })
       );
     }

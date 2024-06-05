@@ -85,7 +85,10 @@ export default function GeneralSetting() {
 
   const {modal: deleteProductModal, openModal: openDeleteProductModal} = useConfirmModal({
     confirmAction: () => handleClearData(),
-    content: `All app information such as settings, products, orders, etc will be deleted. This action will take a long time. Please be careful because you cannot undo this action.`
+    content:
+      'If you want to uninstall the app, please click the Confirm button.' +
+      ' It will delete products that have been synced to Shopify, block syncing products to Shopify and prevent syncing orders to Luxury system.' +
+      ' After all products are deleted, you can uninstall the app. Please be careful because you cannot undo this action.'
   });
 
   const handleClearData = async () => {
@@ -93,7 +96,7 @@ export default function GeneralSetting() {
       setLoader(dispatch);
       const resp = await api('/setting/general/cleardata', {method: 'GET'});
       if (resp.success) {
-        setLuxuryInfos(dispatch, null);
+        setToast(dispatch, 'Successfully!');
         return true;
       }
     } catch (e) {
