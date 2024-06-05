@@ -1,5 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {
+  deleteMetafields,
   getLuxuryShopInfoByShopifyId,
   getLuxuryShops,
   getLuxuryStockList,
@@ -89,6 +90,10 @@ export async function getProductsQuery(shopId, limit = 0) {
  */
 export async function syncProducts(shopId) {
   try {
+    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    if (luxuryInfo?.deleteApp) {
+      return true;
+    }
     const syncSetting = await getSyncSettingShopId(shopId);
     const generalSetting = await getGeneralSettingShopId(shopId);
     const categoryMappings = await getMappingDataWithoutPaginate(shopId);
@@ -1532,43 +1537,41 @@ export async function getProductByShopifyProductId(shopId, productShopifyId) {
 
 /**
  *
- * @param shopId
  * @param shop
  * @returns {Promise<void|null>}
  */
-export async function deleteProductsWhenUninstallByShopId(shopId, shop) {
+export async function deleteProductsWhenUninstallByShopId(shop) {
+  const shopId = shop;
+  const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+  if (!luxuryInfo?.deleteApp) {
+    return true;
+  }
   const docs = await collection.where('shopifyId', '==', shopId).get();
-  const docsSynced = await collection
-    .where('shopifyId', '==', shopId)
-    .where('productShopifyId', '!=', '')
-    .get();
   if (docs.empty) {
     return null;
   }
+
+  const docsCounts = await collection
+    .where('shopifyId', '==', shopId)
+    .where('productShopifyId', '!=', '')
+    .count()
+    .get();
+
+  if (!docsCounts.data().count) {
+    return deleteMetafields(shopId, shop);
+  }
+
+  const docsSynced = await collection
+    .where('shopifyId', '==', shopId)
+    .where('productShopifyId', '!=', '')
+    .limit(10)
+    .get();
   if (!docsSynced.empty) {
-    const shopifyProductsDelete = docsSynced.docs.map(doc => {
-      return actionQueueDelete(shop, doc.id, doc.data());
-    });
-    const shopifyProductsDeleteSplits = splitArrayIntoArrays(shopifyProductsDelete);
-    for (const shopifyProductsDeleteSplit of shopifyProductsDeleteSplits) {
-      await Promise.all(shopifyProductsDeleteSplit);
-      await delay(1000);
-    }
+    await Promise.all(
+      docsSynced.docs.map(doc => {
+        return actionQueueDelete(shop, doc.id, doc.data());
+      })
+    );
   }
   return batchDelete(firestore, docs.docs);
-}
-
-/**
- *
- * @param arr
- * @returns {*}
- */
-function splitArrayIntoArrays(arr) {
-  return arr.reduce((result, _, index) => {
-    if (index % 10 === 0) {
-      result.push([]);
-    }
-    result[Math.floor(index / 10)].push(arr[index]);
-    return result;
-  }, []);
 }

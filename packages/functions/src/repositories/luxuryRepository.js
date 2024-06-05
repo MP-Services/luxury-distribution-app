@@ -151,7 +151,10 @@ export async function getLuxuryToken(data) {
       if (creationTimestamp + 15 * 60 * 1000 < currentTimestamp) {
         tokenResult = await sendTokenRequest(data);
         if (tokenResult) {
-          await updateLuxuryToken(data, tokenResult);
+          await updateLuxuryData(data.shopifyId, {
+            token: tokenResult,
+            tokenCreationTime: FieldValue.serverTimestamp()
+          });
         }
       } else {
         tokenResult = token;
@@ -221,17 +224,13 @@ export async function addLuxuryShopInfo(shopId, data) {
 
 /**
  *
+ * @param shopifyId
  * @param data
- * @param updateData
  * @returns {Promise<*>}
  */
-export async function updateLuxuryToken(data, updateData) {
-  const {username, identifier, publicKey, shopifyId} = {...data};
+export async function updateLuxuryData(shopifyId, data) {
   const luxuryDocs = await collection
     .where('shopifyId', '==', shopifyId)
-    .where('username', '==', username)
-    .where('identifier', '==', identifier)
-    .where('publicKey', '==', publicKey)
     .limit(1)
     .get();
   const luxuryDoc = luxuryDocs.docs[0];
@@ -239,7 +238,7 @@ export async function updateLuxuryToken(data, updateData) {
     throw new Error('No luxury found');
   }
 
-  return luxuryDoc.ref.update({token: updateData, tokenCreationTime: FieldValue.serverTimestamp()});
+  return luxuryDoc.ref.update({...data});
 }
 
 /**

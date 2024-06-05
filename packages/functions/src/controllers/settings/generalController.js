@@ -9,7 +9,11 @@ import {
   getCurrencies as getCurrenciesData
 } from '@functions/repositories/currencyRepository';
 import {getShopById} from '@functions/repositories/shopRepository';
-import {deleteLuxuryShop, deleteMetafields} from '@functions/repositories/luxuryRepository';
+import {
+  deleteLuxuryShop,
+  deleteMetafields,
+  updateLuxuryData
+} from '@functions/repositories/luxuryRepository';
 import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productRepository';
 import {deleteOrdersByShopId} from '@functions/repositories/orderRepository';
 import {deleteAttributeMapping} from '@functions/repositories/settings/attributeMappingRepository';
@@ -76,18 +80,7 @@ export async function getCurrencies(ctx) {
 export async function clear(ctx) {
   try {
     const shopId = getCurrentShop(ctx);
-    const shop = await getShopById(shopId);
-    await deleteProductsWhenUninstallByShopId(shopId, shop);
-    await Promise.all([
-      deleteLuxuryShop(shopId),
-      deleteMetafields(shopId, shop),
-      deleteOrdersByShopId(shopId),
-      deleteAttributeMapping(shopId),
-      deleteBrandFilterByShopId(shopId),
-      deleteCategoryMappingsByShopId(shopId),
-      deleteGeneralSettingByShopId(shopId),
-      deleteSyncSettingByShopId(shopId)
-    ]);
+    await updateLuxuryData(shopId, {deleteApp: true});
     ctx.body = {success: true};
   } catch (e) {
     ctx.body = {success: false, error: e.string};

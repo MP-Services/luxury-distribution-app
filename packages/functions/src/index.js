@@ -7,6 +7,7 @@ import apiHookV1Handler from './handlers/apiHookV1';
 import restApiHandler from './handlers/restApi';
 import syncProductData from './handlers/schedule/syncProduct';
 import syncOrderData from './handlers/schedule/syncOrder';
+import deleteProductData from './handlers/schedule/deleteProduct';
 import createCurrenciesData from './handlers/schedule/createCurrencies';
 import deleteLogsData from './handlers/schedule/deleteLogsData';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
@@ -35,7 +36,11 @@ export const syncProduct = functions
   .pubsub.schedule('* * * * *')
   .onRun(syncProductData);
 
-// ---------------------- Cron schedule handlers ----------------------
+export const deleteProduct = functions
+  .runWith({timeoutSeconds: 540, memory: '1GB'})
+  .pubsub.schedule('* * * * *')
+  .onRun(deleteProductData);
+
 export const syncOrder = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.schedule('* * * * *')

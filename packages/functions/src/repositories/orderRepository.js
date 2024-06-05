@@ -1,6 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getProductByShopifyProductId} from '@functions/repositories/productRepository';
-import {createOrder} from '@functions/repositories/luxuryRepository';
+import {createOrder, getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 import {batchDelete, paginateQuery, getOrderBy} from '@functions/repositories/helper';
 import {addLog} from '@functions/repositories/logRepository';
 
@@ -46,6 +46,10 @@ export async function syncOrder(shop) {
   let orderUUID = '';
   try {
     const {shopifyId} = shop;
+    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopifyId);
+    if (luxuryInfo?.deleteApp) {
+      return true;
+    }
     const order = await getOrderToSyncQuery(shopifyId);
     if (order) {
       orderUUID = order.uuid;
