@@ -284,12 +284,6 @@ async function actionQueueUpdate({
     initProductVariables
   );
 
-  const sizesNeedAdd = getSizesNeedAdd(productData);
-  const sizesNeedUpdate = getSizesNeedUpdate(productData);
-  const sizesNeedDelete = generalSetting?.deleteOutStock ? getSizesNeedDelete(productData) : [];
-  const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
-  const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
-  const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
   let productOptionsAfterMap = productData?.productOptionsAfterMap;
   const metafieldsData = getMetafieldsData(productData);
   const metafieldsDelete = metafieldsData.filter(metafield => !metafield.value);
@@ -316,6 +310,14 @@ async function actionQueueUpdate({
       variables: {metafields: metafieldsUpdate}
     })
   ]);
+
+  const sizesNeedAdd = getSizesNeedAdd(productData);
+  const sizesNeedUpdate = getSizesNeedUpdate(productData);
+  const sizesNeedDelete = getSizesNeedDelete(productData, generalSetting);
+  const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
+  const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
+  const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
+
   const productOptionUpdate = await runProductOptionUpdateMutation({
     shop,
     variables: {
@@ -332,7 +334,7 @@ async function actionQueueUpdate({
   if (productOptionUpdate && productOptionUpdate?.options?.optionValues) {
     const optionsValues = productOptionUpdate.options.optionValues;
     const variantsNeedAdd = optionsValues.filter(option => !option.hasVariants);
-    const variantsNeedUpdate = optionsValues.filter(option => !option.hasVariants);
+    const variantsNeedUpdate = optionsValues.filter(option => option.hasVariants);
     let productVariantsReturn = [];
 
     // Add Variant
@@ -373,7 +375,11 @@ async function actionQueueUpdate({
       }
     }
 
-    if (productData.size_quantity_delta.length && productVariantsReturn.length) {
+    if (
+      productData.size_quantity_delta &&
+      productData.size_quantity_delta.length &&
+      productVariantsReturn.length
+    ) {
       const variantsToMap = productVariantsUpdateReturn.map(item => ({
         id: item.id,
         title: item.title,
@@ -403,6 +409,7 @@ async function actionQueueUpdate({
     syncStatus: 'success',
     queueStatus: 'synced',
     productOptionsAfterMap,
+    size_quantity_delta: [],
     updatedAt: FieldValue.serverTimestamp()
   });
 }
@@ -487,7 +494,7 @@ function getOptionValuesToUpdate(options, sizeAttributeMapping) {
  * @returns {*}
  */
 function getSizesNeedAdd(productData) {
-  return productData.size_quantity_delta.filter(size => {
+  return productData.size_quantity.filter(size => {
     return !productData.productOptionsAfterMap.find(
       option => Object.keys(size)[0] === option.originalOption
     );
@@ -508,12 +515,17 @@ function getSizesNeedUpdate(productData) {
 /**
  *
  * @param productData
+ * @param generalSetting
  * @returns {*}
  */
 
-function getSizesNeedDelete(productData) {
+function getSizesNeedDelete(productData, generalSetting) {
   return productData.productOptionsAfterMap.filter(option => {
-    return !productData.size_quantity.find(size => option.originalOption === Object.keys(size)[0]);
+    const size = productData.size_quantity.find(
+      item => option.originalOption === Object.keys(item)[0]
+    );
+
+    return !size || (generalSetting?.deleteOutStock && size && !Number(Object.values(size)[0]));
   });
 }
 
@@ -1383,12 +1395,16 @@ export async function productWebhook(webhookData) {
                 }
               } else {
                 if (productNeedUpdate?.productShopifyId) {
+                  const newSizeQuantity = newStockData.size_quantity.filter(
+                    item => !Array.isArray(item)
+                  );
                   newStockData.size_quantity_delta = getSizeQuantityDelta(
-                    newStockData.size_quantity,
-                    productNeedUpdate.size_quantity
+                    productNeedUpdate.size_quantity,
+                    newSizeQuantity
                   );
                   return updateProduct(productNeedUpdate.uid, {
                     ...newStockData,
+                    size_quantity: newSizeQuantity,
                     queueStatus: 'update',
                     syncStatus: 'new',
                     updatedAt: FieldValue.serverTimestamp()
