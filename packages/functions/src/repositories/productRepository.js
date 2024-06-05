@@ -169,6 +169,10 @@ async function actionQueueCreate({
   docId,
   productData
 }) {
+  let sizesQuantityDelta = productData.size_quantity_delta;
+  if (generalSetting?.deleteOutStock) {
+    sizesQuantityDelta = sizesQuantityDelta.filter(item => Number(Object.values(item)[0]));
+  }
   const {productVariables, margin} = addCollectionsToProductVariables(
     categoryMappings,
     syncSetting,
@@ -178,7 +182,8 @@ async function actionQueueCreate({
       syncSetting,
       productData,
       sizeAttributeMapping,
-      onlineStore
+      onlineStore,
+      sizesQuantityDelta
     })
   );
   const productShopify = await runProductCreateMutation({
@@ -208,7 +213,7 @@ async function actionQueueCreate({
     if (productVariantsReturn) {
       const productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
         productVariantsReturn,
-        productData.size_quantity_delta,
+        sizesQuantityDelta,
         defaultLocationId
       );
       await runProductAdjustQuantitiesMutation({
@@ -218,7 +223,7 @@ async function actionQueueCreate({
 
       return updateProduct(docId, {
         productOptionsAfterMap: sizeOptionMapping(
-          productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+          sizesQuantityDelta.map(item => Object.keys(item)[0]),
           sizeAttributeMapping,
           productShopify.options[0].optionValues,
           productAdjustQuantitiesVariables.variants,
@@ -592,6 +597,7 @@ function addCollectionsToProductVariables(
  * @param productData
  * @param sizeAttributeMapping
  * @param onlineStore
+ * @param sizesQuantityDelta
  * @returns {{product: {metafields: *, productOptions: [{values: *, name: string}], descriptionHtml: (*|string), title: (string|*), collectionsToJoin: *[], status: (string), publications: ([{publicationId}]|*[])}, media: (*|*[])}}
  */
 function getProductVariables({
@@ -599,10 +605,11 @@ function getProductVariables({
   syncSetting,
   productData,
   sizeAttributeMapping,
-  onlineStore
+  onlineStore,
+  sizesQuantityDelta
 }) {
   const sizeOptionsMap = convertOptionMappingToSizeValue(
-    productData.size_quantity_delta.map(item => ({name: Object.keys(item)[0]})),
+    sizesQuantityDelta.map(item => ({name: Object.keys(item)[0]})),
     sizeAttributeMapping
   );
   const productOptionsData = [
