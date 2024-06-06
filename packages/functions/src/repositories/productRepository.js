@@ -1370,15 +1370,14 @@ export async function productWebhook(webhookData) {
     const shops = await getLuxuryShops();
     switch (event) {
       case 'ProductCreate':
-        await Promise.all(
+        return Promise.all(
           shops.map(async shop => {
             const stockData = await getStockById(stockId, shop);
             return addProduct(shop.shopifyId, stockData);
           })
         );
-        break;
       case 'ProductUpdate':
-        await Promise.all(
+        return Promise.all(
           shops.map(async shop => {
             const {shopifyId} = shop;
             const productNeedUpdate = await getProductByStockId(stockId, shopifyId);
@@ -1424,10 +1423,8 @@ export async function productWebhook(webhookData) {
             return true;
           })
         );
-        break;
       case 'ProductDelete':
-        await queueProductBulkDelete(stockId);
-        break;
+        return queueProductBulkDelete(stockId);
     }
 
     return true;
