@@ -163,7 +163,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -181,7 +181,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -199,7 +199,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -213,7 +213,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -235,7 +235,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -293,7 +293,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -307,7 +307,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -325,7 +325,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -343,7 +343,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -383,7 +383,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -397,7 +397,7 @@
       ]
     },
     {
-      "collectionGroup": "products",
+      "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
         {

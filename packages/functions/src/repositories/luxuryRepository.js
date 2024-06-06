@@ -55,6 +55,34 @@ export async function sendRequestCurrency(headerParams) {
  *
  * @param url
  * @param shopInfo
+ * @returns {Promise<*|null>}
+ */
+async function sendStockListRequest({url, shopInfo}) {
+  try {
+    const token = await getLuxuryToken(shopInfo);
+    const resp = await api(url, {
+      options: {
+        headers: {Authorization: `Bearer ${token}`}
+      }
+    });
+    if (
+      resp.hasOwnProperty('custom_code') &&
+      resp.hasOwnProperty('data') &&
+      resp.custom_code === '00'
+    ) {
+      return resp['data'];
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  return null;
+}
+
+/**
+ *
+ * @param url
+ * @param shopInfo
  * @param key
  * @param method
  * @param data
@@ -121,10 +149,14 @@ export async function getStockById(stockId, shopInfo) {
 /**
  *
  * @param shopInfo
- * @returns {Promise<*|[]>}
+ * @param offset
+ * @returns {Promise<*|null>}
  */
-export async function getLuxuryStockList(shopInfo) {
-  return await sendLXRequest({url: LUXURY_API_V2_URL + '/stocks', shopInfo});
+export async function getLuxuryStockList({shopInfo, offset = 0}) {
+  return await sendStockListRequest({
+    url: LUXURY_API_V2_URL + `/stocks?limit=1000&offset=${offset}`,
+    shopInfo
+  });
 }
 
 /**

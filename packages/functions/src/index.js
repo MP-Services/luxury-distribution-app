@@ -9,6 +9,7 @@ import syncProductData from './handlers/schedule/syncProduct';
 import syncOrderData from './handlers/schedule/syncOrder';
 import deleteProductData from './handlers/schedule/deleteProduct';
 import createCurrenciesData from './handlers/schedule/createCurrencies';
+import initProductQueueData from './handlers/schedule/initProductQueue';
 import deleteLogsData from './handlers/schedule/deleteLogsData';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
@@ -31,6 +32,12 @@ export const restApi = functions
   .https.onRequest(restApiHandler.callback());
 
 // ---------------------- Cron schedule handlers ----------------------
+
+export const createProductQueue = functions
+  .runWith({timeoutSeconds: 540, memory: '1GB'})
+  .pubsub.schedule('* * * * *')
+  .onRun(initProductQueueData);
+
 export const syncProduct = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.schedule('* * * * *')

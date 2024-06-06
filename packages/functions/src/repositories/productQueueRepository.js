@@ -4,7 +4,8 @@ import {
   getLuxuryShopInfoByShopifyId,
   getLuxuryShops,
   getLuxuryStockList,
-  getStockById
+  getStockById,
+  updateLuxuryData
 } from '@functions/repositories/luxuryRepository';
 import {getBrandSettingShopId} from '@functions/repositories/settings/brandRepository';
 import {getSyncSettingShopId} from '@functions/repositories/settings/syncRepository';
@@ -1174,45 +1175,45 @@ function getProductOptionIdByName(productOptions, optionName) {
 /**
  *
  * @param shopId
+ * @param stockList
  * @returns {Promise<boolean>}
  */
-
-export async function addProducts(shopId) {
+export async function addProducts(shopId, stockList) {
   try {
-    const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    const stockList = await getLuxuryStockList(luxuryShopInfo);
-    if (stockList) {
-      const brandFilter = await getBrandSettingShopId(shopId);
-      const stockIdsExclude = await getStockIdsExclude(shopId);
-      const products = stockList
-        .filter(
-          stockItem =>
-            brandFilter.brands.includes(stockItem.brand) &&
-            (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
-        )
-        .map(item => {
-          let sizeQuantity = [];
-          if (item.hasOwnProperty('size_quantity')) {
-            sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
-          }
-          const {id, ...data} = item;
+    // const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    // const stockListResult = await getLuxuryStockList(luxuryShopInfo);
+    // if (stockList) {
+    const brandFilter = await getBrandSettingShopId(shopId);
+    const stockIdsExclude = await getStockIdsExclude(shopId);
+    const products = stockList
+      .filter(
+        stockItem =>
+          brandFilter.brands.includes(stockItem.brand) &&
+          (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
+      )
+      .map(item => {
+        let sizeQuantity = [];
+        if (item.hasOwnProperty('size_quantity')) {
+          sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
+        }
+        const {id, ...data} = item;
 
-          return {
-            ...data,
-            stockId: id,
-            shopifyId: shopId,
-            syncStatus: 'new',
-            queueStatus: 'create',
-            productShopifyId: '',
-            size_quantity: sizeQuantity,
-            size_quantity_delta: sizeQuantity,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
-          };
-        });
+        return {
+          ...data,
+          stockId: id,
+          shopifyId: shopId,
+          syncStatus: 'new',
+          queueStatus: 'create',
+          productShopifyId: '',
+          size_quantity: sizeQuantity,
+          size_quantity_delta: sizeQuantity,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        };
+      });
 
-      await batchCreate(firestore, collection, products);
-    }
+    await batchCreate(firestore, collection, products);
+    // }
     return true;
   } catch (e) {
     console.log(e);
@@ -1571,4 +1572,77 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
       })
     );
   }
+}
+
+export async function initQueues(luxuryInfo) {
+  const {shopifyId} = luxuryInfo;
+  if (luxuryInfo?.initQueueAction) {
+    const nextOffset = luxuryInfo.hasOwnProperty('nextOffset') ? luxuryInfo.nextOffset : 1000;
+    if (luxuryInfo?.totalProductCountInit) {
+      const stockListResult = await getLuxuryStockList({shopInfo: luxuryInfo});
+      if (stockListResult && stockListResult?.data && stockListResult.data.length) {
+        return Promise.all([
+          createProductQueues(shopifyId, stockListResult.data),
+          updateLuxuryData(shopifyId, {totalProductCountInit: stockListResult.total, nextOffset})
+        ]);
+      }
+    } else {
+      if (luxuryInfo.nextOffset < luxuryInfo.totalProductCountInit) {
+        const stockListResult = await getLuxuryStockList({shopInfo: luxuryInfo});
+        if (stockListResult && stockListResult?.data && stockListResult.data.length) {
+          return Promise.all([
+            createProductQueues(shopifyId, stockListResult.data),
+            updateLuxuryData(shopifyId, {nextOffset})
+          ]);
+        }
+      } else {
+        return updateLuxuryData(shopifyId, {initQueueAction: true});
+      }
+    }
+  }
+}
+
+/**
+ *
+ * @param shopId
+ * @param stockList
+ * @returns {Promise<boolean>}
+ */
+export async function createProductQueues(shopId, stockList) {
+  try {
+    const brandFilter = await getBrandSettingShopId(shopId);
+    const stockIdsExclude = await getStockIdsExclude(shopId);
+    const products = stockList
+      .filter(
+        stockItem =>
+          brandFilter.brands.includes(stockItem.brand) &&
+          (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
+      )
+      .map(item => {
+        let sizeQuantity = [];
+        if (item.hasOwnProperty('size_quantity')) {
+          sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
+        }
+        const {id, ...data} = item;
+
+        return {
+          ...data,
+          stockId: id,
+          shopifyId: shopId,
+          queueStatus: 'create',
+          productShopifyId: '',
+          size_quantity: sizeQuantity,
+          size_quantity_delta: sizeQuantity,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp()
+        };
+      });
+
+    await batchCreate(firestore, collection, products);
+    return true;
+  } catch (e) {
+    console.log(e);
+  }
+
+  return false;
 }

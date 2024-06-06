@@ -15,7 +15,7 @@ export default async function subscribeBrandFilterUpdateHandling(message) {
     const {shopId} = data;
     const brandFilterData = await getBrandSettingShopId(shopId);
     await deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFilterData);
-    await addProducts(shopId);
+    // await addProducts(shopId);
   } catch (e) {
     console.error(e);
   }

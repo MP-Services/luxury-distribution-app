@@ -1,10 +1,9 @@
 import {Firestore, FieldValue} from '@google-cloud/firestore';
 import {getAllCollections, initShopify} from '@functions/services/shopifyService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
-import {getLuxuryStockList, getCategories} from '@functions/repositories/luxuryRepository';
+import {getCategories} from '@functions/repositories/luxuryRepository';
 import {
   batchCreate,
-  batchUpdate,
   batchDelete,
   getOrderBy,
   paginateQuery

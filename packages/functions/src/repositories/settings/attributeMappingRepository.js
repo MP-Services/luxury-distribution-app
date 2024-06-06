@@ -72,8 +72,9 @@ export async function saveAttributeMapping(shopId, data) {
  */
 export async function getSizeOptions(luxuryInfo) {
   try {
-    const stockList = await getLuxuryStockList(luxuryInfo);
-    if (stockList) {
+    const stockListResult = await getLuxuryStockList(luxuryInfo);
+    if (stockListResult && stockListResult?.data && stockListResult.data.length) {
+      const stockList = stockListResult.data;
       let sizeOptions = [];
       for (const stock of stockList) {
         const sizes = stock.size_quantity.map(item => Object.keys(item)[0]);
