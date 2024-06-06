@@ -1,4 +1,4 @@
-import {updateProductBulkWhenSaveAttributeMapping} from '../../repositories/productRepository';
+import {updateProductBulkWhenSaveAttributeMapping} from '../../repositories/productQueueRepository';
 
 /**
  *

@@ -1,7 +1,7 @@
 import {
   addProducts,
   deleteProductsInQueueWhenChangeBrandFilter
-} from '../../repositories/productRepository';
+} from '../../repositories/productQueueRepository';
 import {getBrandSettingShopId} from "@functions/repositories/settings/brandRepository";
 
 /**

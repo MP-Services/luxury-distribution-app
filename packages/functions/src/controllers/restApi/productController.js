@@ -1,4 +1,4 @@
-import {productWebhook} from '@functions/repositories/productRepository';
+import {productWebhook} from '@functions/repositories/productQueueRepository';
 import {addLog} from '@functions/repositories/productWebhookLogRepository';
 
 /**

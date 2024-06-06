@@ -1,6 +1,6 @@
 import {chunk} from '@avada/utils';
 import {getLuxuryShops} from '@functions/repositories/luxuryRepository';
-import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productRepository';
+import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productQueueRepository';
 
 const CHUNK_SIZE = 50;
 

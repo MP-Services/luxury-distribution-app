@@ -1,4 +1,4 @@
-import {updateProductBulkWhenSaveGeneralSetting} from '../../repositories/productRepository';
+import {updateProductBulkWhenSaveGeneralSetting} from '../../repositories/productQueueRepository';
 
 /**
  *

@@ -42,7 +42,7 @@ import {delay} from '@avada/utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
-const collection = firestore.collection('products');
+const collection = firestore.collection('productQueues');
 
 /**
  *

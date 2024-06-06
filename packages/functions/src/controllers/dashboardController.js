@@ -1,5 +1,5 @@
 import {getCurrentShop} from '../helpers/auth';
-import {getProductCounts} from '@functions/repositories/productRepository';
+import {getProductCounts} from '@functions/repositories/productQueueRepository';
 
 /**
  * @param ctx
