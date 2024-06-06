@@ -39,7 +39,7 @@ import {getGeneralSettingShopId} from '@functions/repositories/settings/generalR
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
-import {delay} from '@avada/utils';
+import {chunk, delay} from '@avada/utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -1260,6 +1260,27 @@ export async function addProduct(shopId, stockData) {
 
 /**
  *
+ * @param shopifyId
+ * @param queueStatus
+ * @returns {Promise<number>}
+ */
+export async function getQueueCount(shopifyId, queueStatus) {
+  try {
+    const docs = await collection
+      .where('shopifyId', '==', shopifyId)
+      .where('queueStatus', '==', queueStatus)
+      .count()
+      .get();
+
+    return docs.data().count;
+  } catch (e) {
+    console.error(e);
+    return 0;
+  }
+}
+
+/**
+ *
  * @param shopId
  * @returns {Promise<{data: {deleteQueueProductCount: number, updateQueueProductCount: number, createQueueProductCount: number, totalsProductCount: number}, success: boolean}>}
  */
@@ -1360,6 +1381,76 @@ export async function deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFi
   }
 }
 
+// /**
+//  *
+//  * @param webhookData
+//  * @returns {Promise<boolean>}
+//  */
+// export async function productWebhook(webhookData) {
+//   try {
+//     const {event, record: stockId} = webhookData;
+//     const shops = await getLuxuryShops();
+//     switch (event) {
+//       case 'ProductCreate':
+//         return queueProductBulk({shops, stockId, queueStatus: 'create'});
+//       case 'ProductUpdate':
+//         return Promise.all(
+//           shops.map(async shop => {
+//             const {shopifyId} = shop;
+//             const productNeedUpdate = await getProductByStockId(stockId, shopifyId);
+//             const newStockData = await getStockById(stockId, shop);
+//             if (productNeedUpdate) {
+//               const brandFilter = await getBrandSettingShopId(shopifyId);
+//               const isExistInBrandFilter =
+//                 brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
+//               const generalSetting = await getGeneralSettingShopId(shopifyId);
+//               if (
+//                 !isExistInBrandFilter ||
+//                 (generalSetting?.deleteOutStock && Number(newStockData.qty) === 0)
+//               ) {
+//                 // If product is not in the brand filter or out of stock
+//                 if (productNeedUpdate?.productShopifyId) {
+//                   return updateProduct(productNeedUpdate.uid, {
+//                     queueStatus: 'delete',
+//                     updatedAt: FieldValue.serverTimestamp()
+//                   });
+//                 } else {
+//                   return deleteProductInQueue(productNeedUpdate.uid);
+//                 }
+//               } else {
+//                 if (productNeedUpdate?.productShopifyId) {
+//                   const newSizeQuantity = newStockData.size_quantity.filter(
+//                     item => !Array.isArray(item)
+//                   );
+//                   newStockData.size_quantity_delta = getSizeQuantityDelta(
+//                     productNeedUpdate.size_quantity,
+//                     newSizeQuantity
+//                   );
+//                   return updateProduct(productNeedUpdate.uid, {
+//                     ...newStockData,
+//                     size_quantity: newSizeQuantity,
+//                     queueStatus: 'update',
+//                     syncStatus: 'new',
+//                     updatedAt: FieldValue.serverTimestamp()
+//                   });
+//                 }
+//               }
+//             }
+//
+//             return true;
+//           })
+//         );
+//       case 'ProductDelete':
+//         return queueProductBulk({shops, stockId, queueStatus: 'delete'});
+//     }
+//
+//     return true;
+//   } catch (e) {
+//     console.log(e);
+//     return false;
+//   }
+// }
+
 /**
  *
  * @param webhookData
@@ -1371,61 +1462,11 @@ export async function productWebhook(webhookData) {
     const shops = await getLuxuryShops();
     switch (event) {
       case 'ProductCreate':
-        return Promise.all(
-          shops.map(async shop => {
-            const stockData = await getStockById(stockId, shop);
-            return addProduct(shop.shopifyId, stockData);
-          })
-        );
+        return queueProductBulk({shops, stockId, queueStatus: 'create'});
       case 'ProductUpdate':
-        return Promise.all(
-          shops.map(async shop => {
-            const {shopifyId} = shop;
-            const productNeedUpdate = await getProductByStockId(stockId, shopifyId);
-            const newStockData = await getStockById(stockId, shop);
-            if (productNeedUpdate) {
-              const brandFilter = await getBrandSettingShopId(shopifyId);
-              const isExistInBrandFilter =
-                brandFilter?.brands && brandFilter.brands.includes(newStockData.brand);
-              const generalSetting = await getGeneralSettingShopId(shopifyId);
-              if (
-                !isExistInBrandFilter ||
-                (generalSetting?.deleteOutStock && Number(newStockData.qty) === 0)
-              ) {
-                // If product is not in the brand filter or out of stock
-                if (productNeedUpdate?.productShopifyId) {
-                  return updateProduct(productNeedUpdate.uid, {
-                    queueStatus: 'delete',
-                    updatedAt: FieldValue.serverTimestamp()
-                  });
-                } else {
-                  return deleteProductInQueue(productNeedUpdate.uid);
-                }
-              } else {
-                if (productNeedUpdate?.productShopifyId) {
-                  const newSizeQuantity = newStockData.size_quantity.filter(
-                    item => !Array.isArray(item)
-                  );
-                  newStockData.size_quantity_delta = getSizeQuantityDelta(
-                    productNeedUpdate.size_quantity,
-                    newSizeQuantity
-                  );
-                  return updateProduct(productNeedUpdate.uid, {
-                    ...newStockData,
-                    size_quantity: newSizeQuantity,
-                    queueStatus: 'update',
-                    syncStatus: 'new',
-                    updatedAt: FieldValue.serverTimestamp()
-                  });
-                }
-              }
-            }
-
-            return true;
-          })
-        );
+        return queueProductBulk({shops, stockId, queueStatus: 'update'});
       case 'ProductDelete':
-        return queueProductBulkDelete(stockId);
+        return queueProductBulk({shops, stockId, queueStatus: 'delete'});
     }
 
     return true;
@@ -1480,29 +1521,49 @@ async function getProductByStockId(stockId, shopifyId) {
 
 /**
  *
+ * @param shops
  * @param stockId
- * @returns {Promise<null>}
+ * @param queueStatus
+ * @returns {Promise<void>}
  */
-async function queueProductBulkDelete(stockId) {
-  const docsSync = await collection
-    .where('stockId', '==', stockId)
-    .where('queueStatus', '!=', 'create')
-    .get();
-  const docs = await collection
-    .where('stockId', '==', stockId)
-    .where('queueStatus', '==', 'create')
-    .get();
-  if (!docsSync.empty) {
-    await batchUpdate(firestore, docsSync.docs, {
-      queueStatus: 'delete',
-      syncStatus: 'new',
-      updatedAt: FieldValue.serverTimestamp()
-    });
-  }
-  if (!docs.empty) {
-    await batchDelete(firestore, docs.docs);
+async function queueProductBulk({shops, stockId, queueStatus}) {
+  const shopChunks = chunk(shops.docs, 1000);
+
+  for (const shopChunk of shopChunks) {
+    const createQueues = shopChunk.map(shop => ({
+      shopifyId: shop.shopifyId,
+      stockId,
+      queueStatus
+    }));
+    await batchCreate(firestore, collection, createQueues);
   }
 }
+
+// /**
+//  *
+//  * @param stockId
+//  * @returns {Promise<null>}
+//  */
+// async function queueProductBulkDelete(stockId) {
+//   const docsSync = await collection
+//       .where('stockId', '==', stockId)
+//       .where('queueStatus', '!=', 'create')
+//       .get();
+//   const docs = await collection
+//       .where('stockId', '==', stockId)
+//       .where('queueStatus', '==', 'create')
+//       .get();
+//   if (!docsSync.empty) {
+//     await batchUpdate(firestore, docsSync.docs, {
+//       queueStatus: 'delete',
+//       syncStatus: 'new',
+//       updatedAt: FieldValue.serverTimestamp()
+//     });
+//   }
+//   if (!docs.empty) {
+//     await batchDelete(firestore, docs.docs);
+//   }
+// }
 
 /**
  *
@@ -1574,6 +1635,11 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
   }
 }
 
+/**
+ *
+ * @param luxuryInfo
+ * @returns {Promise<Awaited<boolean|*>[]|*>}
+ */
 export async function initQueues(luxuryInfo) {
   const {shopifyId} = luxuryInfo;
   if (luxuryInfo?.initQueueAction) {
@@ -1630,11 +1696,9 @@ export async function createProductQueues(shopId, stockList) {
           stockId: id,
           shopifyId: shopId,
           queueStatus: 'create',
-          productShopifyId: '',
           size_quantity: sizeQuantity,
           size_quantity_delta: sizeQuantity,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp()
+          createdAt: FieldValue.serverTimestamp()
         };
       });
 
