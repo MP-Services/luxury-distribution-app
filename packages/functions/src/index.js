@@ -34,22 +34,22 @@ export const restApi = functions
 // ---------------------- Cron schedule handlers ----------------------
 
 export const createProductQueue = functions
-  .runWith({timeoutSeconds: 540, memory: '1GB'})
+  .runWith({timeoutSeconds: 60, memory: '1GB'})
   .pubsub.schedule('* * * * *')
   .onRun(initProductQueueData);
 
 export const syncProduct = functions
-  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .runWith({timeoutSeconds: 60, memory: '2GB'})
   .pubsub.schedule('* * * * *')
   .onRun(syncProductData);
 
 export const deleteProduct = functions
-  .runWith({timeoutSeconds: 540, memory: '1GB'})
+  .runWith({timeoutSeconds: 60, memory: '1GB'})
   .pubsub.schedule('* * * * *')
   .onRun(deleteProductData);
 
 export const syncOrder = functions
-  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .runWith({timeoutSeconds: 60, memory: '2GB'})
   .pubsub.schedule('* * * * *')
   .onRun(syncOrderData);
 
