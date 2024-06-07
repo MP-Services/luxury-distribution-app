@@ -33,7 +33,7 @@ export const restApi = functions
 
 // ---------------------- Cron schedule handlers ----------------------
 
-export const createProductQueue = functions
+export const initProductQueue = functions
   .runWith({timeoutSeconds: 60, memory: '1GB'})
   .pubsub.schedule('* * * * *')
   .onRun(initProductQueueData);
