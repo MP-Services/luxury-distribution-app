@@ -6,7 +6,7 @@ import {useHistory} from 'react-router-dom';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import useCreateApi from '@assets/hooks/api/useCreateApi';
-import {setLoader} from '@assets/actions/storeActions';
+import {setLoader, setToast} from '@assets/actions/storeActions';
 import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
 
@@ -40,11 +40,48 @@ export default function AttributeMapping() {
   const {creating, handleCreate} = useCreateApi({
     url: '/setting/attributemapping'
   });
+
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const history = useHistory();
 
-  const handleChangeOptionName = (retailerOption, dropshipperOption) => {
+  const hasDuplicate = (arr, key) => {
+    return new Set(arr.map(item => item[key])).size !== arr.length;
+  };
+
+  const getDifferentElements = (A, B) => {
+    return [...new Set([...A, ...B])].filter(item => !A.includes(item) || !B.includes(item));
+  };
+
+  const handleSave = async () => {
+    if (
+      attributeMappingData.length &&
+      attributeMappingData[0]?.optionsMapping &&
+      attributeMappingData[0].optionsMapping.length
+    ) {
+      const optionsMapping = attributeMappingData[0].optionsMapping;
+      let isDuplicate = false;
+      if (hasDuplicate(optionsMapping, 'dropshipperOptionName')) {
+        isDuplicate = true;
+      } else {
+        const retailerOptionsMapping = optionsMapping.map(option => option.retailerOptionName);
+        const diffArray = getDifferentElements(retailerOptionsMapping, sizeOptionsMappingData);
+        if (diffArray.length) {
+          isDuplicate = optionsMapping.some(option =>
+            diffArray.includes(option.dropshipperOptionName)
+          );
+        }
+      }
+      if (isDuplicate) {
+        setToast(dispatch, 'Duplicate option mapping!', true);
+        return true;
+      }
+    }
+    await handleCreate(attributeMappingData);
+  };
+
+  const handleChangeOptionName = (retailerOption, dropshipperOptionValue) => {
+    const dropshipperOption = dropshipperOptionValue.trim();
     setAttributeMappingData(prev =>
       prev.map(attribute => {
         let optionsMapping = attribute?.optionsMapping || [];
@@ -206,11 +243,7 @@ export default function AttributeMapping() {
                   </i>
                   Add Mapping
                 </button>
-                <button
-                  type="button"
-                  className="btn-primary btn-save"
-                  onClick={async () => handleCreate(attributeMappingData)}
-                >
+                <button type="button" className="btn-primary btn-save" onClick={handleSave}>
                   Save
                 </button>
               </div>

@@ -72,7 +72,7 @@ export async function saveAttributeMapping(shopId, data) {
  */
 export async function getSizeOptions(luxuryInfo) {
   try {
-    const stockListResult = await getLuxuryStockList(luxuryInfo);
+    const stockListResult = await getLuxuryStockList({shopInfo: luxuryInfo});
     if (stockListResult && stockListResult?.data && stockListResult.data.length) {
       const stockList = stockListResult.data;
       let sizeOptions = [];
