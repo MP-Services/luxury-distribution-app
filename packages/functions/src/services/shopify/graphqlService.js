@@ -33,6 +33,28 @@ query publications($after: String) {
 }
 `;
 
+export const GET_PRODUCTS_VARIANTS_QUERY = `
+query productVariants($query: String){
+  productVariants(first: 3, query: $query ) {
+    edges {
+      node {
+        id
+        inventoryQuantity
+        title
+        selectedOptions {
+          name
+          value
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+`;
+
 export const CREATE_METAFIELD_DEFINITION_MUTATION = `
 mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
   metafieldDefinitionCreate(definition: $definition) {
@@ -785,6 +807,46 @@ export async function getOnlineStorePublication({
         after: nextAfter
       });
     }
+  } catch (error) {
+    console.error(error);
+    return '';
+  }
+}
+
+/**
+ *
+ * @param shop
+ * @param after
+ * @param variables
+ * @param allVariants
+ * @param query
+ * @returns {Promise<string|*|undefined|string>}
+ */
+export async function getProductVariants({
+  shop,
+  after = null,
+  variables = {},
+  allVariants = [],
+  query = GET_PRODUCTS_VARIANTS_QUERY
+}) {
+  try {
+    const graphqlQuery = {query, variables: {...variables, after}};
+    const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
+    if (errors) {
+      console.error(errors.map(x => x.message).join('. '));
+      return '';
+    }
+    const {productVariants} = data;
+    const {hasNextPage, endCursor} = productVariants.pageInfo;
+    const nextAfter = hasNextPage && endCursor;
+    const allVariants = [...allVariants, ...allVariants.nodes];
+    if (nextAfter) {
+      return await getProductVariants({
+        shop,
+        after: nextAfter
+      });
+    }
+    return {allVariants};
   } catch (error) {
     console.error(error);
     return '';

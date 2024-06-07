@@ -114,6 +114,31 @@ async function sendLXRequest({url, shopInfo, key = 'data', method = 'GET', data 
 
 /**
  *
+ * @param url
+ * @param shopInfo
+ * @param method
+ * @param data
+ * @returns {Promise<*|null>}
+ */
+async function sendRequest({url, shopInfo, method = 'GET', data = null}) {
+  try {
+    const token = await getLuxuryToken(shopInfo);
+    return await api(url, {
+      method,
+      options: {
+        headers: {Authorization: `Bearer ${token}`}
+      },
+      data
+    });
+  } catch (e) {
+    console.log(e);
+  }
+
+  return null;
+}
+
+/**
+ *
  * @param shopInfo
  * @param data
  * @returns {Promise<*|null>}
@@ -143,7 +168,15 @@ export async function getBrandList(shopInfo) {
  * @returns {Promise<*|*[]>}
  */
 export async function getStockById(stockId, shopInfo) {
-  return await sendLXRequest({url: LUXURY_API_V2_URL + `/stocks/${stockId}`, shopInfo});
+  const stockResponse = await sendRequest({url: LUXURY_API_V2_URL + `/stocks/${stockId}`, shopInfo});
+  if (stockReponse) {
+    if (!stockResponse?.data && stockResponse?.custom_code && stockResponse.custom_code === '45') {
+      return {};
+    }
+    return stockReponse.data;
+  }
+
+  return null;
 }
 
 /**
