@@ -24,7 +24,8 @@ export async function get(ctx) {
  * @returns {Promise<{shop, shopInfo: *}>}
  */
 export async function getOptionsMapping(ctx) {
-  ctx.body = {success: true, data: await getSizes()};
+  const shopId = getCurrentShop(ctx);
+  ctx.body = {success: true, data: await getSizes(shopId)};
 }
 
 /**

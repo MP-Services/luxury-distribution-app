@@ -40,12 +40,19 @@ import {getAttributeMappingData} from '@functions/repositories/settings/attribut
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
 import {chunk, delay} from '@avada/utils';
-import {addLuxuryProducts} from '@functions/repositories/luxuryProductRepository';
+import {
+  addLuxuryProduct,
+  addLuxuryProducts,
+  convertLuxuryProductFromTemp,
+  deleteLuxuryProductShops,
+  saveLuxuryProduct
+} from '@functions/repositories/luxuryProductRepository';
 import {importSizes} from '@functions/repositories/sizeRepository';
 import {
   getShopifyProductDoc,
   getShopifyProductByDoc
 } from '@functions/repositories/shopifyProductRepository';
+import {addStockTemps, getStockTemps} from '@functions/repositories/luxuryStockTempRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -1519,20 +1526,26 @@ export async function productWebhook(webhookData) {
     const {event, record: stockId} = webhookData;
     const shops = await getLuxuryShops();
     if (shops) {
-      const shop = shops[0];
-      switch (event) {
-        case 'ProductCreate':
-          return Promise.all([
-            updateSizesHook(stockId, shop),
-            queueProductBulk({shops, stockId, status: 'create'})
-          ]);
-        case 'ProductUpdate':
-          return Promise.all([
-            updateSizesHook(stockId, shop),
-            queueProductBulk({shops, stockId, status: 'update'})
-          ]);
-        case 'ProductDelete':
-          return queueProductBulk({shops, stockId, status: 'delete'});
+      const completeInitShops = shops.filter(shop => shop?.completeInitQueueAction);
+      const notCompleteInitShops = shops.filter(shop => shop?.completeInitQueueAction);
+      if (shops.length) {
+        switch (event) {
+          case 'ProductCreate':
+            return queueProductBulk({shops, stockId, status: 'create'});
+          case 'ProductUpdate':
+            return queueProductBulk({shops, stockId, status: 'update'});
+          case 'ProductDelete':
+            if (!completeInitShops.length) {
+              return queueProductBulk({shops, stockId, status: 'delete'});
+            }
+            return Promise.all([
+              deleteLuxuryProductShops(completeInitShops, stockId),
+              queueProductBulk({shops, stockId, status: 'delete'})
+            ]);
+        }
+      }
+      if (notCompleteInitShops.length) {
+        return addStockTemps(notCompleteInitShops, {stockId, event});
       }
     }
     return true;
@@ -1556,7 +1569,7 @@ async function updateSizesHook(stockId, shopInfo) {
     sizes = sizeQuantity.map(size => Object.keys(size)[0]);
   }
 
-  return importSizes(sizes);
+  return importSizes(shopInfo.shopifyId, sizes);
 }
 
 /**
@@ -1733,10 +1746,56 @@ export async function initQueues(luxuryInfo) {
           return initQueueActions({shopifyId, stockListResult, nextOffset});
         }
       } else {
-        return updateLuxuryData(shopifyId, {completeInitQueueAction: true});
+        const stocksTemp = await getStockTemps(shopifyId);
+        return Promise.all([
+          convertLuxuryProductFromTemp(shopifyId, stocksTemp),
+          convertQueueFromTemp(shopifyId, stocksTemp),
+          updateLuxuryData(shopifyId, {completeInitQueueAction: true})
+        ]);
       }
     }
   }
+}
+
+/**
+ *
+ * @param shopifyId
+ * @param stocksTemp
+ * @returns {Promise<Awaited<boolean|void>[]|boolean>}
+ */
+export async function convertQueueFromTemp(shopifyId, stocksTemp) {
+  const createQueueStockIds = [];
+  const deleteQueueStockIds = [];
+  let createQueues = [];
+  for (const stockTemp of stocksTemp) {
+    if (
+      (stockTemp.event === 'ProductCreate' || stockTemp.event === 'ProductUpdate') &&
+      !createQueueStockIds.includes(stockTemp.stockId)
+    ) {
+      createQueues.push({
+        stockId: stockTemp.stockId,
+        shopifyId: shopifyId,
+        status: 'create',
+        retry: 0,
+        createdAt: FieldValue.serverTimestamp()
+      });
+      createQueueStockIds.push(stockTemp.stockId);
+    }
+    if (stockTemp.event === 'ProductCreate') {
+      deleteQueueStockIds.push(stockTemp.stockId);
+    }
+  }
+  createQueues = createQueues.filter(queue => !deleteQueueStockIds.includes(queue.stockId));
+  const deleteDocs = await collection
+    .where('shopifyId', '==', shopifyId)
+    .where('stockId', 'in', deleteQueueStockIds);
+  if (!deleteDocs.empty) {
+    return Promise.all([
+      createProductQueues(shopifyId, createQueues, false),
+      batchDelete(firestore, deleteDocs.docs)
+    ]);
+  }
+  return createProductQueues(shopifyId, createQueues, false);
 }
 
 /**
@@ -1754,7 +1813,7 @@ async function initQueueActions({shopifyId, stockListResult, nextOffset}) {
   });
 
   return Promise.all([
-    importSizes(sizesToImport),
+    importSizes(shopifyId, sizesToImport),
     addLuxuryProducts(shopifyId, stockListResult.data),
     createProductQueues(shopifyId, stockListResult.data),
     updateLuxuryData(shopifyId, {totalProductCountInit: stockListResult.total, nextOffset})
@@ -1765,19 +1824,34 @@ async function initQueueActions({shopifyId, stockListResult, nextOffset}) {
  *
  * @param shopId
  * @param stockList
+ * @param filterBrand
  * @returns {Promise<boolean>}
  */
-export async function createProductQueues(shopId, stockList) {
+export async function createProductQueues(shopId, stockList, filterBrand = true) {
   try {
     const brandFilter = await getBrandSettingShopId(shopId);
     const stockIdsExclude = await getStockIdsExclude(shopId);
-    const products = stockList
-      .filter(
-        stockItem =>
-          brandFilter.brands.includes(stockItem.brand) &&
-          (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
-      )
-      .map(item => {
+    let products = [];
+    // const stockIds = [];
+    if (filterBrand) {
+      products = stockList
+        .filter(
+          stockItem =>
+            brandFilter.brands.includes(stockItem.brand) &&
+            (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
+        )
+        .map(item => {
+          // stockIds.push(item.id);
+          return {
+            stockId: item.id,
+            shopifyId: shopId,
+            status: 'create',
+            retry: 0,
+            createdAt: FieldValue.serverTimestamp()
+          };
+        });
+    } else {
+      products = stockList.map(item => {
         return {
           stockId: item.id,
           shopifyId: shopId,
@@ -1786,8 +1860,22 @@ export async function createProductQueues(shopId, stockList) {
           createdAt: FieldValue.serverTimestamp()
         };
       });
-
+    }
     await batchCreate(firestore, collection, products);
+
+    // if (stockIds.length) {
+    //   const duplicateIds = await collection
+    //     .where('shopifyId', '==', shopId)
+    //     .where('stockId', 'in', stockIds);
+    //   if (duplicateIds.empty) {
+    //     await batchCreate(firestore, collection, products);
+    //   } else {
+    //     await Promise.all([
+    //       batchDelete(firestore, duplicateIds.docs),
+    //       batchCreate(firestore, collection, products)
+    //     ]);
+    //   }
+    // }
     return true;
   } catch (e) {
     console.log(e);

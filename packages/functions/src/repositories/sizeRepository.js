@@ -8,11 +8,11 @@ const collection = firestore.collection('sizes');
  *
  * @returns {Promise<void>}
  */
-export async function importSizes(sizes) {
+export async function importSizes(shopifyId, sizes) {
   try {
-    const docs = await collection.get();
+    const docs = await collection.where('shopifyId', '==', shopifyId).get();
     if (docs.empty) {
-      await collection.add({sizes});
+      await collection.add({shopifyId, sizes});
     } else {
       const doc = docs.docs[0];
       const newSizes = [...new Set([...sizes, ...doc.data().sizes])];
@@ -28,9 +28,9 @@ export async function importSizes(sizes) {
  * @returns {Promise<any|*[]>}
  */
 
-export async function getSizes() {
+export async function getSizes(shopifyId) {
   try {
-    const docs = await collection.get();
+    const docs = await collection.where('shopifyId', '==', shopifyId).get();
     if (!docs.empty) {
       return docs.docs[0].data().sizes;
     }
