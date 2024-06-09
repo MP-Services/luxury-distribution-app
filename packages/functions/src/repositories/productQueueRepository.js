@@ -106,7 +106,7 @@ export async function getQueueQuery(shopId, limit = 0) {
 export async function syncProducts(shopId) {
   try {
     const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    if (luxuryInfo?.deleteApp ?? !luxuryInfo?.completeInitQueueAction) {
+    if (luxuryInfo?.deleteApp || !luxuryInfo?.completeInitQueueAction) {
       return true;
     }
     const syncSetting = await getSyncSettingShopId(shopId);
@@ -1528,32 +1528,34 @@ export async function productWebhook(webhookData) {
     const shops = await getLuxuryShops();
     if (shops) {
       const completeInitShops = shops.filter(shop => shop?.completeInitQueueAction);
-      const notCompleteInitShops = shops.filter(shop => shop?.completeInitQueueAction);
+      const notCompleteInitShops = shops.filter(shop => !shop?.completeInitQueueAction);
+      const actions = [];
       if (shops.length) {
         switch (event) {
           case 'ProductCreate':
-            return queueProductBulk({shops, stockId, status: 'create'});
+            actions.push(queueProductBulk({shops, stockId, status: 'create'}));
+            break;
           case 'ProductUpdate':
-            return queueProductBulk({shops, stockId, status: 'update'});
+            actions.push(queueProductBulk({shops, stockId, status: 'update'}));
+            break;
           case 'ProductDelete':
+            actions.push(queueProductBulk({shops, stockId, status: 'delete'}));
             if (!completeInitShops.length) {
-              return queueProductBulk({shops, stockId, status: 'delete'});
+              actions.push(deleteLuxuryProductShops(completeInitShops, stockId));
             }
-            return Promise.all([
-              deleteLuxuryProductShops(completeInitShops, stockId),
-              queueProductBulk({shops, stockId, status: 'delete'})
-            ]);
+            break;
         }
       }
       if (notCompleteInitShops.length) {
-        return addStockTemps(notCompleteInitShops, {stockId, event});
+        actions.push(addStockTemps(notCompleteInitShops, {stockId, event}));
       }
+      await Promise.all(actions);
+      return true;
     }
-    return true;
   } catch (e) {
     console.log(e);
-    return false;
   }
+  return false;
 }
 
 /**
@@ -1624,7 +1626,7 @@ async function getProductByStockId(stockId, shopifyId) {
  * @returns {Promise<void>}
  */
 export async function queueProductBulk({shops, stockId, status}) {
-  const shopChunks = chunk(shops.docs, 1000);
+  const shopChunks = chunk(shops, 1000);
 
   for (const shopChunk of shopChunks) {
     const createQueues = shopChunk.map(shop => ({
@@ -1634,7 +1636,7 @@ export async function queueProductBulk({shops, stockId, status}) {
       retry: 0,
       createdAt: FieldValue.serverTimestamp()
     }));
-    await batchCreate(firestore, collection, createQueues);
+    return batchCreate(firestore, collection, createQueues);
   }
 }
 
@@ -1771,46 +1773,45 @@ export async function initQueues(luxuryInfo) {
  */
 export async function convertQueueFromTemp(shopifyId, stocksTemp) {
   const createQueueStockIds = [];
-  let deleteQueueStockIds = [];
+  const deleteQueueStockIds = [];
   let createQueues = [];
   for (const stockTemp of stocksTemp) {
     if (
       (stockTemp.event === 'ProductCreate' || stockTemp.event === 'ProductUpdate') &&
       !createQueueStockIds.includes(stockTemp.stockId)
     ) {
-      createQueues.push({
-        stockId: stockTemp.stockId,
-        shopifyId: shopifyId,
-        status: 'create',
-        retry: 0,
-        createdAt: FieldValue.serverTimestamp()
-      });
+      createQueues.push({stockId: stockTemp.stockId});
       createQueueStockIds.push(stockTemp.stockId);
     }
-    if (stockTemp.event === 'ProductCreate') {
+    if (stockTemp.event === 'ProductDelete') {
       deleteQueueStockIds.push(stockTemp.stockId);
     }
   }
   createQueues = createQueues.filter(queue => !deleteQueueStockIds.includes(queue.stockId));
+  let createQueuesToDelete = [];
   const createQueuesChunks = chunk(createQueues, 30);
   const createQueuesDocsArr = await Promise.all(
     createQueuesChunks.map(createQueuesChunk => {
       return collection
         .where('shopifyId', '==', shopifyId)
-        .where('stockId', 'in', createQueuesChunk)
+        .where(
+          'stockId',
+          'in',
+          createQueuesChunk.map(queue => queue.stockId)
+        )
+        .where('status', 'in', ['create', 'update'])
         .get();
     })
   );
   for (const createQueuesDocs of createQueuesDocsArr) {
     if (!createQueuesDocs.empty) {
-      deleteQueueStockIds = [...deleteQueueStockIds, ...createQueuesDocs.docs];
+      createQueuesToDelete = [...createQueuesToDelete, ...createQueuesDocs.docs];
     }
   }
-
-  if (deleteQueueStockIds.length) {
+  if (createQueuesToDelete.length) {
     return Promise.all([
       createProductQueues(shopifyId, createQueues, false),
-      batchDelete(firestore, deleteQueueStockIds)
+      batchDelete(firestore, createQueuesToDelete)
     ]);
   }
   return createProductQueues(shopifyId, createQueues, false);
@@ -1857,7 +1858,7 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
         .map(item => {
           // stockIds.push(item.id);
           return {
-            stockId: item.id,
+            stockId: item?.stockId ?? item.id,
             shopifyId: shopId,
             status: 'create',
             retry: 0,
@@ -1867,7 +1868,7 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
     } else {
       products = stockList.map(item => {
         return {
-          stockId: item.id,
+          stockId: item?.stockId ?? item.id,
           shopifyId: shopId,
           status: 'create',
           retry: 0,
