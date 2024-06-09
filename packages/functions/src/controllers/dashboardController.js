@@ -18,9 +18,11 @@ export async function getDashboardInfo(ctx) {
 
   ctx.body = {
     success: true,
-    totalsProductCount: totalProducts,
-    createQueueProductCount: createQueues,
-    updateQueueProductCount: updateQueues,
-    deleteQueueProductCount: deleteQueues
+    data: {
+      totalsProductCount: totalProducts,
+      createQueueProductCount: createQueues,
+      updateQueueProductCount: updateQueues,
+      deleteQueueProductCount: deleteQueues
+    }
   };
 }

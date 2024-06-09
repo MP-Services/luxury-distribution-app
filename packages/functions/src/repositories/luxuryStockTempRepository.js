@@ -31,7 +31,7 @@ export async function addStockTemps(shops, data) {
  */
 export async function getStockTemps(shopifyId) {
   try {
-    const docs = await collection.where('shopifyId', '==', shopifyId);
+    const docs = await collection.where('shopifyId', '==', shopifyId).get();
     if (docs.empty) {
       return null;
     }

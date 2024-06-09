@@ -1403,7 +1403,7 @@ export async function getQueueCount(shopifyId, queueStatus) {
   try {
     const docs = await collection
       .where('shopifyId', '==', shopifyId)
-      .where('queueStatus', '==', queueStatus)
+      .where('status', '==', queueStatus)
       .count()
       .get();
 
@@ -1730,11 +1730,10 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
 export async function initQueues(luxuryInfo) {
   const {shopifyId} = luxuryInfo;
   if (!luxuryInfo?.completeInitQueueAction) {
-    const nextOffset = luxuryInfo.hasOwnProperty('nextOffset') ? luxuryInfo.nextOffset : 1000;
     if (!luxuryInfo?.totalProductCountInit) {
       const stockListResult = await getLuxuryStockList({shopInfo: luxuryInfo});
       if (stockListResult && stockListResult?.data && stockListResult.data.length) {
-        return initQueueActions({shopifyId, stockListResult, nextOffset});
+        return initQueueActions({shopifyId, stockListResult, nextOffset: 1000});
       }
     } else {
       if (luxuryInfo.nextOffset < luxuryInfo.totalProductCountInit) {
@@ -1743,7 +1742,11 @@ export async function initQueues(luxuryInfo) {
           offset: luxuryInfo.nextOffset
         });
         if (stockListResult && stockListResult?.data && stockListResult.data.length) {
-          return initQueueActions({shopifyId, stockListResult, nextOffset});
+          return initQueueActions({
+            shopifyId,
+            stockListResult,
+            nextOffset: luxuryInfo.nextOffset + 1000
+          });
         }
       } else {
         const stocksTemp = await getStockTemps(shopifyId);
@@ -1765,7 +1768,7 @@ export async function initQueues(luxuryInfo) {
  */
 export async function convertQueueFromTemp(shopifyId, stocksTemp) {
   const createQueueStockIds = [];
-  const deleteQueueStockIds = [];
+  let deleteQueueStockIds = [];
   let createQueues = [];
   for (const stockTemp of stocksTemp) {
     if (
@@ -1786,13 +1789,25 @@ export async function convertQueueFromTemp(shopifyId, stocksTemp) {
     }
   }
   createQueues = createQueues.filter(queue => !deleteQueueStockIds.includes(queue.stockId));
-  const deleteDocs = await collection
-    .where('shopifyId', '==', shopifyId)
-    .where('stockId', 'in', deleteQueueStockIds);
-  if (!deleteDocs.empty) {
+  const createQueuesChunks = chunk(createQueues, 30);
+  const createQueuesDocsArr = await Promise.all(
+    createQueuesChunks.map(createQueuesChunk => {
+      return collection
+        .where('shopifyId', '==', shopifyId)
+        .where('stockId', 'in', createQueuesChunk)
+        .get();
+    })
+  );
+  for (const createQueuesDocs of createQueuesDocsArr) {
+    if (!createQueuesDocs.empty) {
+      deleteQueueStockIds = [...deleteQueueStockIds, ...createQueuesDocs.docs];
+    }
+  }
+
+  if (deleteQueueStockIds.length) {
     return Promise.all([
       createProductQueues(shopifyId, createQueues, false),
-      batchDelete(firestore, deleteDocs.docs)
+      batchDelete(firestore, deleteQueueStockIds)
     ]);
   }
   return createProductQueues(shopifyId, createQueues, false);
@@ -1811,7 +1826,6 @@ async function initQueueActions({shopifyId, stockListResult, nextOffset}) {
     const sizes = sizeQuantity.map(size => Object.keys(size)[0]);
     sizesToImport = [...new Set([...sizesToImport, ...sizes])];
   });
-
   return Promise.all([
     importSizes(shopifyId, sizesToImport),
     addLuxuryProducts(shopifyId, stockListResult.data),
@@ -1830,16 +1844,12 @@ async function initQueueActions({shopifyId, stockListResult, nextOffset}) {
 export async function createProductQueues(shopId, stockList, filterBrand = true) {
   try {
     const brandFilter = await getBrandSettingShopId(shopId);
-    const stockIdsExclude = await getStockIdsExclude(shopId);
     let products = [];
     // const stockIds = [];
     if (filterBrand) {
       products = stockList
-        .filter(
-          stockItem =>
-            brandFilter.brands.includes(stockItem.brand) &&
-            (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
-        )
+        .filter(stockItem => brandFilter.brands.includes(stockItem.brand))
+
         .map(item => {
           // stockIds.push(item.id);
           return {

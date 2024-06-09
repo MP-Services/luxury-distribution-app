@@ -1,5 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {batchCreate, batchDelete} from '@functions/repositories/helper';
+import {chunk} from '@avada/utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -32,10 +33,8 @@ export async function addLuxuryProducts(shopifyId, stocks) {
         updatedAt: FieldValue.serverTimestamp()
       };
     });
-    const duplicateStocks = await collection
-      .where('shopifyId', '==', shopifyId)
-      .where('stockId', 'in', stockIds);
-    if (duplicateStocks.empty) {
+    const duplicateStocks = await getDuplicateStockIds(shopifyId, stockIds);
+    if (!duplicateStocks.length) {
       return batchCreate(firestore, collection, products);
     }
     return Promise.all([
@@ -46,8 +45,6 @@ export async function addLuxuryProducts(shopifyId, stocks) {
     console.log(e);
   }
 }
-
-export async function deleteLuxuryProducts(shopifyId) {}
 
 /**
  *
@@ -97,11 +94,21 @@ export async function saveLuxuryProduct(shopifyId, stock) {
 export async function deleteLuxuryProductShops(shops, stockId) {
   try {
     const shopifyIds = shops.map(shop => shop.shopifyId);
-    const docs = await collection
-      .where('shopifyId', 'in', shopifyIds)
-      .where('stockId', '==', stockId);
-    if (!docs.empty) {
-      return batchDelete(firestore, docs.docs);
+    const shopifyIdsChunks = chunk(shopifyIds, 30);
+    const docsArr = await shopifyIdsChunks.map(shopifyIdsChunk => {
+      return collection
+        .where('shopifyId', 'in', shopifyIdsChunk)
+        .where('stockId', '==', stockId)
+        .get();
+    });
+    let docsDelete = [];
+    for (const docs of docsArr) {
+      if (!docs.empty) {
+        docsDelete = [...docsDelete, ...docs.docs];
+      }
+    }
+    if (docsDelete.length) {
+      return batchDelete(firestore, docsDelete);
     }
   } catch (e) {
     console.error(e);
@@ -119,11 +126,9 @@ export async function convertLuxuryProductFromTemp(shopifyId, stocksTemp) {
   try {
     const stocksTempDelete = stocksTemp.filter(item => item.event === 'ProductDelete');
     if (stocksTempDelete.length) {
-      const docs = await collection
-        .where('shopifyId', '==', shopifyId)
-        .where('stockId', 'in', stocksTempDelete);
-      if (!docs.empty) {
-        return batchDelete(firestore, docs.docs);
+      const duplicateStocks = await getDuplicateStockIds(shopifyId, stocksTempDelete);
+      if (stocksTempDelete.length) {
+        return batchDelete(firestore, duplicateStocks);
       }
     }
     return true;
@@ -132,4 +137,29 @@ export async function convertLuxuryProductFromTemp(shopifyId, stocksTemp) {
   }
 
   return false;
+}
+
+/**
+ *
+ * @param shopifyId
+ * @param stockIds
+ * @returns {Promise<*[]>}
+ */
+export async function getDuplicateStockIds(shopifyId, stockIds) {
+  const stockIdsChunks = chunk(stockIds, 30);
+  const duplicateStocksDocsArr = await Promise.all(
+    stockIdsChunks.map(stockIdsChunk => {
+      return collection
+        .where('shopifyId', '==', shopifyId)
+        .where('stockId', 'in', stockIdsChunk)
+        .get();
+    })
+  );
+  let duplicateStocks = [];
+  for (const duplicateStocksDocs of duplicateStocksDocsArr) {
+    if (!duplicateStocksDocs.empty) {
+      duplicateStocks = [...duplicateStocks, ...duplicateStocksDocs.docs];
+    }
+  }
+  return duplicateStocks;
 }

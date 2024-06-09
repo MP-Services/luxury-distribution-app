@@ -189,7 +189,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
@@ -207,7 +207,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -229,7 +229,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -247,7 +247,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -265,7 +265,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
@@ -337,7 +337,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -355,7 +355,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -373,7 +373,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
@@ -391,7 +391,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]
@@ -401,7 +401,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "queueStatus",
+          "fieldPath": "status",
           "order": "ASCENDING"
         },
         {
