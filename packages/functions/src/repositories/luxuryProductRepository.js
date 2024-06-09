@@ -177,3 +177,21 @@ export async function getLuxuryProducts(shopifyId) {
 
   return docs.docs.map(doc => ({uid: doc.id, ...doc.data()}));
 }
+
+/**
+ *
+ * @param shopifyId
+ * @param stockId
+ * @returns {Promise<null|void>}
+ */
+export async function deleteLuxuryProductByShopifyId(shopifyId, stockId) {
+  const docs = await collection
+    .where('shopifyId', '==', shopifyId)
+    .where('stockId', '==', stockId)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
+}

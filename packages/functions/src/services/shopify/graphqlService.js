@@ -36,16 +36,10 @@ query publications($after: String) {
 export const GET_PRODUCTS_VARIANTS_QUERY = `
 query productVariants($query: String){
   productVariants(first: 3, query: $query ) {
-    edges {
-      node {
-        id
-        inventoryQuantity
-        title
-        selectedOptions {
-          name
-          value
-        }
-      }
+    nodes {
+      id
+      inventoryQuantity
+      title
     }
     pageInfo {
       endCursor

@@ -30,7 +30,8 @@ import {
   runFileDeleteMutation,
   runProductOptionUpdateMutation,
   runMetafieldDelete,
-  METAFIELDS_DELETE_VALUE_MUTATION
+  METAFIELDS_DELETE_VALUE_MUTATION,
+  getProductVariants as getProductVariantsGraphQl
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -44,6 +45,7 @@ import {
   addLuxuryProduct,
   addLuxuryProducts,
   convertLuxuryProductFromTemp,
+  deleteLuxuryProductByShopifyId,
   deleteLuxuryProductShops,
   getLuxuryProducts,
   saveLuxuryProduct
@@ -51,7 +53,8 @@ import {
 import {importSizes} from '@functions/repositories/sizeRepository';
 import {
   getShopifyProductDoc,
-  getShopifyProductByDoc
+  getShopifyProductByDoc,
+  saveShopifyProduct
 } from '@functions/repositories/shopifyProductRepository';
 import {addStockTemps, getStockTemps} from '@functions/repositories/luxuryStockTempRepository';
 
@@ -105,19 +108,34 @@ export async function getQueueQuery(shopId, limit = 0) {
  * @returns {Promise<*[]>}
  */
 export async function syncProducts(shopId) {
+  let queues = null;
   try {
-    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    const [luxuryInfo, shop] = await Promise.all([
+      getLuxuryShopInfoByShopifyId(shopId),
+      getShopByIdIncludeAccessToken(shopId)
+    ]);
+
     if (luxuryInfo?.deleteApp || !luxuryInfo?.completeInitQueueAction) {
       return true;
     }
-    const syncSetting = await getSyncSettingShopId(shopId);
-    const generalSetting = await getGeneralSettingShopId(shopId);
-    const categoryMappings = await getMappingDataWithoutPaginate(shopId);
-    const brandFilterSetting = await getBrandSettingShopId(shopId);
-    const queueQuery = await getQueueQuery(shopId, 10);
-    const shop = await getShopByIdIncludeAccessToken(shopId);
-    const sizeAttributeMapping = await getAttributeMappingData(shopId);
-    const defaultLocationId = await getLocationQuery({shop, variables: {}});
+    const [
+      syncSetting,
+      generalSetting,
+      categoryMappings,
+      brandFilterSetting,
+      queueQuery,
+      sizeAttributeMapping,
+      defaultLocationId
+    ] = await Promise.all([
+      getSyncSettingShopId(shopId),
+      getGeneralSettingShopId(shopId),
+      getMappingDataWithoutPaginate(shopId),
+      getBrandSettingShopId(shopId),
+      getQueueQuery(shopId, 1),
+      getAttributeMappingData(shopId),
+      getLocationQuery({shop, variables: {}})
+    ]);
+
     if (
       queueQuery.empty ||
       !defaultLocationId ||
@@ -126,18 +144,22 @@ export async function syncProducts(shopId) {
     ) {
       return [];
     }
-    const onlineStore = await getOnlineStorePublication({shop});
+    queues = queueQuery;
+    const [onlineStore, queuesLocked] = await Promise.all([
+      getOnlineStorePublication({shop}),
+      lockQueues(queueQuery)
+    ]);
     const newQueueQueryDocs = filterQueueDocs(queueQuery);
     if (newQueueQueryDocs.length) {
       await Promise.all(
         newQueueQueryDocs.map(async queueDoc => {
           const queueData = queueDoc.data();
-          const docId = queueDoc.id;
           switch (queueData.status) {
             case 'delete':
-              return actionQueueDelete({shop, docId, queueDoc, luxuryInfo, queueData});
+              await actionQueueDelete({shop, queueDoc, luxuryInfo, queueData});
+              break;
             case 'create':
-              return actionQueueCreate({
+              await actionQueueCreate({
                 shop,
                 categoryMappings,
                 syncSetting,
@@ -147,18 +169,23 @@ export async function syncProducts(shopId) {
                 onlineStore,
                 queueDoc,
                 queueData,
-                luxuryInfo
+                luxuryInfo,
+                brandFilterSetting
               });
+              break;
             case 'update':
-              return actionQueueUpdate({
+              await actionQueueUpdate({
                 shop,
                 syncSetting,
                 generalSetting,
                 categoryMappings,
                 sizeAttributeMapping,
                 defaultLocationId,
-                docId,
-                queueDoc
+                onlineStore,
+                queueDoc,
+                queueData,
+                luxuryInfo,
+                brandFilterSetting
               });
           }
         })
@@ -167,6 +194,19 @@ export async function syncProducts(shopId) {
   } catch (e) {
     console.log(e);
   }
+
+  if (queues) {
+    return lockQueues(queues, false);
+  }
+
+  return true;
+}
+
+/**
+ *
+ */
+export async function lockQueues(queueQuery, locked = true) {
+  return batchUpdate(firestore, queueQuery.docs, {locked: true});
 }
 
 /**
@@ -203,7 +243,8 @@ function filterQueueDocs(queueQuery) {
  * @param queueDoc
  * @param queueData
  * @param luxuryInfo
- * @returns {Promise<void>}
+ * @param brandFilterSetting
+ * @returns {Promise<*|void|undefined>}
  */
 async function actionQueueCreate({
   shop,
@@ -215,36 +256,88 @@ async function actionQueueCreate({
   onlineStore,
   queueDoc,
   queueData,
-  luxuryInfo
+  luxuryInfo,
+  brandFilterSetting
 }) {
   const {id: shopifyId} = shop;
   const stock = await getStockById(queueData.stockId, luxuryInfo);
   if (!stock) {
     return updateQueueDoc(queueDoc, queueData);
   }
-  if (stock && !stock?.data) {
+  if (stock && !stock?.id) {
     return updateQueueDoc(queueDoc, queueData, 'success');
   }
   const shopifyProductCreated = await getShopifyProductDoc(shopifyId, queueData.stockId);
-  if (!shopifyProductCreated) {
-    return actionCreateShopifyProduct({
+  const brandsFilter =
+    brandFilterSetting?.brands && brandFilterSetting.brands.length
+      ? brandFilterSetting.brands.map(brand => brand.toUpperCase())
+      : null;
+  if (!shopifyProductCreated && brandsFilter && brandsFilter.includes(stock.brand.toUpperCase())) {
+    return Promise.all([
+      saveLuxuryProduct(shopifyId, stock),
+      actionCreateShopifyProduct({
+        shop,
+        categoryMappings,
+        syncSetting,
+        generalSetting,
+        sizeAttributeMapping,
+        defaultLocationId,
+        onlineStore,
+        queueDoc,
+        queueData,
+        luxuryInfo,
+        productData: stock
+      })
+    ]);
+  }
+  if (shopifyProductCreated && brandsFilter && brandsFilter.includes(stock.brand.toUpperCase())) {
+    // Action update shopify product
+    return actionUpdateShopifyProduct({
       shop,
-      categoryMappings,
       syncSetting,
       generalSetting,
+      categoryMappings,
       sizeAttributeMapping,
       defaultLocationId,
       onlineStore,
       queueDoc,
       queueData,
       luxuryInfo,
-      productData: stock
+      brandFilterSetting,
+      shopifyProductCreated,
+      stock
     });
-  } else {
-    //   Action update product
+  }
+  if (
+    shopifyProductCreated &&
+    (!brandsFilter || !brandsFilter.includes(stock.brand.toUpperCase()))
+  ) {
+    // Action delete shopify product
+    return actionQueueDelete({
+      shop,
+      queueDoc,
+      luxuryInfo,
+      queueData,
+      isDeleteLxProduct: false
+    });
   }
 }
 
+/**
+ *
+ * @param shop
+ * @param categoryMappings
+ * @param syncSetting
+ * @param generalSetting
+ * @param sizeAttributeMapping
+ * @param defaultLocationId
+ * @param onlineStore
+ * @param queueDoc
+ * @param queueData
+ * @param luxuryInfo
+ * @param productData
+ * @returns {Promise<void|*>}
+ */
 async function actionCreateShopifyProduct({
   shop,
   categoryMappings,
@@ -289,14 +382,10 @@ async function actionCreateShopifyProduct({
     const shopifyProductSave = {
       shopifyProductId: shopifyProduct.id,
       stockId: queueData.stockId,
+      product_category_id: productData.product_category_id,
       sizes
     };
-    // await updateProduct(docId, {
-    //   shopifyProductId: shopifyProduct.id,
-    //   queueStatus: 'synced',
-    //   syncStatus: 'success',
-    //   updatedAt: FieldValue.serverTimestamp()
-    // });
+    let productAdjustQuantitiesVariables = null;
     const productVariantsVariables = await getProductVariantsVariables({
       shopifyProductId: shopifyProduct.id,
       productData,
@@ -310,43 +399,29 @@ async function actionCreateShopifyProduct({
       variables: productVariantsVariables
     });
     if (productVariantsReturn) {
-      const productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
+      productAdjustQuantitiesVariables = getProductAdjustQuantitiesVariables(
         productVariantsReturn,
         sizesQuantityDelta,
         defaultLocationId
       );
-      const adjustQuantitesResult = await runProductAdjustQuantitiesMutation({
+      await runProductAdjustQuantitiesMutation({
         shop,
         variables: productAdjustQuantitiesVariables.variables
       });
-
-      shopifyProductSave.size_quantity = productData.size_quantity;
-
-      // return updateProduct(docId, {
-      //   productOptionsAfterMap: sizeOptionMapping(
-      //     sizesQuantityDelta.map(item => Object.keys(item)[0]),
-      //     sizeAttributeMapping,
-      //     shopifyProduct.options[0].optionValues,
-      //     productAdjustQuantitiesVariables.variants,
-      //     shopifyProduct.options[0].id
-      //   ),
-      //   updatedAt: FieldValue.serverTimestamp(),
-      //   size_quantity_delta: []
-      // });
     }
-    const productOptionsAfterMap = sizeOptionMapping(
+    shopifyProductSave.productOptionsAfterMap = sizeOptionMapping(
       sizes,
       sizeAttributeMapping,
       shopifyProduct.options[0].optionValues,
-      productAdjustQuantitiesVariables.variants,
+      productAdjustQuantitiesVariables,
       shopifyProduct.options[0].id
     );
+    return Promise.all([
+      saveShopifyProduct(shop.id, shopifyProductSave),
+      updateQueueDoc(queueDoc, queueData, 'success')
+    ]);
   } else {
-    return updateProduct(docId, {
-      shopifyProductId: '',
-      syncStatus: 'failed',
-      updatedAt: FieldValue.serverTimestamp()
-    });
+    return updateQueueDoc(queueDoc, queueData);
   }
 }
 
@@ -358,8 +433,11 @@ async function actionCreateShopifyProduct({
  * @param categoryMappings
  * @param sizeAttributeMapping
  * @param defaultLocationId
- * @param docId
- * @param productData
+ * @param onlineStore
+ * @param queueDoc
+ * @param queueData
+ * @param luxuryInfo
+ * @param brandFilterSetting
  * @returns {Promise<void>}
  */
 async function actionQueueUpdate({
@@ -369,23 +447,114 @@ async function actionQueueUpdate({
   categoryMappings,
   sizeAttributeMapping,
   defaultLocationId,
-  docId,
-  productData
+  onlineStore,
+  queueDoc,
+  queueData,
+  luxuryInfo,
+  brandFilterSetting
 }) {
-  const productId = productData.shopifyProductId;
-  const productOptionId = productData?.productOptionsAfterMap[0]?.productOptionId;
+  const {id: shopifyId} = shop;
+  const [stock, shopifyProductCreated] = await Promise.all([
+    getStockById(queueData.stockId, luxuryInfo),
+    getShopifyProductDoc(shopifyId, stockId)
+  ]);
+  if (!stock) {
+    return updateQueueDoc(queueDoc, queueData);
+  }
+  const brandsFilter =
+    brandFilterSetting?.brands && brandFilterSetting.brands.length
+      ? brandFilterSetting.brands.map(brand => brand.toUpperCase())
+      : null;
+  if (!shopifyProductCreated && stock?.id && brandsFilter.includes(stock.brand.toUpperCase())) {
+    return actionCreateShopifyProduct({
+      shop,
+      categoryMappings,
+      syncSetting,
+      generalSetting,
+      sizeAttributeMapping,
+      defaultLocationId,
+      onlineStore,
+      queueDoc,
+      queueData,
+      luxuryInfo,
+      productData: stock
+    });
+  }
+  if (shopifyProductCreated && !brandsFilter.includes(stock.brand.toUpperCase())) {
+    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo, isDeleteLxProduct: false});
+  }
+  if (shopifyProductCreated && !stock?.id) {
+    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo});
+  }
+
+  return actionUpdateShopifyProduct({
+    shop,
+    syncSetting,
+    generalSetting,
+    categoryMappings,
+    sizeAttributeMapping,
+    defaultLocationId,
+    onlineStore,
+    queueDoc,
+    queueData,
+    luxuryInfo,
+    brandFilterSetting,
+    shopifyProductCreated,
+    stock
+  });
+
+  // return updateProduct(docId, {
+  //   syncStatus: 'success',
+  //   queueStatus: 'synced',
+  //   productOptionsAfterMap,
+  //   size_quantity_delta: [],
+  //   updatedAt: FieldValue.serverTimestamp()
+  // });
+}
+
+/**
+ *
+ * @param shop
+ * @param syncSetting
+ * @param generalSetting
+ * @param categoryMappings
+ * @param sizeAttributeMapping
+ * @param defaultLocationId
+ * @param onlineStore
+ * @param queueDoc
+ * @param queueData
+ * @param luxuryInfo
+ * @param brandFilterSetting
+ * @param shopifyProductCreated
+ * @param stock
+ */
+export async function actionUpdateShopifyProduct({
+  shop,
+  syncSetting,
+  generalSetting,
+  categoryMappings,
+  sizeAttributeMapping,
+  defaultLocationId,
+  onlineStore,
+  queueDoc,
+  queueData,
+  luxuryInfo,
+  brandFilterSetting,
+  shopifyProductCreated,
+  stock
+}) {
+  const productId = shopifyProductCreated.shopifyProductId;
+  const productOptionId = shopifyProductCreated?.productOptionsAfterMap[0]?.productOptionId;
   const fileIdsToDelete = await getFileIdsToDelete(shop, productId);
   if (fileIdsToDelete) {
     await runFileDeleteMutation({shop, variables: {fileIds: fileIdsToDelete}});
   }
-  const productMediaData = getProductMediaData(productData);
+  const productMediaData = getProductMediaData(stock);
   const initProductVariables = {
     product: {
       id: productId,
-      title: generalSetting?.includeBrand
-        ? `${productData.name} ${productData.brand}`
-        : productData.name,
-      descriptionHtml: syncSetting?.description ? productData.description : ''
+      title: generalSetting?.includeBrand ? `${stock.name} ${stock.brand}` : stock.name,
+      descriptionHtml: syncSetting?.description ? stock.description : ''
     },
     media: syncSetting?.images ? productMediaData : []
   };
@@ -393,12 +562,12 @@ async function actionQueueUpdate({
   const {productVariables, margin} = addCollectionsToProductVariables(
     categoryMappings,
     syncSetting,
-    productData,
+    shopifyProductCreated,
     initProductVariables
   );
 
-  let productOptionsAfterMap = productData?.productOptionsAfterMap;
-  const metafieldsData = getMetafieldsData(productData);
+  let productOptionsAfterMap = shopifyProductCreated?.productOptionsAfterMap;
+  const metafieldsData = getMetafieldsData(shopifyProductCreated);
   const metafieldsDelete = metafieldsData.filter(metafield => !metafield.value);
   const metafieldsUpdate = metafieldsData.filter(metafield => metafield.value);
   if (metafieldsDelete.length) {
@@ -424,9 +593,9 @@ async function actionQueueUpdate({
     })
   ]);
 
-  const sizesNeedAdd = getSizesNeedAdd(productData);
-  const sizesNeedUpdate = getSizesNeedUpdate(productData);
-  const sizesNeedDelete = getSizesNeedDelete(productData, generalSetting);
+  const sizesNeedAdd = getSizesNeedAdd(stock, shopifyProductCreated);
+  const sizesNeedUpdate = getSizesNeedUpdate(stock, shopifyProductCreated);
+  const sizesNeedDelete = getSizesNeedDelete(stock, shopifyProductCreated, generalSetting);
   const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
   const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
   const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
@@ -454,7 +623,7 @@ async function actionQueueUpdate({
     if (variantsNeedAdd.length) {
       const productVariantsVariables = await getProductVariantsVariables({
         shopifyProductId: productId,
-        productData,
+        shopifyProductCreated,
         productOptionId,
         optionValuesProduct: variantsNeedAdd,
         margin,
@@ -472,7 +641,7 @@ async function actionQueueUpdate({
     // Update Variant
     if (variantsNeedUpdate.length) {
       const productVariantsUpdateVariables = await getProductVariantsUpdateVariables(
-        productData,
+        shopifyProductCreated,
         sizesNeedUpdate,
         margin,
         generalSetting
@@ -488,43 +657,37 @@ async function actionQueueUpdate({
       }
     }
 
-    if (
-      productData.size_quantity_delta &&
-      productData.size_quantity_delta.length &&
-      productVariantsReturn.length
-    ) {
+    if (productVariantsReturn.length) {
       const variantsToMap = productVariantsUpdateReturn.map(item => ({
         id: item.id,
         title: item.title,
         inventoryItem: item.inventoryItem
       }));
       productOptionsAfterMap = sizeOptionMapping(
-        productData.size_quantity_delta.map(item => Object.keys(item)[0]),
+        shopifyProductCreated.size_quantity.map(item => Object.keys(item)[0]),
         sizeAttributeMapping,
         optionsValues,
         variantsToMap,
         productOptionId
       );
-      const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
-        productOptionsAfterMap,
-        productData.size_quantity_delta,
-        defaultLocationId
-      );
-
-      await runProductAdjustQuantitiesMutation({
+      const productVariantsWithQuantityBefore = await getProductVariantsGraphQl({
         shop,
-        variables: productAdjustQuantitiesUpdate.variables
+        variables: {query: `product_id:${Number(productId.replace('gid://shopify/Product/', ''))}`}
       });
+      if (productVariantsWithQuantity) {
+        const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+          productOptionsAfterMap,
+          productVariantsWithQuantityBefore,
+          defaultLocationId
+        );
+
+        await runProductAdjustQuantitiesMutation({
+          shop,
+          variables: productAdjustQuantitiesUpdate.variables
+        });
+      }
     }
   }
-
-  return updateProduct(docId, {
-    syncStatus: 'success',
-    queueStatus: 'synced',
-    productOptionsAfterMap,
-    size_quantity_delta: [],
-    updatedAt: FieldValue.serverTimestamp()
-  });
 }
 
 /**
@@ -603,12 +766,13 @@ function getOptionValuesToUpdate(options, sizeAttributeMapping) {
 
 /**
  *
- * @param productData
+ * @param stock
+ * @param shopifyProductCreated
  * @returns {*}
  */
-function getSizesNeedAdd(productData) {
-  return productData.size_quantity.filter(size => {
-    return !productData.productOptionsAfterMap.find(
+function getSizesNeedAdd(stock, shopifyProductCreated) {
+  return stock.size_quantity.filter(size => {
+    return !shopifyProductCreated.productOptionsAfterMap.find(
       option => Object.keys(size)[0] === option.originalOption
     );
   });
@@ -616,27 +780,26 @@ function getSizesNeedAdd(productData) {
 
 /**
  *
- * @param productData
+ * @param stock
+ * @param shopifyProductCreated
  * @returns {*}
  */
-function getSizesNeedUpdate(productData) {
-  return productData.productOptionsAfterMap.filter(option => {
-    return productData.size_quantity.find(size => option.originalOption === Object.keys(size)[0]);
+function getSizesNeedUpdate(stock, shopifyProductCreated) {
+  return shopifyProductCreated.productOptionsAfterMap.filter(option => {
+    return stock.size_quantity.find(size => option.originalOption === Object.keys(size)[0]);
   });
 }
 
 /**
  *
- * @param productData
+ * @param stock
+ * @param shopifyProductCreated
  * @param generalSetting
  * @returns {*}
  */
-
-function getSizesNeedDelete(productData, generalSetting) {
-  return productData.productOptionsAfterMap.filter(option => {
-    const size = productData.size_quantity.find(
-      item => option.originalOption === Object.keys(item)[0]
-    );
+function getSizesNeedDelete(stock, shopifyProductCreated, generalSetting) {
+  return shopifyProductCreated.productOptionsAfterMap.filter(option => {
+    const size = stock.size_quantity.find(item => option.originalOption === Object.keys(item)[0]);
 
     return !size || (generalSetting?.deleteOutStock && size && !Number(Object.values(size)[0]));
   });
@@ -645,46 +808,61 @@ function getSizesNeedDelete(productData, generalSetting) {
 /**
  *
  * @param shop
- * @param docId
  * @param queue
  * @param luxuryInfo
  * @param queueDoc
  * @returns {Promise<google.firestore.v1beta1.WriteResult>}
  */
-async function actionQueueDelete({shop, docId, queueDoc, luxuryInfo, queueData}) {
+async function actionQueueDelete({
+  shop,
+  queueDoc,
+  luxuryInfo,
+  queueData,
+  isDeleteLxProduct = true
+}) {
   const {id: shopifyId} = shop;
   const {stockId} = queueData;
   const shopifyProductDoc = await getShopifyProductDoc(shopifyId, stockId);
+  const actions = [];
+  if (isDeleteLxProduct) {
+    actions.push(deleteLuxuryProductByShopifyId(shopifyId, stockId));
+  }
   if (shopifyProductDoc) {
-    const shopifyProduct = getShopifyProductByDoc(shopifyProductDoc);
-    const productFilesToDelete = await getFileIdsToDelete(shop, shopifyProduct.shopifyProductId);
-    const deleteActions = [];
-    if (productFilesToDelete) {
-      deleteActions.push(runFileDeleteMutation({shop, variables: {fileIds: productFilesToDelete}}));
-    }
-    deleteActions.push(
-      runDeleteProductMutation({
-        shop,
-        variables: {
-          product: {
-            id: shopifyProduct.shopifyProductId
-          }
-        }
-      })
-    );
-    const deleteResult = await Promise.all(deleteActions);
+    const deleteResult = await deleteShopifyProduct(shopifyProductDoc, shop);
     if (
       (deleteResult.length === 1 && !deleteResult[0]) ||
       (deleteResult.length === 2 && !deleteResult[1])
     ) {
       return updateQueueDoc(queueDoc, queueData);
     }
+    actions.push(shopifyProductDoc.ref.delete());
   }
+  actions.push(updateQueueDoc(queueDoc, queueData, 'success'));
+  return Promise.all(actions);
+}
 
-  return Promise.all([
-    updateQueueDoc(queueDoc, queueData, 'success'),
-    shopifyProductDoc.ref.delete()
-  ]);
+/**
+ *
+ * @returns {Promise<Awaited<unknown>[]>}
+ */
+export async function deleteShopifyProduct(shopifyProductDoc, shop) {
+  const shopifyProduct = getShopifyProductByDoc(shopifyProductDoc);
+  const productFilesToDelete = await getFileIdsToDelete(shop, shopifyProduct.shopifyProductId);
+  const deleteActions = [];
+  if (productFilesToDelete) {
+    deleteActions.push(runFileDeleteMutation({shop, variables: {fileIds: productFilesToDelete}}));
+  }
+  deleteActions.push(
+    runDeleteProductMutation({
+      shop,
+      variables: {
+        product: {
+          id: shopifyProduct.shopifyProductId
+        }
+      }
+    })
+  );
+  return Promise.all(deleteActions);
 }
 
 /**
@@ -721,7 +899,7 @@ function addCollectionsToProductVariables(
   let margin = 1;
   if (!categoryMappings.empty && syncSetting?.categories) {
     const categoryMapping = categoryMappings.docs.find(
-      e => e.data().retailerId == productData.categoryMapping
+      e => e.data().retailerId == productData.product_category_id
     );
 
     if (categoryMapping) {
@@ -959,14 +1137,18 @@ function getProductAdjustQuantitiesVariables(
 /**
  *
  * @param sizesNeedUpdate
- * @param sizeQuantityDelta
+ * @param productVariantsWithQuantityBefore
  * @param defaultLocationId
  * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
  */
-function getProductAdjustQuantitiesUpdate(sizesNeedUpdate, sizeQuantityDelta, defaultLocationId) {
+function getProductAdjustQuantitiesUpdate(
+  sizesNeedUpdate,
+  productVariantsWithQuantityBefore,
+  defaultLocationId
+) {
   const changesData = sizesNeedUpdate.map(item => {
-    const deltaItem = sizeQuantityDelta.find(size => {
-      return Object.keys(size)[0] == item.originalOption;
+    const deltaItem = productVariantsWithQuantityBefore.find(variant => {
+      return variant.id == item.productVariantId;
     });
     return {
       inventoryItemId: item.inventoryItemId,
@@ -1209,7 +1391,7 @@ function convertOptionMappingToSizeValue(sizes, sizeAttributeMapping) {
  * @param sizes
  * @param sizeAttributeMapping
  * @param productOptions
- * @param productVariants
+ * @param productAdjustQuantitiesVariables
  * @param productOptionId
  * @returns {*}
  */
@@ -1217,9 +1399,12 @@ function sizeOptionMapping(
   sizes,
   sizeAttributeMapping,
   productOptions,
-  productVariants,
+  productAdjustQuantitiesVariables,
   productOptionId
 ) {
+  const productVariants = productAdjustQuantitiesVariables
+    ? productAdjustQuantitiesVariables.variants
+    : null;
   if (sizeAttributeMapping) {
     const sizeOptionMapping = sizeAttributeMapping[0].optionsMapping;
     if (sizeOptionMapping) {
@@ -1234,14 +1419,12 @@ function sizeOptionMapping(
                 productOptions,
                 sizeOption.dropshipperOptionName
               ),
-              productVariantId: getVariantIdByTitle(
-                productVariants,
-                sizeOption.dropshipperOptionName
-              ),
-              inventoryItemId: getInventoryItemIdByTitle(
-                productVariants,
-                sizeOption.dropshipperOptionName
-              ),
+              productVariantId: productVariants
+                ? getVariantIdByTitle(productVariants, sizeOption.dropshipperOptionName)
+                : '',
+              inventoryItemId: productVariants
+                ? getInventoryItemIdByTitle(productVariants, sizeOption.dropshipperOptionName)
+                : '',
               productOptionId
             }
           : {
@@ -1249,8 +1432,10 @@ function sizeOptionMapping(
               originalOption: size,
               mappingOption: size,
               productOptionValueId: getProductOptionIdByName(productOptions, size),
-              productVariantId: getVariantIdByTitle(productVariants, size),
-              inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
+              productVariantId: productVariants ? getVariantIdByTitle(productVariants, size) : '',
+              inventoryItemId: productVariants
+                ? getInventoryItemIdByTitle(productVariants, size)
+                : '',
               productOptionId
             };
       });
@@ -1262,8 +1447,8 @@ function sizeOptionMapping(
     originalOption: size,
     mappingOption: size,
     productOptionValueId: getProductOptionIdByName(productOptions, size),
-    productVariantId: getVariantIdByTitle(productVariants, size),
-    inventoryItemId: getInventoryItemIdByTitle(productVariants, size),
+    productVariantId: productVariants ? getVariantIdByTitle(productVariants, size) : '',
+    inventoryItemId: productVariants ? getInventoryItemIdByTitle(productVariants, size) : '',
     productOptionId
   }));
 }

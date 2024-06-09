@@ -169,11 +169,11 @@ export async function getBrandList(shopInfo) {
  */
 export async function getStockById(stockId, shopInfo) {
   const stockResponse = await sendRequest({url: LUXURY_API_V2_URL + `/stocks/${stockId}`, shopInfo});
-  if (stockReponse) {
+  if (stockResponse) {
     if (!stockResponse?.data && stockResponse?.custom_code && stockResponse.custom_code === '45') {
       return {};
     }
-    return stockReponse.data;
+    return stockResponse.data;
   }
 
   return null;

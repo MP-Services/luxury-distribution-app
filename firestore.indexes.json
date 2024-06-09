@@ -171,155 +171,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "qty",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "product_category_id",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "product_category_id",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "syncStatus",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "product_category_id",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "syncStatus",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "syncStatus",
           "order": "ASCENDING"
         }
       ]
@@ -338,46 +190,6 @@
         },
         {
           "fieldPath": "status",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "productQueues",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "shopifyId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "shopifyProductId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "syncStatus",
           "order": "ASCENDING"
         }
       ]
@@ -401,7 +213,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "status",
+          "fieldPath": "locked",
           "order": "ASCENDING"
         },
         {
@@ -409,11 +221,11 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "syncStatus",
+          "fieldPath": "createdAt",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "shopifyProductId",
+          "fieldPath": "status",
           "order": "ASCENDING"
         }
       ]

@@ -68,3 +68,27 @@ export async function addShopifyProduct(shopifyId, data) {
     updatedAt: FieldValue.serverTimestamp()
   });
 }
+
+/**
+ *
+ * @param shopifyId
+ * @param data
+ * @returns {Promise<DocumentReference<T>|void>}
+ */
+export async function saveShopifyProduct(shopifyId, data) {
+  const {stockId} = data;
+  const docs = await collection
+    .where('shopifyId', '==', shopifyId)
+    .where('stockId', '==', stockId)
+    .get();
+  if (docs.empty) {
+    return collection.add({
+      shopifyId,
+      ...data,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+  }
+
+  return docs.docs[0].ref.update({...data, updatedAt: FieldValue.serverTimestamp()});
+}
