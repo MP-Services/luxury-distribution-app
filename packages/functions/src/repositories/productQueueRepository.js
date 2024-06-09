@@ -45,6 +45,7 @@ import {
   addLuxuryProducts,
   convertLuxuryProductFromTemp,
   deleteLuxuryProductShops,
+  getLuxuryProducts,
   saveLuxuryProduct
 } from '@functions/repositories/luxuryProductRepository';
 import {importSizes} from '@functions/repositories/sizeRepository';
@@ -1622,14 +1623,16 @@ async function getProductByStockId(stockId, shopifyId) {
  * @param queueStatus
  * @returns {Promise<void>}
  */
-export async function queueProductBulk({shops, stockId, queueStatus}) {
+export async function queueProductBulk({shops, stockId, status}) {
   const shopChunks = chunk(shops.docs, 1000);
 
   for (const shopChunk of shopChunks) {
     const createQueues = shopChunk.map(shop => ({
       shopifyId: shop.shopifyId,
       stockId,
-      queueStatus
+      status,
+      retry: 0,
+      createdAt: FieldValue.serverTimestamp()
     }));
     await batchCreate(firestore, collection, createQueues);
   }
@@ -1846,9 +1849,10 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
     const brandFilter = await getBrandSettingShopId(shopId);
     let products = [];
     // const stockIds = [];
-    if (filterBrand) {
+    if (filterBrand && brandFilter) {
+      const brands = brandFilter.brands.map(brand => brand.toUpperCase());
       products = stockList
-        .filter(stockItem => brandFilter.brands.includes(stockItem.brand))
+        .filter(stockItem => brands.includes(stockItem.brand.toUpperCase()))
 
         .map(item => {
           // stockIds.push(item.id);
@@ -1892,4 +1896,16 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
   }
 
   return false;
+}
+
+export async function getQueueByStatus(shopifyId, status) {
+  const docs = await collection
+    .where('shopifyId', '==', shopifyId)
+    .where('status', '==', status)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs.map(doc => ({uid: doc.id, ...doc.data()}));
 }

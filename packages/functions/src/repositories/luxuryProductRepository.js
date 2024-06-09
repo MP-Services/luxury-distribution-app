@@ -163,3 +163,17 @@ export async function getDuplicateStockIds(shopifyId, stockIds) {
   }
   return duplicateStocks;
 }
+
+/**
+ *
+ * @param shopifyId
+ * @returns {Promise<null|*>}
+ */
+export async function getLuxuryProducts(shopifyId) {
+  const docs = await collection.where('shopifyId', '==', shopifyId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs.map(doc => ({uid: doc.id, ...doc.data()}));
+}
