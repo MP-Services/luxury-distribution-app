@@ -87,8 +87,9 @@ export async function getQueueQuery(shopId, limit = 0) {
   try {
     return await collection
       .where('shopifyId', '==', shopId)
-      .where('queueStatus', '!=', 'synced')
-      .orderBy('updatedAt')
+      .where('status', '!=', ['success', 'failed'])
+      .where('locked', '==', false)
+      .orderBy('createdAt')
       .limit(limit)
       .get();
   } catch (e) {
@@ -1633,6 +1634,7 @@ export async function queueProductBulk({shops, stockId, status}) {
       shopifyId: shop.shopifyId,
       stockId,
       status,
+      locked: false,
       retry: 0,
       createdAt: FieldValue.serverTimestamp()
     }));
@@ -1849,18 +1851,17 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
   try {
     const brandFilter = await getBrandSettingShopId(shopId);
     let products = [];
-    // const stockIds = [];
     if (filterBrand && brandFilter) {
       const brands = brandFilter.brands.map(brand => brand.toUpperCase());
       products = stockList
         .filter(stockItem => brands.includes(stockItem.brand.toUpperCase()))
 
         .map(item => {
-          // stockIds.push(item.id);
           return {
             stockId: item?.stockId ?? item.id,
             shopifyId: shopId,
             status: 'create',
+            locked: false,
             retry: 0,
             createdAt: FieldValue.serverTimestamp()
           };
@@ -1871,26 +1872,13 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
           stockId: item?.stockId ?? item.id,
           shopifyId: shopId,
           status: 'create',
+          locked: false,
           retry: 0,
           createdAt: FieldValue.serverTimestamp()
         };
       });
     }
     await batchCreate(firestore, collection, products);
-
-    // if (stockIds.length) {
-    //   const duplicateIds = await collection
-    //     .where('shopifyId', '==', shopId)
-    //     .where('stockId', 'in', stockIds);
-    //   if (duplicateIds.empty) {
-    //     await batchCreate(firestore, collection, products);
-    //   } else {
-    //     await Promise.all([
-    //       batchDelete(firestore, duplicateIds.docs),
-    //       batchCreate(firestore, collection, products)
-    //     ]);
-    //   }
-    // }
     return true;
   } catch (e) {
     console.log(e);
@@ -1899,6 +1887,12 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
   return false;
 }
 
+/**
+ *
+ * @param shopifyId
+ * @param status
+ * @returns {Promise<null|(*&{uid: *})[]>}
+ */
 export async function getQueueByStatus(shopifyId, status) {
   const docs = await collection
     .where('shopifyId', '==', shopifyId)
