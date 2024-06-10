@@ -395,6 +395,7 @@ async function actionCreateShopifyProduct({
       stockId: queueData.stockId,
       brand: productData.brand,
       product_category_id: productData.product_category_id,
+      hasOptionOutOfStock: sizesQuantityDelta.some(size => !Number(Object.values(size)[0])),
       sizes
     };
     let productAdjustQuantitiesVariables = null;
@@ -605,7 +606,8 @@ export async function actionUpdateShopifyProduct({
     stockId: queueData.stockId,
     product_category_id: queueData.product_category_id,
     brand: stock.brand,
-    sizes: []
+    sizes: [],
+    hasOptionOutOfStock: stockSizeQuantity.some(size => !Number(Object.values(size)[0]))
   };
   const sizesNeedAdd = getSizesNeedAdd(stock, shopifyProductCreated);
   const sizesNeedUpdate = getSizesNeedUpdate(stock, shopifyProductCreated);
@@ -1238,68 +1240,6 @@ export async function updateProduct(id, updateData) {
 
 /**
  *
- * @param shopifyId
- * @param generalSettingBefore
- * @param generalSettingAfter
- * @returns {Promise<void>}
- */
-export async function updateProductBulkWhenSaveGeneralSetting(
-  shopifyId,
-  generalSettingBefore,
-  generalSettingAfter
-) {
-  if (
-    !generalSettingBefore ||
-    (generalSettingBefore &&
-      (generalSettingBefore?.currency !== generalSettingAfter?.currency ||
-        generalSettingBefore?.pricesRounding !== generalSettingAfter?.pricesRounding ||
-        (!generalSettingBefore?.deleteOutStock && generalSettingAfter?.deleteOutStock)))
-  ) {
-    if (generalSettingAfter?.deleteOutStock) {
-      const actions = [];
-      const outOfStockDocsCreate = await collection
-        .where('shopifyId', '==', shopifyId)
-        .where('queueStatus', '==', 'create')
-        .where('qty', '==', 0)
-        .get();
-      const outOfStockDocsSynced = await collection
-        .where('shopifyId', '==', shopifyId)
-        .where('qty', '==', 0)
-        .where('shopifyProductId', '!=', '')
-        .get();
-      if (!outOfStockDocsCreate.empty) {
-        actions.push(batchDelete(firestore, outOfStockDocsCreate.docs));
-      }
-      if (!outOfStockDocsSynced.empty) {
-        actions.push(
-          batchUpdate(firestore, outOfStockDocsSynced.docs, {
-            queueStatus: 'delete',
-            syncStatus: 'new',
-            updatedAt: FieldValue.serverTimestamp()
-          })
-        );
-      }
-      await Promise.all(actions);
-    }
-
-    const docsNeedUpdate = await collection
-      .where('shopifyId', '==', shopifyId)
-      .where('shopifyProductId', '!=', '')
-      .where('queueStatus', '==', 'synced')
-      .get();
-
-    if (!docsNeedUpdate.empty) {
-      await batchUpdate(firestore, docsNeedUpdate.docs, {
-        queueStatus: 'update',
-        syncStatus: 'new',
-        updatedAt: FieldValue.serverTimestamp()
-      });
-    }
-  }
-}
-
-/**
- *
  * @param shopId
  * @returns {Promise<void>}
  */
@@ -1623,33 +1563,6 @@ export async function getStockIdsExclude(shopId) {
   });
 }
 
-/**
- *
- * @param shopId
- * @param brandFilterData
- * @returns {Promise<boolean>}
- */
-
-export async function deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFilterData) {
-  try {
-    if (brandFilterData) {
-      const brands = brandFilterData.brands;
-      const docsQuery = collection
-        .where('shopifyId', '==', shopId)
-        .where('queueStatus', '==', 'create');
-      if (Array.isArray(brands) && brands.length) {
-        docsQuery.where('brand', 'not-in', brandFilterData.brands);
-      }
-      const docs = await docsQuery.get();
-      await batchDelete(firestore, docs.docs);
-    }
-
-    return true;
-  } catch (e) {
-    console.log(e);
-    return false;
-  }
-}
 
 /**
  *
@@ -2032,7 +1945,7 @@ export async function createProductQueues(
  * @param status
  * @returns {Promise<null|(*&{uid: *})[]>}
  */
-export async function getQueueByStatus(shopifyId, status) {
+export async function getQueueStockIdByStatus(shopifyId, status) {
   const docs = await collection
     .where('shopifyId', '==', shopifyId)
     .where('status', '==', status)
@@ -2041,5 +1954,5 @@ export async function getQueueByStatus(shopifyId, status) {
     return null;
   }
 
-  return docs.docs.map(doc => ({uid: doc.id, ...doc.data()}));
+  return docs.docs.map(doc => doc.data().stockId);
 }

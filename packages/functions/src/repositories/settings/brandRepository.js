@@ -50,8 +50,14 @@ export async function saveBrandFilterSetting(shopId, shopifyDomain, data) {
       });
       await publishTopic('brandFilterCreateHandling', {shopId});
     } else {
+      const doc = docs.docs[0];
+      const beforeData = doc.data().brands;
       await docs.docs[0].ref.update({brands: data});
-      await publishTopic('brandFilterUpdateHandling', {shopId});
+      await publishTopic('brandFilterUpdateHandling', {
+        shopId,
+        brandDataBefore: beforeData,
+        brandDataAfter: data
+      });
     }
 
     return {success: true};

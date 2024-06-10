@@ -195,3 +195,31 @@ export async function deleteLuxuryProductByShopifyId(shopifyId, stockId) {
 
   return docs.docs[0].ref.delete();
 }
+
+/**
+ *
+ * @param shopifyId
+ * @param brands
+ * @returns {Promise<*[]>}
+ */
+export async function getLuxuryProductByBrands(shopifyId, brands) {
+  const chunksArr = chunk(brands, 30);
+  const shopifyProductQueries = [];
+
+  for (const chunkArr of chunksArr) {
+    shopifyProductQueries.push(
+      collection
+        .where('shopifyId', '==', shopifyId)
+        .where('brand', 'in', chunkArr)
+        .get()
+    );
+  }
+  const shopifyProductQueriesResult = await Promise.all(shopifyProductQueries);
+  const shopifyProductQueriesDocsData = [];
+  for (const shopifyProductQueryResult of shopifyProductQueriesResult) {
+    if (!shopifyProductQueryResult.empty) {
+      shopifyProductQueriesDocsData.push(shopifyProductQueryResult.docs().map(doc => doc.data()));
+    }
+  }
+  return shopifyProductQueriesDocsData;
+}

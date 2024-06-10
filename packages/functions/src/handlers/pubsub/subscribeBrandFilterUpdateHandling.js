@@ -1,7 +1,5 @@
-import {
-  deleteProductsInQueueWhenChangeBrandFilter
-} from '../../repositories/productQueueRepository';
-import {getBrandSettingShopId} from "@functions/repositories/settings/brandRepository";
+import {updateShopifyProductBulkWhenSaveBrand} from "@functions/repositories/shopifyProductRepository";
+import {getLuxuryShopInfoByShopifyId} from "@functions/repositories/luxuryRepository";
 
 /**
  *
@@ -12,9 +10,10 @@ export default async function subscribeBrandFilterUpdateHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
     const {shopId} = data;
-    const brandFilterData = await getBrandSettingShopId(shopId);
-    await deleteProductsInQueueWhenChangeBrandFilter(shopId, brandFilterData);
-    // await addProducts(shopId);
+    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    if (!luxuryInfo?.deleteApp && luxuryInfo?.completeInitQueueAction) {
+      await updateShopifyProductBulkWhenSaveBrand(shopId, brandDataBefore, brandDataAfter);
+    }
   } catch (e) {
     console.error(e);
   }
