@@ -1,4 +1,4 @@
-import {updateProductBulkWhenSaveMapping} from '../../repositories/productQueueRepository';
+import {updateShopifyProductBulkWhenSaveMapping} from '../../repositories/shopifyProductRepository';
 
 /**
  *
@@ -9,7 +9,7 @@ export default async function subscribeCategoryMappingSaveHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
     const {shopId, mappingData} = data;
-    await updateProductBulkWhenSaveMapping(shopId, mappingData);
+    await updateShopifyProductBulkWhenSaveMapping(shopId, mappingData);
   } catch (e) {
     console.error(e);
   }

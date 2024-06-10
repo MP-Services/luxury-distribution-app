@@ -398,6 +398,7 @@ async function actionCreateShopifyProduct({
     const shopifyProductSave = {
       shopifyProductId: shopifyProduct.id,
       stockId: queueData.stockId,
+      brand: productData.brand,
       product_category_id: productData.product_category_id,
       sizes
     };
@@ -608,6 +609,7 @@ export async function actionUpdateShopifyProduct({
   const shopifyProductSave = {
     stockId: queueData.stockId,
     product_category_id: queueData.product_category_id,
+    brand: stock.brand,
     sizes: []
   };
   const sizesNeedAdd = getSizesNeedAdd(stock, shopifyProductCreated);
@@ -2088,9 +2090,15 @@ async function initQueueActions({shopifyId, stockListResult, nextOffset}) {
  * @param shopId
  * @param stockList
  * @param filterBrand
+ * @param status
  * @returns {Promise<boolean>}
  */
-export async function createProductQueues(shopId, stockList, filterBrand = true) {
+export async function createProductQueues(
+  shopId,
+  stockList,
+  filterBrand = true,
+  status = 'create'
+) {
   try {
     const brandFilter = await getBrandSettingShopId(shopId);
     let products = [];
@@ -2103,7 +2111,7 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
           return {
             stockId: item?.stockId ?? item.id,
             shopifyId: shopId,
-            status: 'create',
+            status,
             locked: false,
             retry: 0,
             createdAt: FieldValue.serverTimestamp()
@@ -2114,7 +2122,7 @@ export async function createProductQueues(shopId, stockList, filterBrand = true)
         return {
           stockId: item?.stockId ?? item.id,
           shopifyId: shopId,
-          status: 'create',
+          status,
           locked: false,
           retry: 0,
           createdAt: FieldValue.serverTimestamp()

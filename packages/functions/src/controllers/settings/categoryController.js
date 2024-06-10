@@ -45,7 +45,7 @@ export async function save(ctx) {
     if (editResult) {
       data = [...data, ...editMappingRows];
     }
-    if (saveResult && editResult) {
+    if (data.length) {
       await publishTopic('categoryMappingSaveHandling', {shopId: shopID, mappingData: data});
     }
 
