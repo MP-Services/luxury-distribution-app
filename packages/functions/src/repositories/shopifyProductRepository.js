@@ -260,7 +260,7 @@ async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping)
     retailerOptionNames,
     shopId,
     'sizes',
-    ' array-contains-any'
+    'array-contains-any'
   );
   if (shopifyProductQueriesDocsData.length) {
     const queueStockIds = await getQueueStockIdByStatus(shopId, 'update');
