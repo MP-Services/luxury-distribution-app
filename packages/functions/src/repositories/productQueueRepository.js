@@ -131,9 +131,9 @@ export async function syncProducts(shopId) {
       getGeneralSettingShopId(shopId),
       getMappingDataWithoutPaginate(shopId),
       getBrandSettingShopId(shopId),
-      getQueueQuery(shopId, 1),
+      getQueueQuery(shopId, 10),
       getAttributeMappingData(shopId),
-      getLocationQuery({shop, variables: {}})
+      getLocationQuery({shop})
     ]);
 
     if (
@@ -145,11 +145,13 @@ export async function syncProducts(shopId) {
       return [];
     }
     queues = queueQuery;
-    const [onlineStore, queuesLocked] = await Promise.all([
-      getOnlineStorePublication({shop}),
-      lockQueues(queueQuery)
-    ]);
-    const newQueueQueryDocs = filterQueueDocs(queueQuery);
+    const [newQueueQueryDocs, excludeDocs] = filterQueueDocs(queueQuery);
+    const actionsBeforeSync = [getOnlineStorePublication({shop}), lockQueues(queueQuery)];
+    if (excludeDocs.length) {
+      actionsBeforeSync.push(bulkUpdateSuccess(excludeDocs));
+    }
+    const beforeActionsResult = await Promise.all(actionsBeforeSync);
+    const onlineStore = beforeActionsResult[0];
     if (newQueueQueryDocs.length) {
       await Promise.all(
         newQueueQueryDocs.map(async queueDoc => {
@@ -206,7 +208,7 @@ export async function syncProducts(shopId) {
  *
  */
 export async function lockQueues(queueQuery, locked = true) {
-  return batchUpdate(firestore, queueQuery.docs, {locked: true});
+  return batchUpdate(firestore, queueQuery.docs, {locked});
 }
 
 /**
@@ -216,6 +218,7 @@ export async function lockQueues(queueQuery, locked = true) {
  */
 function filterQueueDocs(queueQuery) {
   const docs = [];
+  const excludeDocs = [];
   const stockIds = [];
   for (const doc of queueQuery.docs) {
     const queue = doc.data();
@@ -225,10 +228,12 @@ function filterQueueDocs(queueQuery) {
     ) {
       docs.push(doc);
       stockIds.push(queue.stockId);
+    } else {
+      excludeDocs.push(doc);
     }
   }
 
-  return docs;
+  return [docs, excludeDocs];
 }
 
 /**
@@ -267,12 +272,16 @@ async function actionQueueCreate({
   if (stock && !stock?.id) {
     return updateQueueDoc(queueDoc, queueData, 'success');
   }
-  const shopifyProductCreated = await getShopifyProductDoc(shopifyId, queueData.stockId);
+  const shopifyProductCreatedDoc = await getShopifyProductDoc(shopifyId, queueData.stockId);
   const brandsFilter =
     brandFilterSetting?.brands && brandFilterSetting.brands.length
       ? brandFilterSetting.brands.map(brand => brand.toUpperCase())
       : null;
-  if (!shopifyProductCreated && brandsFilter && brandsFilter.includes(stock.brand.toUpperCase())) {
+  if (
+    !shopifyProductCreatedDoc &&
+    brandsFilter &&
+    brandsFilter.includes(stock.brand.toUpperCase())
+  ) {
     return Promise.all([
       saveLuxuryProduct(shopifyId, stock),
       actionCreateShopifyProduct({
@@ -290,26 +299,33 @@ async function actionQueueCreate({
       })
     ]);
   }
-  if (shopifyProductCreated && brandsFilter && brandsFilter.includes(stock.brand.toUpperCase())) {
+  if (
+    shopifyProductCreatedDoc &&
+    brandsFilter &&
+    brandsFilter.includes(stock.brand.toUpperCase())
+  ) {
     // Action update shopify product
-    return actionUpdateShopifyProduct({
-      shop,
-      syncSetting,
-      generalSetting,
-      categoryMappings,
-      sizeAttributeMapping,
-      defaultLocationId,
-      onlineStore,
-      queueDoc,
-      queueData,
-      luxuryInfo,
-      brandFilterSetting,
-      shopifyProductCreated,
-      stock
-    });
+    return Promise.all([
+      saveLuxuryProduct(shopifyId, stock),
+      actionUpdateShopifyProduct({
+        shop,
+        syncSetting,
+        generalSetting,
+        categoryMappings,
+        sizeAttributeMapping,
+        defaultLocationId,
+        onlineStore,
+        queueDoc,
+        queueData,
+        luxuryInfo,
+        brandFilterSetting,
+        shopifyProductCreatedDoc,
+        stock
+      })
+    ]);
   }
   if (
-    shopifyProductCreated &&
+    shopifyProductCreatedDoc &&
     (!brandsFilter || !brandsFilter.includes(stock.brand.toUpperCase()))
   ) {
     // Action delete shopify product
@@ -351,7 +367,7 @@ async function actionCreateShopifyProduct({
   luxuryInfo,
   productData
 }) {
-  let sizesQuantityDelta = productData.size_quantity;
+  let sizesQuantityDelta = productData.size_quantity.filter(item => !Array.isArray(item));
   if (generalSetting?.deleteOutStock) {
     if (Number(productData.qty) === 0) {
       return updateQueueDoc(queueDoc, queueData, 'success');
@@ -413,7 +429,7 @@ async function actionCreateShopifyProduct({
       sizes,
       sizeAttributeMapping,
       shopifyProduct.options[0].optionValues,
-      productAdjustQuantitiesVariables,
+      productAdjustQuantitiesVariables ? productAdjustQuantitiesVariables.variants : null,
       shopifyProduct.options[0].id
     );
     return Promise.all([
@@ -454,9 +470,9 @@ async function actionQueueUpdate({
   brandFilterSetting
 }) {
   const {id: shopifyId} = shop;
-  const [stock, shopifyProductCreated] = await Promise.all([
+  const [stock, shopifyProductCreatedDoc] = await Promise.all([
     getStockById(queueData.stockId, luxuryInfo),
-    getShopifyProductDoc(shopifyId, stockId)
+    getShopifyProductDoc(shopifyId, queueData.stockId)
   ]);
   if (!stock) {
     return updateQueueDoc(queueDoc, queueData);
@@ -465,51 +481,48 @@ async function actionQueueUpdate({
     brandFilterSetting?.brands && brandFilterSetting.brands.length
       ? brandFilterSetting.brands.map(brand => brand.toUpperCase())
       : null;
-  if (!shopifyProductCreated && stock?.id && brandsFilter.includes(stock.brand.toUpperCase())) {
-    return actionCreateShopifyProduct({
+  if (!shopifyProductCreatedDoc && stock?.id && brandsFilter.includes(stock.brand.toUpperCase())) {
+    return Promise.all([
+      saveLuxuryProduct(shopifyId, stock),
+      actionCreateShopifyProduct({
+        shop,
+        categoryMappings,
+        syncSetting,
+        generalSetting,
+        sizeAttributeMapping,
+        defaultLocationId,
+        onlineStore,
+        queueDoc,
+        queueData,
+        luxuryInfo,
+        productData: stock
+      })
+    ]);
+  }
+  if (shopifyProductCreatedDoc && !brandsFilter.includes(stock.brand.toUpperCase())) {
+    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo, isDeleteLxProduct: false});
+  }
+  if (shopifyProductCreatedDoc && !stock?.id) {
+    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo});
+  }
+  return Promise.all([
+    saveLuxuryProduct(shopifyId, stock),
+    actionUpdateShopifyProduct({
       shop,
-      categoryMappings,
       syncSetting,
       generalSetting,
+      categoryMappings,
       sizeAttributeMapping,
       defaultLocationId,
       onlineStore,
       queueDoc,
       queueData,
       luxuryInfo,
-      productData: stock
-    });
-  }
-  if (shopifyProductCreated && !brandsFilter.includes(stock.brand.toUpperCase())) {
-    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo, isDeleteLxProduct: false});
-  }
-  if (shopifyProductCreated && !stock?.id) {
-    return actionQueueDelete({shop, queueDoc, queueData, luxuryInfo});
-  }
-
-  return actionUpdateShopifyProduct({
-    shop,
-    syncSetting,
-    generalSetting,
-    categoryMappings,
-    sizeAttributeMapping,
-    defaultLocationId,
-    onlineStore,
-    queueDoc,
-    queueData,
-    luxuryInfo,
-    brandFilterSetting,
-    shopifyProductCreated,
-    stock
-  });
-
-  // return updateProduct(docId, {
-  //   syncStatus: 'success',
-  //   queueStatus: 'synced',
-  //   productOptionsAfterMap,
-  //   size_quantity_delta: [],
-  //   updatedAt: FieldValue.serverTimestamp()
-  // });
+      brandFilterSetting,
+      shopifyProductCreatedDoc,
+      stock
+    })
+  ]);
 }
 
 /**
@@ -525,7 +538,7 @@ async function actionQueueUpdate({
  * @param queueData
  * @param luxuryInfo
  * @param brandFilterSetting
- * @param shopifyProductCreated
+ * @param shopifyProductCreatedDoc
  * @param stock
  */
 export async function actionUpdateShopifyProduct({
@@ -540,9 +553,11 @@ export async function actionUpdateShopifyProduct({
   queueData,
   luxuryInfo,
   brandFilterSetting,
-  shopifyProductCreated,
+  shopifyProductCreatedDoc,
   stock
 }) {
+  const stockSizeQuantity = stock.size_quantity.filter(item => !Array.isArray(item));
+  const shopifyProductCreated = shopifyProductCreatedDoc.data();
   const productId = shopifyProductCreated.shopifyProductId;
   const productOptionId = shopifyProductCreated?.productOptionsAfterMap[0]?.productOptionId;
   const fileIdsToDelete = await getFileIdsToDelete(shop, productId);
@@ -558,7 +573,6 @@ export async function actionUpdateShopifyProduct({
     },
     media: syncSetting?.images ? productMediaData : []
   };
-
   const {productVariables, margin} = addCollectionsToProductVariables(
     categoryMappings,
     syncSetting,
@@ -581,8 +595,7 @@ export async function actionUpdateShopifyProduct({
       query: METAFIELDS_DELETE_VALUE_MUTATION
     });
   }
-
-  await Promise.all([
+  const [productUpdateMutation, metafieldsSetMutation] = await Promise.all([
     runProductUpdateMutation({
       shop,
       variables: productVariables
@@ -592,14 +605,19 @@ export async function actionUpdateShopifyProduct({
       variables: {metafields: metafieldsUpdate}
     })
   ]);
-
+  const shopifyProductSave = {
+    stockId: queueData.stockId,
+    product_category_id: queueData.product_category_id,
+    sizes: []
+  };
   const sizesNeedAdd = getSizesNeedAdd(stock, shopifyProductCreated);
   const sizesNeedUpdate = getSizesNeedUpdate(stock, shopifyProductCreated);
   const sizesNeedDelete = getSizesNeedDelete(stock, shopifyProductCreated, generalSetting);
   const optionValuesToUpdate = getOptionValuesToUpdate(sizesNeedUpdate, sizeAttributeMapping);
   const optionValuesToAdd = getOptionValuesToAdd(sizesNeedAdd, sizeAttributeMapping);
   const optionValuesToDelete = getOptionValuesToDelete(sizesNeedDelete);
-
+  let productVariantsReturn = [];
+  let hasProductAdjustQuantitiesUpdate = true;
   const productOptionUpdate = await runProductOptionUpdateMutation({
     shop,
     variables: {
@@ -612,18 +630,21 @@ export async function actionUpdateShopifyProduct({
       optionValuesToDelete
     }
   });
-
-  if (productOptionUpdate && productOptionUpdate?.options?.optionValues) {
-    const optionsValues = productOptionUpdate.options.optionValues;
+  shopifyProductSave.sizes = stockSizeQuantity.map(item => Object.keys(item)[0]);
+  if (
+    productOptionUpdate &&
+    productOptionUpdate?.options &&
+    productOptionUpdate.options.length &&
+    productOptionUpdate?.options[0]?.optionValues
+  ) {
+    const optionsValues = productOptionUpdate.options[0].optionValues;
     const variantsNeedAdd = optionsValues.filter(option => !option.hasVariants);
     const variantsNeedUpdate = optionsValues.filter(option => option.hasVariants);
-    let productVariantsReturn = [];
-
     // Add Variant
     if (variantsNeedAdd.length) {
       const productVariantsVariables = await getProductVariantsVariables({
         shopifyProductId: productId,
-        shopifyProductCreated,
+        productData: stock,
         productOptionId,
         optionValuesProduct: variantsNeedAdd,
         margin,
@@ -637,11 +658,11 @@ export async function actionUpdateShopifyProduct({
         productVariantsReturn = [...productVariantsReturn, ...productVariantsAddReturn];
       }
     }
-
     // Update Variant
     if (variantsNeedUpdate.length) {
       const productVariantsUpdateVariables = await getProductVariantsUpdateVariables(
-        shopifyProductCreated,
+        stock,
+        productId,
         sizesNeedUpdate,
         margin,
         generalSetting
@@ -656,38 +677,59 @@ export async function actionUpdateShopifyProduct({
         productVariantsReturn = [...productVariantsReturn, ...productVariantsUpdateReturn];
       }
     }
-
     if (productVariantsReturn.length) {
-      const variantsToMap = productVariantsUpdateReturn.map(item => ({
+      const variantsToMap = productVariantsReturn.map(item => ({
         id: item.id,
         title: item.title,
         inventoryItem: item.inventoryItem
       }));
       productOptionsAfterMap = sizeOptionMapping(
-        shopifyProductCreated.size_quantity.map(item => Object.keys(item)[0]),
+        stockSizeQuantity.map(item => Object.keys(item)[0]),
         sizeAttributeMapping,
         optionsValues,
         variantsToMap,
         productOptionId
       );
+      shopifyProductSave.productOptionsAfterMap = productOptionsAfterMap;
       const productVariantsWithQuantityBefore = await getProductVariantsGraphQl({
         shop,
-        variables: {query: `product_id:${Number(productId.replace('gid://shopify/Product/', ''))}`}
+        variables: {query: `product_id:${productId.replace('gid://shopify/Product/', '')}`}
       });
-      if (productVariantsWithQuantity) {
+      if (productVariantsWithQuantityBefore) {
         const productAdjustQuantitiesUpdate = getProductAdjustQuantitiesUpdate(
+          stockSizeQuantity,
           productOptionsAfterMap,
-          productVariantsWithQuantityBefore,
+          productVariantsWithQuantityBefore.allVariants,
           defaultLocationId
         );
-
-        await runProductAdjustQuantitiesMutation({
+        const adjustQuantities = await runProductAdjustQuantitiesMutation({
           shop,
           variables: productAdjustQuantitiesUpdate.variables
         });
+        if (!adjustQuantities) {
+          hasProductAdjustQuantitiesUpdate = false;
+        }
+      } else {
+        hasProductAdjustQuantitiesUpdate = false;
       }
     }
   }
+  const actions = [];
+  if (
+    !productUpdateMutation ||
+    !metafieldsSetMutation ||
+    !productVariantsReturn.length ||
+    !hasProductAdjustQuantitiesUpdate
+  ) {
+    actions.push(updateQueueDoc(queueDoc, queueData));
+  } else {
+    actions.push(updateQueueDoc(queueDoc, queueData, 'success'));
+  }
+  if (productUpdateMutation) {
+    actions.push(saveShopifyProduct(shop.id, shopifyProductSave));
+  }
+
+  return Promise.all(actions);
 }
 
 /**
@@ -884,6 +926,15 @@ function updateQueueDoc(queueDoc, queueData, status = '') {
 
 /**
  *
+ * @param docs
+ * @returns {Promise<void>}
+ */
+function bulkUpdateSuccess(docs) {
+  return batchUpdate(firestore, docs, {status: 'success'});
+}
+
+/**
+ *
  * @param categoryMappings
  * @param syncSetting
  * @param productData
@@ -1071,26 +1122,28 @@ async function getCurrencyValue(generalSetting) {
 
 /**
  *
- * @param productData
+ * @param stock
+ * @param productId
  * @param sizesNeedUpdate
  * @param margin
  * @param generalSetting
  * @returns {Promise<{productId: (string|*), variants: *}>}
  */
 async function getProductVariantsUpdateVariables(
-  productData,
+  stock,
+  productId,
   sizesNeedUpdate,
   margin,
   generalSetting
 ) {
   const currencyValue = await getCurrencyValue(generalSetting);
   const productVariants = sizesNeedUpdate.map(item => ({
-    price: roundingPrice(productData.selling_price * margin * currencyValue, generalSetting),
-    compareAtPrice: roundingPrice(productData.original_price * currencyValue, generalSetting),
+    price: roundingPrice(stock.selling_price * margin * currencyValue, generalSetting),
+    compareAtPrice: roundingPrice(stock.original_price * currencyValue, generalSetting),
     id: item.productVariantId
   }));
   return {
-    productId: productData.shopifyProductId,
+    productId,
     variants: productVariants
   };
 }
@@ -1136,23 +1189,31 @@ function getProductAdjustQuantitiesVariables(
 
 /**
  *
+ * @param stockSizeQuantity
  * @param sizesNeedUpdate
  * @param productVariantsWithQuantityBefore
  * @param defaultLocationId
  * @returns {{variables: {input: {reason: string, changes: *, name: string}, locationId}}}
  */
 function getProductAdjustQuantitiesUpdate(
+  stockSizeQuantity,
   sizesNeedUpdate,
   productVariantsWithQuantityBefore,
   defaultLocationId
 ) {
   const changesData = sizesNeedUpdate.map(item => {
-    const deltaItem = productVariantsWithQuantityBefore.find(variant => {
+    const variantBefore = productVariantsWithQuantityBefore.find(variant => {
       return variant.id == item.productVariantId;
     });
+    const sizeQty = stockSizeQuantity.find(
+      stockSize => Object.keys(stockSize)[0] === item.originalOption
+    );
     return {
       inventoryItemId: item.inventoryItemId,
-      delta: Number(Object.values(deltaItem)[0]),
+      delta:
+        variantBefore && sizeQty
+          ? Number(Object.values(sizeQty)[0] - variantBefore.inventoryQuantity)
+          : 0,
       locationId: defaultLocationId
     };
   });
@@ -1391,7 +1452,7 @@ function convertOptionMappingToSizeValue(sizes, sizeAttributeMapping) {
  * @param sizes
  * @param sizeAttributeMapping
  * @param productOptions
- * @param productAdjustQuantitiesVariables
+ * @param productVariants
  * @param productOptionId
  * @returns {*}
  */
@@ -1399,12 +1460,9 @@ function sizeOptionMapping(
   sizes,
   sizeAttributeMapping,
   productOptions,
-  productAdjustQuantitiesVariables,
+  productVariants,
   productOptionId
 ) {
-  const productVariants = productAdjustQuantitiesVariables
-    ? productAdjustQuantitiesVariables.variants
-    : null;
   if (sizeAttributeMapping) {
     const sizeOptionMapping = sizeAttributeMapping[0].optionsMapping;
     if (sizeOptionMapping) {

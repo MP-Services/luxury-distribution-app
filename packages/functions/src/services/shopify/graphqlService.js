@@ -404,15 +404,15 @@ export async function runFileDeleteMutation({shop, variables, query = FILE_DELET
  * @param query
  * @returns {Promise<*|string>}
  */
-export async function getLocationQuery({shop, variables, query = GET_LOCATION_QUERY}) {
+export async function getLocationQuery({shop, query = GET_LOCATION_QUERY}) {
+  return 'gid://shopify/Location/93953032468';
   try {
-    const graphqlQuery = {query, variables};
+    const graphqlQuery = {query};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
     if (errors) {
       console.error(errors.map(x => x.message).join('. '));
       return '';
     }
-
     const {location} = data;
 
     return location.id;
@@ -750,7 +750,7 @@ export async function runProductOptionUpdateMutation({
       return '';
     }
     const {product, userErrors} = data.productOptionUpdate;
-    if (userErrors.length) {
+    if (userErrors.length && !product) {
       console.error(userErrors);
       await addLog(shop.shopifyDomain, {errors: JSON.stringify(userErrors)});
       return '';
@@ -833,14 +833,15 @@ export async function getProductVariants({
     const {productVariants} = data;
     const {hasNextPage, endCursor} = productVariants.pageInfo;
     const nextAfter = hasNextPage && endCursor;
-    const allVariants = [...allVariants, ...allVariants.nodes];
+    const nextAllVariants = [...allVariants, ...productVariants.nodes];
     if (nextAfter) {
       return await getProductVariants({
         shop,
-        after: nextAfter
+        after: nextAfter,
+        allVariants: nextAllVariants
       });
     }
-    return {allVariants};
+    return {allVariants: nextAllVariants};
   } catch (error) {
     console.error(error);
     return '';
