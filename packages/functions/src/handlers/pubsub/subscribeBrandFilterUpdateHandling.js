@@ -9,7 +9,7 @@ import {getLuxuryShopInfoByShopifyId} from "@functions/repositories/luxuryReposi
 export default async function subscribeBrandFilterUpdateHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-    const {shopId} = data;
+    const {shopId, brandDataBefore, brandDataAfter} = data;
     const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
     if (!luxuryInfo?.deleteApp && luxuryInfo?.completeInitQueueAction) {
       await updateShopifyProductBulkWhenSaveBrand(shopId, brandDataBefore, brandDataAfter);

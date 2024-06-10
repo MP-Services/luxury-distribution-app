@@ -147,8 +147,8 @@ export async function updateShopifyProductBulkWhenSaveBrand(
     let shopifyProductQueriesDocsData = await getDocsAfterChunks(
       brandRemoved,
       shopifyId,
-      'sizes',
-      ' array-contains-any'
+      'brand',
+      'array-contains-any'
     );
     if (shopifyProductQueriesDocsData.length) {
       const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'update');
@@ -163,7 +163,7 @@ export async function updateShopifyProductBulkWhenSaveBrand(
   if (brandAdded.length) {
     const lxProducts = await getLuxuryProductByBrands(shopifyId, brandAdded);
     const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'create');
-    const newProductNeedAdd = lxProducts.map(
+    const newProductNeedAdd = lxProducts.filter(
       lxproduct => !queueStockIds.includes(lxproduct.stockId)
     );
     return createProductQueues(shopifyId, newProductNeedAdd, true, 'create');
