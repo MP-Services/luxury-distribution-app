@@ -3,9 +3,9 @@ import {chunk} from '@avada/utils';
 import {hasCommonElement} from '@functions/repositories/helper';
 import {
   createProductQueues,
-  getQueueStockIdByStatus, getQueueStockIdByStatus
+  getQueueStockIdByStatus
 } from '@functions/repositories/productQueueRepository';
-import {getLuxuryProductByBrands} from "@functions/repositories/luxuryProductRepository";
+import {getLuxuryProductByBrands} from '@functions/repositories/luxuryProductRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -117,10 +117,12 @@ export async function updateShopifyProductBulkWhenSaveMapping(shopifyId, mapping
     );
 
     if (shopifyProductQueriesDocsData.length) {
-    const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'update');
-    if(queueStockIds.length) {
-      shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(item => !queueStockIds.includes(item.stockId))
-    }
+      const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'update');
+      if (queueStockIds.length) {
+        shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(
+          item => !queueStockIds.includes(item.stockId)
+        );
+      }
       return createProductQueues(shopifyId, shopifyProductQueriesDocsData, false, 'update');
     }
   }
@@ -134,35 +136,39 @@ export async function updateShopifyProductBulkWhenSaveMapping(shopifyId, mapping
  * @returns {Promise<Awaited<unknown>[]>}
  */
 export async function updateShopifyProductBulkWhenSaveBrand(
-    shopifyId,
-    brandDataBefore,
-    brandDataAfter
+  shopifyId,
+  brandDataBefore,
+  brandDataAfter
 ) {
   const brandRemoved = brandDataBefore.filter(brand => !brandDataAfter.includes(brand));
   const brandAdded = brandDataAfter.filter(brand => !brandDataBefore.includes(brand));
   const action = [];
-  if(brandRemoved.length) {
+  if (brandRemoved.length) {
     let shopifyProductQueriesDocsData = await getDocsAfterChunks(
-        brandRemoved,
-        shopifyId,
-        'sizes',
-        ' array-contains-any'
+      brandRemoved,
+      shopifyId,
+      'sizes',
+      ' array-contains-any'
     );
     if (shopifyProductQueriesDocsData.length) {
       const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'update');
-      if(queueStockIds.length) {
-        shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(item => !queueStockIds.includes(item.stockId))
+      if (queueStockIds.length) {
+        shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(
+          item => !queueStockIds.includes(item.stockId)
+        );
       }
       return createProductQueues(shopifyId, shopifyProductQueriesDocsData, false, 'update');
     }
   }
-  if(brandAdded.length) {
-    const lxProducts =  await getLuxuryProductByBrands(shopifyId, brandAdded);
+  if (brandAdded.length) {
+    const lxProducts = await getLuxuryProductByBrands(shopifyId, brandAdded);
     const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'create');
-    const newProductNeedAdd = lxProducts.map(lxproduct => !queueStockIds.includes(lxproduct.stockId));
+    const newProductNeedAdd = lxProducts.map(
+      lxproduct => !queueStockIds.includes(lxproduct.stockId)
+    );
     return createProductQueues(shopifyId, newProductNeedAdd, true, 'create');
   }
-  if(action.length) {
+  if (action.length) {
     return Promise.all(action);
   }
 }
@@ -199,21 +205,21 @@ export async function getDocsAfterChunks(chunksData, shopifyId, field, condition
     case 'out-of-stock':
       for (const chunkArr of chunksArr) {
         shopifyProductQueries.push(
-            collection
-                .where('shopifyId', '==', shopifyId)
-                .where('hasOptionOutOfStock', '==', true)
-                .where(field, condition, chunkArr)
-                .get()
+          collection
+            .where('shopifyId', '==', shopifyId)
+            .where('hasOptionOutOfStock', '==', true)
+            .where(field, condition, chunkArr)
+            .get()
         );
       }
       break;
     default:
       for (const chunkArr of chunksArr) {
         shopifyProductQueries.push(
-            collection
-                .where('shopifyId', '==', shopifyId)
-                .where(field, condition, chunkArr)
-                .get()
+          collection
+            .where('shopifyId', '==', shopifyId)
+            .where(field, condition, chunkArr)
+            .get()
         );
       }
   }
@@ -221,7 +227,10 @@ export async function getDocsAfterChunks(chunksData, shopifyId, field, condition
   let shopifyProductQueriesDocsData = [];
   for (const shopifyProductQueryResult of shopifyProductQueriesResult) {
     if (!shopifyProductQueryResult.empty) {
-      shopifyProductQueriesDocsData = [...shopifyProductQueriesDocsData, ...shopifyProductQueryResult.docs.map(doc => doc.data())]
+      shopifyProductQueriesDocsData = [
+        ...shopifyProductQueriesDocsData,
+        ...shopifyProductQueryResult.docs.map(doc => doc.data())
+      ];
     }
   }
   return shopifyProductQueriesDocsData;
@@ -255,8 +264,10 @@ async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping)
   );
   if (shopifyProductQueriesDocsData.length) {
     const queueStockIds = await getQueueStockIdByStatus(shopId, 'update');
-    if(queueStockIds.length) {
-      shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(item => !queueStockIds.includes(item.stockId))
+    if (queueStockIds.length) {
+      shopifyProductQueriesDocsData = shopifyProductQueriesDocsData.filter(
+        item => !queueStockIds.includes(item.stockId)
+      );
     }
     return createProductQueues(shopId, shopifyProductQueriesDocsData, false, 'update');
   }
@@ -329,7 +340,7 @@ export async function updateProductBulkWhenSaveGeneralSetting(
     return bulkCreateQueueWhenChangeConfig(shopifyId, 'stockId', 'not-in');
   }
 
-  if(generalSettingBefore?.deleteOutStock != generalSettingAfter?.deleteOutStock) {
+  if (generalSettingBefore?.deleteOutStock != generalSettingAfter?.deleteOutStock) {
     return bulkCreateQueueWhenChangeConfig(shopifyId, 'stockId', 'not-in', 'out-of-stock');
   }
 }
@@ -344,20 +355,20 @@ export async function updateProductBulkWhenSaveGeneralSetting(
  */
 export async function bulkCreateQueueWhenChangeConfig(shopifyId, field, condition, type) {
   const updateQueues = await getQueueStockIdByStatus(shopifyId, 'update');
-  if(updateQueues) {
+  if (updateQueues) {
     const shopifyProductQueriesDocsData = await getDocsAfterChunks(
-        updateQueues,
-        shopifyId,
-        field,
-        condition,
-        type
+      updateQueues,
+      shopifyId,
+      field,
+      condition,
+      type
     );
     if (shopifyProductQueriesDocsData.length) {
       const shopifyProductQueriesDocsDataChunks = chunk(shopifyProductQueriesDocsData, 10000);
       return Promise.all(
-          shopifyProductQueriesDocsDataChunks.map(shopifyProductQueriesDocsDataChunk =>
-              createProductQueues(shopifyId, shopifyProductQueriesDocsDataChunk, false, 'update')
-          )
+        shopifyProductQueriesDocsDataChunks.map(shopifyProductQueriesDocsDataChunk =>
+          createProductQueues(shopifyId, shopifyProductQueriesDocsDataChunk, false, 'update')
+        )
       );
     }
   } else {
@@ -365,9 +376,9 @@ export async function bulkCreateQueueWhenChangeConfig(shopifyId, field, conditio
     if (!stockIdsDocs.empty) {
       const stockIdsDocsChunks = chunk(stockIdsDocs, 10000);
       return Promise.all(
-          stockIdsDocsChunks.map(stockIdsDocsChunk =>
-              createProductQueues(shopifyId, stockIdsDocsChunk, false, 'update')
-          )
+        stockIdsDocsChunks.map(stockIdsDocsChunk =>
+          createProductQueues(shopifyId, stockIdsDocsChunk, false, 'update')
+        )
       );
     }
   }

@@ -1951,7 +1951,7 @@ export async function getQueueStockIdByStatus(shopifyId, status) {
     .where('status', '==', status)
     .get();
   if (docs.empty) {
-    return null;
+    return [];
   }
 
   return docs.docs.map(doc => doc.data().stockId);
