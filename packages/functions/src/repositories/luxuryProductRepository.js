@@ -25,7 +25,7 @@ export async function addLuxuryProducts(shopifyId, stocks) {
       stockIds.push(stockId);
       return {
         stockId: stockId,
-        brand,
+        brand: brand.toUpperCase(),
         shopifyId,
         product_category_id,
         sizes,

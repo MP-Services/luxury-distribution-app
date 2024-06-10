@@ -140,10 +140,11 @@ export async function updateShopifyProductBulkWhenSaveBrand(
   brandDataBefore,
   brandDataAfter
 ) {
-  const brandRemoved = brandDataBefore.filter(brand => !brandDataAfter.includes(brand));
-  const brandAdded = brandDataAfter.filter(brand => !brandDataBefore.includes(brand));
+  let brandRemoved = brandDataBefore.filter(brand => !brandDataAfter.includes(brand));
+  let brandAdded = brandDataAfter.filter(brand => !brandDataBefore.includes(brand));
   const action = [];
   if (brandRemoved.length) {
+    brandRemoved = brandRemoved.map(item => item.toUpperCase());
     let shopifyProductQueriesDocsData = await getDocsAfterChunks(
       brandRemoved,
       shopifyId,
@@ -161,6 +162,7 @@ export async function updateShopifyProductBulkWhenSaveBrand(
     }
   }
   if (brandAdded.length) {
+    brandAdded = brandRemoved.map(item => item.toUpperCase());
     const lxProducts = await getLuxuryProductByBrands(shopifyId, brandAdded);
     const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'create');
     const newProductNeedAdd = lxProducts.filter(
