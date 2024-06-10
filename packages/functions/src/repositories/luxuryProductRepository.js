@@ -218,7 +218,7 @@ export async function getLuxuryProductByBrands(shopifyId, brands) {
   const shopifyProductQueriesDocsData = [];
   for (const shopifyProductQueryResult of shopifyProductQueriesResult) {
     if (!shopifyProductQueryResult.empty) {
-      shopifyProductQueriesDocsData.push(shopifyProductQueryResult.docs().map(doc => doc.data()));
+      shopifyProductQueriesDocsData.push(shopifyProductQueryResult.docs.map(doc => doc.data()));
     }
   }
   return shopifyProductQueriesDocsData;

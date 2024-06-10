@@ -218,10 +218,10 @@ export async function getDocsAfterChunks(chunksData, shopifyId, field, condition
       }
   }
   const shopifyProductQueriesResult = await Promise.all(shopifyProductQueries);
-  const shopifyProductQueriesDocsData = [];
+  let shopifyProductQueriesDocsData = [];
   for (const shopifyProductQueryResult of shopifyProductQueriesResult) {
     if (!shopifyProductQueryResult.empty) {
-      shopifyProductQueriesDocsData.push(shopifyProductQueryResult.docs.map(doc => doc.data()));
+      shopifyProductQueriesDocsData = [...shopifyProductQueriesDocsData, ...shopifyProductQueryResult.docs.map(doc => doc.data())]
     }
   }
   return shopifyProductQueriesDocsData;
