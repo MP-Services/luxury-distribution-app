@@ -1,4 +1,4 @@
-import {updateShopifyProductBulkWhenSaveMapping} from '../../repositories/shopifyProductRepository';
+import {updateShopifyProductBulkWhenSaveSyncSetting} from '../../repositories/shopifyProductRepository';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
 /**
@@ -6,13 +6,13 @@ import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryReposi
  * @param message
  * @returns {Promise<void>}
  */
-export default async function subscribeCategoryMappingSaveHandling(message) {
+export default async function subscribeSyncSettingsSaveHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-    const {shopId, mappingData} = data;
+    const {shopId, syncDataBefore, syncDataAfter} = data;
     const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
     if (!luxuryInfo?.deleteApp && luxuryInfo?.completeInitQueueAction) {
-      await updateShopifyProductBulkWhenSaveMapping(shopId, mappingData);
+      await updateShopifyProductBulkWhenSaveSyncSetting(shopId, syncDataBefore, syncDataAfter);
     }
   } catch (e) {
     console.error(e);
