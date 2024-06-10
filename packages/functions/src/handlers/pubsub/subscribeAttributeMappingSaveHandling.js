@@ -1,4 +1,5 @@
-import {updateProductBulkWhenSaveAttributeMapping} from '../../repositories/productQueueRepository';
+import {updateProductBulkWhenSaveAttributeMapping} from '../../repositories/shopifyProductRepository';
+import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
 /**
  *
@@ -9,7 +10,10 @@ export default async function subscribeAttributeMappingSaveHandling(message) {
   try {
     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
     const {shopId, saveDataBefore, saveDataAfter} = data;
-    await updateProductBulkWhenSaveAttributeMapping(shopId, saveDataBefore, saveDataAfter);
+    const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+    if (!luxuryInfo?.deleteApp && luxuryInfo?.completeInitQueueAction) {
+      await updateProductBulkWhenSaveAttributeMapping(shopId, saveDataBefore, saveDataAfter);
+    }
   } catch (e) {
     console.error(e);
   }

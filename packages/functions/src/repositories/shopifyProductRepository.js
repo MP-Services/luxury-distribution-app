@@ -1,5 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {chunk} from '@avada/utils';
+import {hasCommonElement} from '@functions/repositories/helper';
 import {
   createProductQueues,
   getQueueByStatus
@@ -199,4 +200,75 @@ export async function getDocsAfterChunks(chunksData, shopifyId, field, condition
  */
 function hasSyncSettingsValueChanged(syncDataBefore, syncDataAfter) {
   return Object.keys(syncDataBefore).some(key => syncDataBefore[key] !== syncDataAfter[key]);
+}
+
+/**
+ *
+ * @param shopId
+ * @param optionsMapping
+ * @returns {Promise<void>}
+ */
+async function productQueueUpdateWhenChangeOptionMapping(shopId, optionsMapping) {
+  const retailerOptionNames = optionsMapping.map(
+    attributeOption => attributeOption.retailerOptionName
+  );
+  const docsDataChunks = getDocsAfterChunks(
+    retailerOptionNames,
+    shopId,
+    'sizes',
+    ' array-contains-any'
+  );
+  if (docsData.length) {
+    return Promise.all(
+      docsDataChunks.map(docsDataChunk =>
+        createProductQueues(shopId, docsDataChunk, false, 'update')
+      )
+    );
+  }
+}
+
+/**
+ *
+ * @param shopId
+ * @param saveDataBefore
+ * @param saveDataAfter
+ * @returns {Promise<void>}
+ */
+export async function updateProductBulkWhenSaveAttributeMapping(
+  shopId,
+  saveDataBefore,
+  saveDataAfter
+) {
+  if (!saveDataBefore) {
+    if (saveDataAfter?.optionsMapping && saveDataAfter.optionsMapping.length) {
+      await productQueueUpdateWhenChangeOptionMapping(shopId, saveDataAfter.optionsMapping);
+    }
+  } else {
+    if (saveDataBefore?.optionsMapping && saveDataAfter?.optionsMapping) {
+      const optionMappingChange = filterByRetailerOptionName(
+        saveDataBefore.optionsMapping,
+        saveDataAfter.optionsMapping
+      );
+      await productQueueUpdateWhenChangeOptionMapping(shopId, optionMappingChange);
+    }
+  }
+}
+
+/**
+ *
+ * @param a
+ * @param b
+ * @returns {*}
+ */
+function filterByRetailerOptionName(a, b) {
+  const aSet = new Set(a.map(item => item.retailerOptionName));
+  const filteredB = b.filter(bItem => {
+    const {retailerOptionName, dropshipperOptionName} = bItem;
+    if (!aSet.has(retailerOptionName)) {
+      return true;
+    }
+    const matchingAItem = a.find(aItem => aItem.retailerOptionName === retailerOptionName);
+    return matchingAItem && matchingAItem.dropshipperOptionName !== dropshipperOptionName;
+  });
+  return filteredB;
 }
