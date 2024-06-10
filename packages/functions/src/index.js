@@ -91,6 +91,6 @@ export const attributeMappingSaveHandling = functions
   .onPublish(subscribeAttributeMappingSaveHandling);
 
 export const syncSettingsSaveHandling = functions
-    .runWith({timeoutSeconds: 540, memory: '2GB'})
-    .pubsub.topic('syncSettingsSaveHandling')
-    .onPublish(subscribeSyncSettingsSaveHandling);
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.topic('syncSettingsSaveHandling')
+  .onPublish(subscribeSyncSettingsSaveHandling);

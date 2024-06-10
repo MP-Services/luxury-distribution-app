@@ -355,7 +355,7 @@ export async function updateProductBulkWhenSaveGeneralSetting(
  */
 export async function bulkCreateQueueWhenChangeConfig(shopifyId, field, condition, type) {
   const updateQueues = await getQueueStockIdByStatus(shopifyId, 'update');
-  if (updateQueues) {
+  if (updateQueues.length) {
     const shopifyProductQueriesDocsData = await getDocsAfterChunks(
       updateQueues,
       shopifyId,
@@ -374,10 +374,11 @@ export async function bulkCreateQueueWhenChangeConfig(shopifyId, field, conditio
   } else {
     const stockIdsDocs = await collection.where('shopifyId', '==', shopifyId).get();
     if (!stockIdsDocs.empty) {
-      const stockIdsDocsChunks = chunk(stockIdsDocs, 10000);
+      const stockList = stockIdsDocs.docs.map(doc => doc.data());
+      const stockListChunks = chunk(stockList, 10000);
       return Promise.all(
-        stockIdsDocsChunks.map(stockIdsDocsChunk =>
-          createProductQueues(shopifyId, stockIdsDocsChunk, false, 'update')
+        stockListChunks.map(stockListChunk =>
+          createProductQueues(shopifyId, stockListChunk, false, 'update')
         )
       );
     }

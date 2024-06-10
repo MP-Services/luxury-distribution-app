@@ -1,5 +1,6 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
+import publishTopic from "@functions/helpers/pubsub/publishTopic";
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -42,8 +43,19 @@ export async function saveSyncSetting(shopId, shopifyDomain, data) {
         shopifyDomain,
         ...data
       });
+      await publishTopic('syncSettingsSaveHandling', {
+        shopId,
+        syncDataBefore: null,
+        syncDataAfter: data
+      });
     } else {
-      await docs.docs[0].ref.update({...data});
+      const doc = docs.docs[0];
+      await doc.ref.update({...data});
+      await publishTopic('syncSettingsSaveHandling', {
+        shopId,
+        syncDataBefore: doc.data(),
+        syncDataAfter: data
+      });
     }
 
     return {success: true};
