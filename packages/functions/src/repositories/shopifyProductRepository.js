@@ -162,7 +162,7 @@ export async function updateShopifyProductBulkWhenSaveBrand(
     }
   }
   if (brandAdded.length) {
-    brandAdded = brandRemoved.map(item => item.toUpperCase());
+    brandAdded = brandAdded.map(item => item.toUpperCase());
     const lxProducts = await getLuxuryProductByBrands(shopifyId, brandAdded);
     const queueStockIds = await getQueueStockIdByStatus(shopifyId, 'create');
     const newProductNeedAdd = lxProducts.filter(
