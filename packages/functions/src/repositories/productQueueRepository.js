@@ -949,8 +949,12 @@ function addCollectionsToProductVariables(
     );
 
     if (categoryMapping) {
-      productVariables.product.collectionsToJoin = [categoryMapping.dropShipperId];
-      margin = categoryMapping?.margin || 1;
+      const categoryMappingData = categoryMapping.data();
+      productVariables.product.collectionsToJoin = [categoryMappingData.dropShipperId];
+      margin =
+        categoryMappingData?.margin && categoryMappingData.margin
+          ? Number(categoryMappingData?.margin)
+          : 1;
     }
   }
 
