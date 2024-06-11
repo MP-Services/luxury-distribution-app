@@ -83,7 +83,7 @@ export async function getQueueQuery(shopId, limit = 0) {
   try {
     return await collection
       .where('shopifyId', '==', shopId)
-      .where('status', '!=', ['success', 'failed'])
+      .where('status', 'not-in', ['success', 'failed'])
       .where('locked', '==', false)
       .orderBy('createdAt')
       .limit(limit)
