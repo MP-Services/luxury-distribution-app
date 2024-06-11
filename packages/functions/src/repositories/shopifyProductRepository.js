@@ -6,6 +6,7 @@ import {
   getQueueStockIdByStatus
 } from '@functions/repositories/productQueueRepository';
 import {getLuxuryProductByBrands} from '@functions/repositories/luxuryProductRepository';
+import {presentDataAndFormatDate} from '@avada/firestore-utils';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -402,4 +403,24 @@ export async function deleteShopifyProductWhenUninstall(shopId) {
   }
 
   return batchDelete(firestore, docs.docs);
+}
+
+/**
+ *
+ * @param shopId
+ * @param shopifyProductId
+ * @returns {Promise<any|null>}
+ */
+export async function getProductByShopifyProductId(shopId, shopifyProductId) {
+  const docs = await collection
+      .where('shopifyId', '==', shopId)
+      .where('shopifyProductId', '==', `gid://shopify/Product/${shopifyProductId}`)
+      .limit(1)
+      .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  const [doc] = docs.docs;
+  return presentDataAndFormatDate(doc);
 }

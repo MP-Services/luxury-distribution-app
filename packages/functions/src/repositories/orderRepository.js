@@ -1,6 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
-import {getProductByShopifyProductId} from '@functions/repositories/productQueueRepository';
-import {createOrder, getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
+import {getProductByShopifyProductId} from '@functions/repositories/shopifyProductRepository';
+import {createOrder} from '@functions/repositories/luxuryRepository';
 import {batchDelete, paginateQuery, getOrderBy} from '@functions/repositories/helper';
 import {addLog} from '@functions/repositories/logRepository';
 

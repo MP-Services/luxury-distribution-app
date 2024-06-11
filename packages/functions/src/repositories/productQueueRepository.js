@@ -32,7 +32,6 @@ import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/ca
 import productMetafields from '@functions/const/productMetafields';
 import {getGeneralSettingShopId} from '@functions/repositories/settings/generalRepository';
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
-import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
 import {chunk} from '@avada/utils';
 import {
@@ -1565,26 +1564,6 @@ export async function queueProductBulk({shops, stockId, status}) {
     }));
     return batchCreate(firestore, collection, createQueues);
   }
-}
-
-/**
- *
- * @param shopId
- * @param shopifyProductId
- * @returns {Promise<any|null>}
- */
-export async function getProductByShopifyProductId(shopId, shopifyProductId) {
-  const docs = await collection
-    .where('shopifyId', '==', shopId)
-    .where('shopifyProductId', '==', `gid://shopify/Product/${shopifyProductId}`)
-    .limit(1)
-    .get();
-  if (docs.empty) {
-    return null;
-  }
-
-  const [doc] = docs.docs;
-  return presentDataAndFormatDate(doc);
 }
 
 /**
