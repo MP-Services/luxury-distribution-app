@@ -405,7 +405,6 @@ export async function runFileDeleteMutation({shop, variables, query = FILE_DELET
  * @returns {Promise<*|string>}
  */
 export async function getLocationQuery({shop, query = GET_LOCATION_QUERY}) {
-  return 'gid://shopify/Location/93953032468';
   try {
     const graphqlQuery = {query};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
