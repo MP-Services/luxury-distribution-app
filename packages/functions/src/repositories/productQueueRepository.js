@@ -151,10 +151,9 @@ export async function syncProducts(shopId) {
           const queueData = queueDoc.data();
           switch (queueData.status) {
             case 'delete':
-              await actionQueueDelete({shop, queueDoc, luxuryInfo, queueData});
-              break;
+              return actionQueueDelete({shop, queueDoc, luxuryInfo, queueData});
             case 'create':
-              await actionQueueCreate({
+              return actionQueueCreate({
                 shop,
                 categoryMappings,
                 syncSetting,
@@ -167,9 +166,8 @@ export async function syncProducts(shopId) {
                 luxuryInfo,
                 brandFilterSetting
               });
-              break;
             case 'update':
-              await actionQueueUpdate({
+              return actionQueueUpdate({
                 shop,
                 syncSetting,
                 generalSetting,
