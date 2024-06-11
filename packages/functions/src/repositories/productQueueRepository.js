@@ -1598,7 +1598,9 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
     return true;
   }
   const shopifyProductDocs = await getShopifyProductDocsWithLimit(shopId, 10);
-  return Promise.all(shopifyProductDocs.map(doc => deleteShopifyProduct(doc, shop)));
+  return Promise.all(
+    shopifyProductDocs.map(doc => Promise.all([deleteShopifyProduct(doc, shop), doc.ref.delete()]))
+  );
 }
 
 /**
