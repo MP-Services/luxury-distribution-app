@@ -167,20 +167,6 @@ export async function getDuplicateStockIds(shopifyId, stockIds) {
 /**
  *
  * @param shopifyId
- * @returns {Promise<null|*>}
- */
-export async function getLuxuryProducts(shopifyId) {
-  const docs = await collection.where('shopifyId', '==', shopifyId).get();
-  if (docs.empty) {
-    return null;
-  }
-
-  return docs.docs.map(doc => ({uid: doc.id, ...doc.data()}));
-}
-
-/**
- *
- * @param shopifyId
  * @param stockId
  * @returns {Promise<null|void>}
  */
@@ -226,4 +212,18 @@ export async function getLuxuryProductByBrands(shopifyId, brands) {
   }
 
   return shopifyProductQueriesDocsData;
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteLuxuryProductWhenUninstall(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
 }

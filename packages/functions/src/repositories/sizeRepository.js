@@ -40,3 +40,17 @@ export async function getSizes(shopifyId) {
 
   return [];
 }
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<((precondition?: FirebaseFirestore.Precondition) => Promise<FirebaseFirestore.WriteResult>)|null>}
+ */
+export async function deleteSizeTempWhenUninstall(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0].ref.delete();
+}

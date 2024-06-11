@@ -1,5 +1,5 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
-import {batchCreate} from '@functions/repositories/helper';
+import {batchCreate, batchDelete} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -40,4 +40,18 @@ export async function getStockTemps(shopifyId) {
     console.error(e);
   }
   return null;
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteStockTempWhenUninstall(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
 }

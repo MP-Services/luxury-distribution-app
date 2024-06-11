@@ -1783,3 +1783,17 @@ export async function getQueueStockIdByStatus(shopifyId, status) {
 
   return docs.docs.map(doc => doc.data().stockId);
 }
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteProductQueueWhenUninstall(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
+}

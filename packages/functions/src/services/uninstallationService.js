@@ -6,6 +6,11 @@ import {deleteBrandFilterByShopId} from '@functions/repositories/settings/brandR
 import {deleteGeneralSettingByShopId} from '@functions/repositories/settings/generalRepository';
 import {deleteSyncSettingByShopId} from '@functions/repositories/settings/syncRepository';
 import {deleteCategoryMappingsByShopId} from '@functions/repositories/settings/categoryRepository';
+import {deleteLuxuryProductWhenUninstall} from '@functions/repositories/luxuryProductRepository';
+import {deleteStockTempWhenUninstall} from '@functions/repositories/luxuryStockTempRepository';
+import {deleteProductQueueWhenUninstall} from '@functions/repositories/productQueueRepository';
+import {deleteSizeTempWhenUninstall} from '@functions/repositories/sizeRepository';
+import {deleteShopifyProductWhenUninstall} from '@functions/repositories/shopifyProductRepository';
 
 /**
  * Remove some information about shop after uninstalling app
@@ -27,6 +32,11 @@ export async function uninstallApp(ctx) {
       deleteCategoryMappingsByShopId(shopifyId),
       deleteGeneralSettingByShopId(shopifyId),
       deleteSyncSettingByShopId(shopifyId),
+      deleteLuxuryProductWhenUninstall(shopifyId),
+      deleteStockTempWhenUninstall(shopifyId),
+      deleteProductQueueWhenUninstall(shopifyId),
+      deleteShopifyProductWhenUninstall(shopifyId),
+      deleteSizeTempWhenUninstall(shopifyId),
       shopRepository.updateShopData(shopifyId, {
         hasUninstalled: true,
         status: false

@@ -1,6 +1,6 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {chunk} from '@avada/utils';
-import {hasCommonElement} from '@functions/repositories/helper';
+import {batchDelete} from '@functions/repositories/helper';
 import {
   createProductQueues,
   getQueueStockIdByStatus
@@ -388,4 +388,18 @@ export async function bulkCreateQueueWhenChangeConfig(shopifyId, field, conditio
       );
     }
   }
+}
+
+/**
+ *
+ * @param shopId
+ * @returns {Promise<FirebaseFirestore.WriteResult|null>}
+ */
+export async function deleteShopifyProductWhenUninstall(shopId) {
+  const docs = await collection.where('shopifyId', '==', shopId).get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return batchDelete(firestore, docs.docs);
 }
