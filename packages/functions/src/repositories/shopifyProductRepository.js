@@ -64,16 +64,19 @@ export function getShopifyProductByDoc(doc) {
 /**
  *
  * @param shopifyId
- * @param data
- * @returns {Promise<FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>>}
+ * @param limit
+ * @returns {Promise<null|*>}
  */
-export async function addShopifyProduct(shopifyId, data) {
-  return await collection.add({
-    shopifyId,
-    ...data,
-    createdAt: FieldValue.serverTimestamp(),
-    updatedAt: FieldValue.serverTimestamp()
-  });
+export async function getShopifyProductDocsWithLimit(shopifyId, limit = 0) {
+  const docs = await collection
+    .where('shopifyId', '==', shopifyId)
+    .limit(limit)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs;
 }
 
 /**

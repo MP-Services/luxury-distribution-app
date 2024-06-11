@@ -1,6 +1,5 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {
-  deleteMetafields,
   getLuxuryShopInfoByShopifyId,
   getLuxuryShops,
   getLuxuryStockList,
@@ -35,21 +34,20 @@ import {getGeneralSettingShopId} from '@functions/repositories/settings/generalR
 import {getAttributeMappingData} from '@functions/repositories/settings/attributeMappingRepository';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {getCurrencies} from '@functions/repositories/currencyRepository';
-import {chunk, delay} from '@avada/utils';
+import {chunk} from '@avada/utils';
 import {
-  addLuxuryProduct,
   addLuxuryProducts,
   convertLuxuryProductFromTemp,
   deleteLuxuryProductByShopifyId,
   deleteLuxuryProductShops,
-  getLuxuryProducts,
   saveLuxuryProduct
 } from '@functions/repositories/luxuryProductRepository';
 import {importSizes} from '@functions/repositories/sizeRepository';
 import {
   getShopifyProductDoc,
   getShopifyProductByDoc,
-  saveShopifyProduct
+  saveShopifyProduct,
+  getShopifyProductDocsWithLimit
 } from '@functions/repositories/shopifyProductRepository';
 import {addStockTemps, getStockTemps} from '@functions/repositories/luxuryStockTempRepository';
 
@@ -1230,16 +1228,6 @@ function getProductAdjustQuantitiesUpdate(
 
 /**
  *
- * @param id
- * @param updateData
- * @returns {Promise<void>}
- */
-export async function updateProduct(id, updateData) {
-  await collection.doc(id).update({...updateData, updatedAt: FieldValue.serverTimestamp()});
-}
-
-/**
- *
  * @param shopId
  * @returns {Promise<void>}
  */
@@ -1385,56 +1373,6 @@ function getProductOptionIdByName(productOptions, optionName) {
 /**
  *
  * @param shopId
- * @param stockList
- * @returns {Promise<boolean>}
- */
-export async function addProducts(shopId, stockList) {
-  try {
-    // const luxuryShopInfo = await getLuxuryShopInfoByShopifyId(shopId);
-    // const stockListResult = await getLuxuryStockList(luxuryShopInfo);
-    // if (stockList) {
-    const brandFilter = await getBrandSettingShopId(shopId);
-    const stockIdsExclude = await getStockIdsExclude(shopId);
-    const products = stockList
-      .filter(
-        stockItem =>
-          brandFilter.brands.includes(stockItem.brand) &&
-          (!stockIdsExclude || (stockIdsExclude && !stockIdsExclude.includes(stockItem.id)))
-      )
-      .map(item => {
-        let sizeQuantity = [];
-        if (item.hasOwnProperty('size_quantity')) {
-          sizeQuantity = item.size_quantity.filter(item => !Array.isArray(item));
-        }
-        const {id, ...data} = item;
-
-        return {
-          ...data,
-          stockId: id,
-          shopifyId: shopId,
-          syncStatus: 'new',
-          queueStatus: 'create',
-          shopifyProductId: '',
-          size_quantity: sizeQuantity,
-          size_quantity_delta: sizeQuantity,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp()
-        };
-      });
-
-    await batchCreate(firestore, collection, products);
-    // }
-    return true;
-  } catch (e) {
-    console.log(e);
-  }
-
-  return false;
-}
-
-/**
- *
- * @param shopId
  * @param stockData
  * @returns {Promise<boolean>}
  */
@@ -1563,7 +1501,6 @@ export async function getStockIdsExclude(shopId) {
   });
 }
 
-
 /**
  *
  * @param webhookData
@@ -1607,66 +1544,6 @@ export async function productWebhook(webhookData) {
 
 /**
  *
- * @param stockId
- * @param shopInfo
- * @returns {Promise<void>}
- */
-async function updateSizesHook(stockId, shopInfo) {
-  let sizes = [];
-  const stock = await getStockById(stockId, shopInfo);
-  if (stock && stock?.size_quantity) {
-    const sizeQuantity = stock.size_quantity.filter(item => !Array.isArray(item));
-    sizes = sizeQuantity.map(size => Object.keys(size)[0]);
-  }
-
-  return importSizes(shopInfo.shopifyId, sizes);
-}
-
-/**
- *
- * @param a
- * @param b
- * @returns {*}
- */
-
-function getSizeQuantityDelta(a, b) {
-  return b.map(itemB => {
-    const keyB = Object.keys(itemB)[0];
-    const valueB = parseInt(itemB[keyB]);
-    const itemA = a.find(item => Object.keys(item)[0] === keyB);
-
-    if (itemA) {
-      const valueA = parseInt(itemA[keyB]);
-      const newValue = valueB - valueA;
-      return {[keyB]: newValue.toString()};
-    }
-
-    return itemB;
-  });
-}
-
-/**
- *
- * @param stockId
- * @param shopifyId
- * @returns {Promise<{[p: string]: FirebaseFirestore.DocumentFieldValue, uid: string}|null>}
- */
-async function getProductByStockId(stockId, shopifyId) {
-  const docs = await collection
-    .where('stockId', '==', stockId)
-    .where('shopifyId', '==', shopifyId)
-    .limit(1)
-    .get();
-  if (docs.empty) {
-    return null;
-  }
-
-  const doc = docs.docs[0];
-  return {uid: doc.id, ...doc.data()};
-}
-
-/**
- *
  * @param shops
  * @param stockId
  * @param queueStatus
@@ -1686,32 +1563,6 @@ export async function queueProductBulk({shops, stockId, status}) {
     }));
     return batchCreate(firestore, collection, createQueues);
   }
-}
-
-/**
- *
- * @param shopifyId
- * @param stockId
- * @param data
- * @returns {Promise<WriteResult>}
- */
-export async function updateQueue(shopifyId, stockId, data) {
-  const docs = await collection
-    .where('shopifyId', '==', shopifyId)
-    .where('stockId', '==', stockId)
-    .get();
-  if (!docs.empty) {
-    return docs.docs[0].ref.update({...data, updatedAt: FieldValue.serverTimestamp()});
-  }
-}
-
-/**
- *
- * @param id
- * @returns {Promise<void>}
- */
-async function deleteProductInQueue(id) {
-  await collection.doc(id).delete();
 }
 
 /**
@@ -1737,7 +1588,7 @@ export async function getProductByShopifyProductId(shopId, shopifyProductId) {
 /**
  *
  * @param luxuryShop
- * @returns {Promise<void|null>}
+ * @returns {Promise<Awaited<unknown>[]|boolean>}
  */
 export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
   const {shopifyId: shopId} = luxuryShop;
@@ -1746,33 +1597,8 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
   if (!luxuryInfo?.deleteApp) {
     return true;
   }
-  const docs = await collection.where('shopifyId', '==', shopId).get();
-  if (docs.empty) {
-    return null;
-  }
-
-  const docsCounts = await collection
-    .where('shopifyId', '==', shopId)
-    .where('shopifyProductId', '!=', '')
-    .count()
-    .get();
-
-  if (!docsCounts.data().count) {
-    await deleteMetafields(shop);
-    return batchDelete(firestore, docs.docs);
-  }
-  const docsSynced = await collection
-    .where('shopifyId', '==', shopId)
-    .where('shopifyProductId', '!=', '')
-    .limit(10)
-    .get();
-  if (!docsSynced.empty) {
-    await Promise.all(
-      docsSynced.docs.map(doc => {
-        return actionQueueDelete(shop, doc.id, doc.data());
-      })
-    );
-  }
+  const shopifyProductDocs = await getShopifyProductDocsWithLimit(shopId, 10);
+  return Promise.all(shopifyProductDocs.map(doc => deleteShopifyProduct(doc, shop)));
 }
 
 /**
