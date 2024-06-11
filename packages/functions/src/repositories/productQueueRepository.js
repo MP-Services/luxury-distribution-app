@@ -129,6 +129,7 @@ export async function syncProducts(shopId) {
     ]);
 
     if (
+      !queueQuery ||
       queueQuery.empty ||
       !defaultLocationId ||
       !brandFilterSetting ||
