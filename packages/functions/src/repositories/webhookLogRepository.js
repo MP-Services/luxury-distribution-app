@@ -1,5 +1,6 @@
 import {Firestore} from '@google-cloud/firestore';
 import {formatDateFields} from '@avada/firestore-utils';
+import {batchDelete} from '@functions/repositories/helper';
 
 /** @type Firestore */
 const firestore = new Firestore();
@@ -65,20 +66,13 @@ export async function getAllWebhookLogs(shopifyDomain) {
 
 /**
  *
- * @param webhookId
- * @param data
- * @returns {Promise<{success: boolean}|{success: boolean, error}>}
+ * @returns {Promise<void>}
  */
-export async function updateWebhookLogById(webhookId, data) {
-  if (!webhookId) {
-    return;
-  }
+export async function deleteWebhookLog() {
   try {
-    await collection.doc(webhookId).update(data);
-
-    return {success: true};
+    const docs = await collection.get();
+    await batchDelete(firestore, docs.docs);
   } catch (e) {
     console.log(e);
-    return {success: false, error: e.message};
   }
 }

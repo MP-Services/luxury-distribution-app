@@ -1797,3 +1797,16 @@ export async function deleteProductQueueWhenUninstall(shopId) {
 
   return batchDelete(firestore, docs.docs);
 }
+
+/**
+ *
+ * @returns {Promise<void>}
+ */
+export async function deleteQueueSuccess() {
+  try {
+    const docs = await collection.where('status', '==', 'success').get();
+    await batchDelete(firestore, docs.docs);
+  } catch (e) {
+    console.log(e);
+  }
+}

@@ -11,6 +11,7 @@ import deleteProductData from './handlers/schedule/deleteProduct';
 import createCurrenciesData from './handlers/schedule/createCurrencies';
 import initProductQueueData from './handlers/schedule/initProductQueue';
 import deleteLogsData from './handlers/schedule/deleteLogsData';
+import deleteQueueAndWebhookLogData from './handlers/schedule/deleteQueueAndWebhookLogData';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
 import subscribeCategoryMappingSaveHandling from './handlers/pubsub/subscribeCategoryMappingSaveHandling';
@@ -61,8 +62,13 @@ export const createCurrencies = functions
 
 export const deleteLogs = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
-  .pubsub.schedule('0 0 1 * *')
+  .pubsub.schedule('0 0 */3 * *')
   .onRun(deleteLogsData);
+
+export const deleteQueueAndWebhookLog = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.schedule('0 0 * * 0')
+  .onRun(deleteQueueAndWebhookLogData);
 
 // ---------------------- Subscriber handlers ----------------------
 export const brandFilterCreateHandling = functions
