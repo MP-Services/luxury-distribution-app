@@ -1782,7 +1782,8 @@ export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
  */
 export async function initQueues(luxuryInfo) {
   const {shopifyId} = luxuryInfo;
-  if (!luxuryInfo?.completeInitQueueAction) {
+  const brandSettings = await getBrandSettingShopId(shopifyId);
+  if (!luxuryInfo?.completeInitQueueAction && brandSettings) {
     if (!luxuryInfo?.totalProductCountInit) {
       const stockListResult = await getLuxuryStockList({shopInfo: luxuryInfo});
       if (stockListResult && stockListResult?.data && stockListResult.data.length) {
