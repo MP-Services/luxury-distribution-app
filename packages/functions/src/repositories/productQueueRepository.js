@@ -12,20 +12,20 @@ import {batchCreate, batchDelete, batchUpdate} from '@functions/repositories/hel
 import {
   getLocationQuery,
   getOnlineStorePublication,
+  getProductMediaQuery,
+  getProductVariants as getProductVariantsGraphQl,
+  METAFIELDS_DELETE_VALUE_MUTATION,
   runDeleteProductMutation,
+  runFileDeleteMutation,
   runMetafieldDefinitionMutation,
+  runMetafieldDelete,
+  runMetafieldsSetMutation,
   runProductAdjustQuantitiesMutation,
   runProductCreateMutation,
-  runProductVariantsBulkMutation,
-  runProductUpdateMutation,
-  runMetafieldsSetMutation,
-  UPDATE_PRODUCT_VARIANTS_BULK_MUTATION,
-  getProductMediaQuery,
-  runFileDeleteMutation,
   runProductOptionUpdateMutation,
-  runMetafieldDelete,
-  METAFIELDS_DELETE_VALUE_MUTATION,
-  getProductVariants as getProductVariantsGraphQl
+  runProductUpdateMutation,
+  runProductVariantsBulkMutation,
+  UPDATE_PRODUCT_VARIANTS_BULK_MUTATION
 } from '@functions/services/shopify/graphqlService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getMappingDataWithoutPaginate} from '@functions/repositories/settings/categoryRepository';
@@ -43,10 +43,10 @@ import {
 } from '@functions/repositories/luxuryProductRepository';
 import {importSizes} from '@functions/repositories/sizeRepository';
 import {
-  getShopifyProductDoc,
   getShopifyProductByDoc,
-  saveShopifyProduct,
-  getShopifyProductDocsWithLimit
+  getShopifyProductDoc,
+  getShopifyProductDocsWithLimit,
+  saveShopifyProduct
 } from '@functions/repositories/shopifyProductRepository';
 import {addStockTemps, getStockTemps} from '@functions/repositories/luxuryStockTempRepository';
 

@@ -1,6 +1,7 @@
 import Shopify from 'shopify-api-node';
 import appConfig from '../config/app';
 import {isEmpty} from '@avada/utils';
+
 export const API_VERSION = '2024-04';
 
 /**

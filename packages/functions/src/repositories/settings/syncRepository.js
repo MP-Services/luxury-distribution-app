@@ -1,6 +1,6 @@
 import {Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
-import publishTopic from "@functions/helpers/pubsub/publishTopic";
+import publishTopic from '@functions/helpers/pubsub/publishTopic';
 
 const firestore = new Firestore();
 /** @type CollectionReference */

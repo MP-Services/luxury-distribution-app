@@ -4,10 +4,7 @@ import {
   getLXBrandList,
   saveBrandFilterSetting
 } from '@functions/repositories/settings/brandRepository';
-import {
-  getLuxuryShopInfoByShopifyId,
-  getLuxuryToken
-} from '@functions/repositories/luxuryRepository';
+import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
 /**
  * Get current subscription of a shop

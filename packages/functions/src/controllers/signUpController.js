@@ -1,4 +1,4 @@
-import {sendTokenRequest, addLuxuryShopInfo} from '@functions/repositories/luxuryRepository';
+import {addLuxuryShopInfo, sendTokenRequest} from '@functions/repositories/luxuryRepository';
 import {getShopById} from '@functions/repositories/shopRepository';
 import {getCurrentShop} from '@functions/helpers/auth';
 

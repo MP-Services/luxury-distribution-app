@@ -1,13 +1,8 @@
-import {Firestore, FieldValue} from '@google-cloud/firestore';
+import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {getAllCollections, initShopify} from '@functions/services/shopifyService';
 import {getShopByIdIncludeAccessToken} from '@functions/repositories/shopRepository';
 import {getCategories} from '@functions/repositories/luxuryRepository';
-import {
-  batchCreate,
-  batchDelete,
-  getOrderBy,
-  paginateQuery
-} from '@functions/repositories/helper';
+import {batchCreate, batchDelete, getOrderBy, paginateQuery} from '@functions/repositories/helper';
 
 const firestore = new Firestore();
 /** @type CollectionReference */

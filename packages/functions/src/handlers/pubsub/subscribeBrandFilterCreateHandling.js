@@ -1,5 +1,4 @@
 import {createMetafields} from '../../repositories/productQueueRepository';
-import {getLuxuryShopInfoByShopifyId, getLuxuryStockList} from "@functions/repositories/luxuryRepository";
 
 /**
  *

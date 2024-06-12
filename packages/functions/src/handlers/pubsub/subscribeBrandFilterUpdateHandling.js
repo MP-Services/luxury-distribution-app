@@ -1,5 +1,5 @@
-import {updateShopifyProductBulkWhenSaveBrand} from "@functions/repositories/shopifyProductRepository";
-import {getLuxuryShopInfoByShopifyId} from "@functions/repositories/luxuryRepository";
+import {updateShopifyProductBulkWhenSaveBrand} from '@functions/repositories/shopifyProductRepository';
+import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
 /**
  *

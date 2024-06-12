@@ -1,13 +1,13 @@
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
-  getShopifyCollections,
-  saveCategoryMapping,
-  getRetailerCategory,
-  getMappingData,
-  editCategoryMapping,
+  checkArrays,
   deleteCategoryById,
+  editCategoryMapping,
+  getMappingData,
+  getRetailerCategory,
+  getShopifyCollections,
   hasDuplicate,
-  checkArrays
+  saveCategoryMapping
 } from '@functions/repositories/settings/categoryRepository';
 import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 import publishTopic from '@functions/helpers/pubsub/publishTopic';

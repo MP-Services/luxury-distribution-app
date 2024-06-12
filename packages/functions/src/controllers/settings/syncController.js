@@ -1,4 +1,3 @@
-import {getShopById} from '@functions/repositories/shopRepository';
 import {getCurrentShop, getCurrentUser} from '@functions/helpers/auth';
 import {
   getSyncSettingShopId,

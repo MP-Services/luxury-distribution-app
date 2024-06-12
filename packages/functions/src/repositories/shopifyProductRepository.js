@@ -413,10 +413,10 @@ export async function deleteShopifyProductWhenUninstall(shopId) {
  */
 export async function getProductByShopifyProductId(shopId, shopifyProductId) {
   const docs = await collection
-      .where('shopifyId', '==', shopId)
-      .where('shopifyProductId', '==', `gid://shopify/Product/${shopifyProductId}`)
-      .limit(1)
-      .get();
+    .where('shopifyId', '==', shopId)
+    .where('shopifyProductId', '==', `gid://shopify/Product/${shopifyProductId}`)
+    .limit(1)
+    .get();
   if (docs.empty) {
     return null;
   }

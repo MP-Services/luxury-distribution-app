@@ -1,8 +1,8 @@
-import {LUXURY_API_V1_URL, LUXURY_API_V2_URL, CURRENCY_API_URL} from '@functions/const/app';
-import {Firestore, FieldValue} from '@google-cloud/firestore';
+import {CURRENCY_API_URL, LUXURY_API_V1_URL, LUXURY_API_V2_URL} from '@functions/const/app';
+import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
-import {runMetafieldsQuery, runMetafieldDelete} from '@functions/services/shopify/graphqlService';
+import {runMetafieldDelete, runMetafieldsQuery} from '@functions/services/shopify/graphqlService';
 
 const firestore = new Firestore();
 const collection = firestore.collection('luxuryShopInfos');
@@ -168,7 +168,10 @@ export async function getBrandList(shopInfo) {
  * @returns {Promise<*|*[]>}
  */
 export async function getStockById(stockId, shopInfo) {
-  const stockResponse = await sendRequest({url: LUXURY_API_V2_URL + `/stocks/${stockId}`, shopInfo});
+  const stockResponse = await sendRequest({
+    url: LUXURY_API_V2_URL + `/stocks/${stockId}`,
+    shopInfo
+  });
   if (stockResponse) {
     if (!stockResponse?.data && stockResponse?.custom_code && stockResponse.custom_code === '45') {
       return {};
