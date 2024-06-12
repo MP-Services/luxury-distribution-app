@@ -213,7 +213,7 @@ export async function getLuxuryToken(data) {
     if (token && tokenCreationTime) {
       const creationTimestamp = Date.parse(tokenCreationTime);
       const currentTimestamp = Date.now();
-      if (creationTimestamp + 15 * 60 * 1000 < currentTimestamp) {
+      if (creationTimestamp + 10 * 60 * 1000 < currentTimestamp) {
         tokenResult = await sendTokenRequest(data);
         if (tokenResult) {
           await updateLuxuryData(data.shopifyId, {
