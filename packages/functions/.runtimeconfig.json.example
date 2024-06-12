@@ -1,0 +1,10 @@
+{
+    "shopify": {
+        "api_key": "4d9a088da20707770c8a9374c1cf4c08",
+        "secret": "611ae53b4d4cf804258b08545720fa0c",
+        "firebase_api_key": "AIzaSyBJx1E9drLcKQ9hK-XgDhxrgopupLJVnIY"
+    },
+    "app": {
+        "base_url": ""
+    }
+}
