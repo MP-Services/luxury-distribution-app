@@ -15,9 +15,6 @@
     "@avada/core": "1.1.12",
     "@avada/firestore-utils": "0.0.3",
     "@google-cloud/pubsub": "^3.7.1",
-    "@avada/shopify-auth": "1.4.0",
-    "@avada/subscription": "0.0.15",
-    "@avada/shopify-charge": "1.3.12",
     "@avada/utils": "^0.0.7",
     "@google-cloud/firestore": "^6.6.1",
     "axios": "^0.27.2",
@@ -36,6 +33,9 @@
     "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
-    "@babel/preset-react": "^7.0.0"
+    "@babel/preset-react": "^7.0.0",
+    "@babel/plugin-proposal-object-rest-spread":  "^7.20.7",
+    "@babel/plugin-proposal-class-properties":  "^7.18.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0"
   }
 }
