@@ -909,7 +909,7 @@ export async function deleteShopifyProduct(shopifyProductDoc, shop) {
  * @param status
  * @returns {*}
  */
-function updateQueueDoc(queueDoc, queueData, status = '') {
+async function updateQueueDoc(queueDoc, queueData, status = '') {
   if (!status) {
     if (queueData.retry >= 3) {
       return queueDoc.ref.update({status: 'failed', updatedAt: FieldValue.serverTimestamp()});
