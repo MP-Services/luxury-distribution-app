@@ -4,6 +4,7 @@ import {
   saveAttributeMapping
 } from '@functions/repositories/settings/attributeMappingRepository';
 import {getSizes} from '@functions/repositories/sizeRepository';
+import {getLuxuryShopInfoByShopifyId} from '@functions/repositories/luxuryRepository';
 
 /**
  * @param ctx
@@ -25,7 +26,12 @@ export async function get(ctx) {
  */
 export async function getOptionsMapping(ctx) {
   const shopId = getCurrentShop(ctx);
-  ctx.body = {success: true, data: await getSizes(shopId)};
+  const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
+  if (!luxuryInfo || !luxuryInfo?.completeInitQueueAction) {
+    ctx.body = {success: true, data: []};
+  } else {
+    ctx.body = {success: true, data: await getSizes(shopId)};
+  }
 }
 
 /**
