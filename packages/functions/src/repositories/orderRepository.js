@@ -25,6 +25,7 @@ export async function addOrder(shopifyId, data) {
         orderDataConverted,
         shopifyId,
         syncStatus: 'new',
+        locked: false,
         retailerOrderId: '',
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
@@ -46,18 +47,23 @@ export async function syncOrder(shop) {
   if (shop?.deleteApp) {
     return true;
   }
-  let orderUUID = '';
+  let orderUID = '';
   try {
     const {shopifyId} = shop;
-    const order = await getOrderToSyncQuery(shopifyId);
-    if (order) {
-      orderUUID = order.uuid;
-      const luxuryOrder = await createOrder(shop, order.orderDataConverted);
+    const orderDoc = await getOrderToSyncQuery(shopifyId);
+    if (orderDoc) {
+      const orderData = {uid: orderDoc.id, ...orderDoc.data()};
+      orderUID = orderData.uid;
+      await updateOrder(orderUID, {
+        locked: true
+      });
+      const luxuryOrder = await createOrder(shop, orderData.orderDataConverted);
       if (luxuryOrder) {
-        return updateOrder(order.uuid, {
+        return updateOrder(orderUID, {
           luxuryOrderId: luxuryOrder?.order_id,
           luxuryReferenceNumber: luxuryOrder?.reference_number,
-          luxuryCreatedAt: luxuryOrder?.create_at
+          luxuryCreatedAt: luxuryOrder?.create_at,
+          locked: false
         });
       }
     }
@@ -66,10 +72,11 @@ export async function syncOrder(shop) {
     await addLog(shop.shopifyDomain, {errors: JSON.stringify(e)});
   }
 
-  if (orderUUID) {
-    return updateOrder(orderUUID, {
+  if (orderUID) {
+    return updateOrder(orderUID, {
       updatedAt: FieldValue.serverTimestamp(),
-      syncStatus: 'failed'
+      syncStatus: 'failed',
+      locked: false
     });
   }
 
@@ -139,6 +146,7 @@ async function getOrderToSyncQuery(shopifyId) {
   const docs = await collection
     .where('shopifyId', '==', shopifyId)
     .where('syncStatus', '!=', 'success')
+    .where('locked', '==', false)
     .orderBy('updatedAt')
     .limit(1)
     .get();
@@ -147,9 +155,7 @@ async function getOrderToSyncQuery(shopifyId) {
     return null;
   }
 
-  const doc = docs.docs[0];
-
-  return {uuid: doc.id, ...doc.data()};
+  return docs.docs[0];
 }
 
 /**

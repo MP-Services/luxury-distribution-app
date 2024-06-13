@@ -163,6 +163,28 @@
       ]
     },
     {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "locked",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "shopifyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "syncStatus",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "productQueues",
       "queryScope": "COLLECTION",
       "fields": [
