@@ -408,7 +408,7 @@ export async function addMessageWhenPause(shopifyId, errors) {
   for (const error of errors) {
     if (
       error?.message &&
-      error.includes('Daily variant creation limit reached. Please try again late.')
+      error.message.includes('Daily variant creation limit reached. Please try again late.')
     ) {
       errorMessage = error.message;
     }
