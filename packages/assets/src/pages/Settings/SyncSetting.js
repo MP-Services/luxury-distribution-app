@@ -89,6 +89,7 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">SKU</label>
                       <input
+                        disabled
                         checked={input.sku}
                         type="checkbox"
                         onChange={e => handleChangeInput('sku', e.target.checked)}
@@ -100,6 +101,7 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Title</label>
                       <input
+                        disabled
                         checked={input.title}
                         type="checkbox"
                         onChange={e => handleChangeInput('title', e.target.checked)}
@@ -111,6 +113,7 @@ export default function SyncSetting() {
                     <div className="sync-option">
                       <label htmlFor="">Price</label>
                       <input
+                        disabled
                         checked={input.price}
                         type="checkbox"
                         onChange={e => handleChangeInput('price', e.target.checked)}

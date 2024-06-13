@@ -1,12 +1,12 @@
 const syncSetting = {
-  sku: false,
-  title: false,
-  price: false,
-  description: false,
-  categories: false,
-  images: false,
-  tags: false,
-  ean: false
+  sku: true,
+  title: true,
+  price: true,
+  description: true,
+  categories: true,
+  images: true,
+  tags: true,
+  ean: true
 };
 
 export default syncSetting;
