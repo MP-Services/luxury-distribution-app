@@ -287,6 +287,23 @@ export async function getLuxuryShopInfoByShopifyId(id) {
 
 /**
  *
+ * @param {string} id
+ * @returns {Promise<FirebaseFirestore.DocumentData>}
+ */
+export async function getLuxuryShopInfoDocByShopifyId(id) {
+  const docs = await collection
+    .where('shopifyId', '==', id)
+    .limit(1)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+
+  return docs.docs[0];
+}
+
+/**
+ *
  * @returns {Promise<*|null>}
  */
 export async function getLuxuryShops() {
@@ -374,5 +391,27 @@ export async function deleteMetafields(shop) {
         });
       })
     );
+  }
+}
+
+/**
+ *
+ * @param shopifyId
+ * @param errors
+ * @returns {Promise<void>}
+ */
+export async function addMessageWhenPause(shopifyId, errors) {
+  let errorMessage = '';
+  for (const error of errors) {
+    if (
+      error?.message &&
+      error.includes('Daily variant creation limit reached. Please try again late.')
+    ) {
+      errorMessage = error.message;
+    }
+  }
+  if (errorMessage) {
+    const lxShopDoc = await getLuxuryShopInfoDocByShopifyId(shopifyId);
+    lxShopDoc.ref.update({pauseMessage: errorMessage});
   }
 }

@@ -17,7 +17,7 @@ export default function Dashboard() {
   const {state, dispatch} = useStore();
   const {isActiveMenu} = useMenu();
   const domain = state?.shop?.domain || state?.shop?.shopifyDomain;
-
+  const {luxuryInfos} = state;
   const handleRefresh = async () => {
     setLoader(dispatch);
     fetchApi().then(() => {
@@ -38,6 +38,14 @@ export default function Dashboard() {
         </div>
       </div>
       <div className={`content ${isActiveMenu ? 'opacity' : ''}`}>
+        {!!luxuryInfos?.pauseMessage && (
+          <div className="notification">
+            <p>
+              <i className="solid circle-check"></i>
+              <span>{luxuryInfos.pauseMessage}</span>
+            </p>
+          </div>
+        )}
         <div className="cards-wrapper">
           <div className="card product-card">
             <div className="card-header">

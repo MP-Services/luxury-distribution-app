@@ -1,5 +1,10 @@
 import {makeGraphQlApi} from '@functions/helpers/api';
 import {addLog} from '@functions/repositories/logRepository';
+import {
+  addMessageWhenPause,
+  getLuxuryShopInfoByShopifyId,
+  getLuxuryShopInfoDocByShopifyId
+} from '@functions/repositories/luxuryRepository';
 
 export const GET_LOCATION_QUERY = `
 query location($id: ID){
@@ -577,6 +582,7 @@ export async function runProductCreateMutation({shop, variables, query = CREATE_
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
     if (errors) {
+      await addMessageWhenPause(shop.id, errors);
       console.error(errors.map(x => x.message).join('. '));
       return '';
     }
@@ -607,6 +613,7 @@ export async function runProductUpdateMutation({shop, variables, query = UPDATE_
     const graphqlQuery = {query, variables};
     const {data, errors} = await makeGraphQlApi({...shop, graphqlQuery});
     if (errors) {
+      await addMessageWhenPause(shop.id, errors);
       console.error(errors.map(x => x.message).join('. '));
       return '';
     }

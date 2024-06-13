@@ -107,7 +107,11 @@ export async function syncProducts(shopId) {
       getShopByIdIncludeAccessToken(shopId)
     ]);
 
-    if (luxuryInfo?.deleteApp || !luxuryInfo?.completeInitQueueAction) {
+    if (
+      luxuryInfo?.deleteApp ||
+      !luxuryInfo?.completeInitQueueAction ||
+      (luxuryInfo?.pauseMessage && luxuryInfo.pauseMessage)
+    ) {
       return true;
     }
     const [
