@@ -600,7 +600,7 @@ export async function actionUpdateShopifyProduct({
   ]);
   const shopifyProductSave = {
     stockId: queueData.stockId,
-    product_category_id: queueData.product_category_id,
+    product_category_id: stock.product_category_id,
     brand: stock.brand,
     sizes: [],
     hasOptionOutOfStock: stockSizeQuantity.some(size => !Number(Object.values(size)[0]))
