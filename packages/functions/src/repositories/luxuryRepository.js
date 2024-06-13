@@ -408,18 +408,20 @@ export async function addMessageWhenPause(shopifyId, errors) {
   for (const error of errors) {
     if (
       error?.message &&
-      error.message.includes('Daily variant creation limit reached. Please try again late.')
+      error.message.includes('Daily variant creation limit reached. Please try again later.')
     ) {
       errorMessage = error.message;
     }
   }
   if (errorMessage) {
     const lxShopDoc = await getLuxuryShopInfoDocByShopifyId(shopifyId);
-    return lxShopDoc.ref.update({
-      pauseMessage: errorMessage,
-      pause: true,
-      updatedAt: FieldValue.serverTimestamp()
-    });
+    if (lxShopDoc) {
+      return lxShopDoc.ref.update({
+        pauseMessage: errorMessage,
+        pause: true,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
   }
 }
 
