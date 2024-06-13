@@ -1,4 +1,9 @@
-import {CURRENCY_API_URL, LUXURY_API_V1_URL, LUXURY_API_V2_URL} from '@functions/const/app';
+import {
+  CURRENCY_API_URL,
+  CURRENCY_WITH_NAME_API_URL,
+  LUXURY_API_V1_URL,
+  LUXURY_API_V2_URL
+} from '@functions/const/app';
 import {FieldValue, Firestore} from '@google-cloud/firestore';
 import {presentDataAndFormatDate} from '@avada/firestore-utils';
 import {api} from '@functions/helpers/api';
@@ -46,6 +51,30 @@ export async function sendRequestCurrency(headerParams) {
 
   if (result?.data) {
     return Object.values(result.data).map(obj => ({code: obj.code, value: obj.value}));
+  }
+
+  return [];
+}
+
+/**
+ *
+ * @param headerParams
+ * @returns {Promise<any>}
+ */
+export async function sendRequestCurrencyWithName(headerParams) {
+  const result = await api(CURRENCY_WITH_NAME_API_URL, {
+    method: 'GET',
+    options: {
+      headers: {...headerParams, apiKey: CURRENCY_API_KEY}
+    }
+  });
+
+  if (result?.data) {
+    return Object.values(result.data).map(obj => ({
+      code: obj.code,
+      name: obj.name,
+      symbol_native: obj.symbol_native
+    }));
   }
 
   return [];

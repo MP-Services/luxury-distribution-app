@@ -1,5 +1,8 @@
 import {FieldValue, Firestore} from '@google-cloud/firestore';
-import {sendRequestCurrency} from '@functions/repositories/luxuryRepository';
+import {
+  sendRequestCurrency,
+  sendRequestCurrencyWithName
+} from '@functions/repositories/luxuryRepository';
 
 const firestore = new Firestore();
 /** @type CollectionReference */
@@ -11,7 +14,7 @@ const collection = firestore.collection('currencies');
  */
 export async function addCurrencies() {
   try {
-    const currencies = await sendRequestCurrency({base_currency: 'EUR'});
+    const currencies = await getCurrenciesData();
     await collection.add({
       data: currencies,
       createdAt: FieldValue.serverTimestamp(),
@@ -28,15 +31,37 @@ export async function addCurrencies() {
  *
  * @returns {Promise<void>}
  */
+async function getCurrenciesData() {
+  const currenciesWithName = await sendRequestCurrencyWithName({base_currency: 'EUR'});
+  let currencies = await sendRequestCurrency({base_currency: 'EUR'});
+  if (currenciesWithName.length) {
+    currencies = currencies.map(currency => {
+      const currencyWithName = currenciesWithName.find(item => (item.code === currency.code));
+      if (currencyWithName) {
+        return {
+          ...currency,
+          displayName: `${currencyWithName.name} (${currency.code} ${currencyWithName.symbol_native})`
+        };
+      }
+      return currency;
+    });
+  }
+  return currencies;
+}
+
+/**
+ *
+ * @returns {Promise<void>}
+ */
 
 export async function updateCurrencies() {
   const currencies = await getCurrencies();
   if (!currencies) {
     return addCurrencies();
   }
-  const newCurrencies = await sendRequestCurrency({base_currency: 'EUR'});
+  const newCurrencies = await getCurrenciesData();
   await collection
-    .doc(currencies.id)
+    .doc(currencies.uuid)
     .update({data: newCurrencies, updatedAt: FieldValue.serverTimestamp()});
 }
 

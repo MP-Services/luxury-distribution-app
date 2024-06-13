@@ -166,7 +166,7 @@ export default function GeneralSetting() {
                       {currencies && currencies.length ? (
                         currencies.map((currency, index) => (
                           <option key={index} value={currency.code}>
-                            {currency.code}
+                            {currency.displayName}
                           </option>
                         ))
                       ) : (
