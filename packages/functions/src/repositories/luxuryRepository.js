@@ -306,8 +306,8 @@ export async function getLuxuryShopInfoDocByShopifyId(id) {
  *
  * @returns {Promise<*|null>}
  */
-export async function getLuxuryShops() {
-  const docs = await collection.get();
+export async function getLuxuryShops(pause = false) {
+  const docs = await collection.where('pause', '==', pause).get();
   if (docs.empty) {
     return null;
   }
@@ -326,7 +326,10 @@ export async function addLuxuryShopInfo(shopId, data) {
     const luxuryRef = await collection.add({
       ...data,
       shopifyId: shopId,
-      tokenCreationTime: FieldValue.serverTimestamp()
+      tokenCreationTime: FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      pause: false
     });
     if (luxuryRef) {
       const luxuryDoc = await collection.doc(luxuryRef.id).get();
@@ -412,6 +415,27 @@ export async function addMessageWhenPause(shopifyId, errors) {
   }
   if (errorMessage) {
     const lxShopDoc = await getLuxuryShopInfoDocByShopifyId(shopifyId);
-    lxShopDoc.ref.update({pauseMessage: errorMessage});
+    lxShopDoc.ref.update({
+      pauseMessage: errorMessage,
+      pause: true,
+      updatedAt: FieldValue.serverTimestamp()
+    });
+  }
+}
+
+/**
+ *
+ * @param luxuryShop
+ * @returns {Promise<*>}
+ */
+export async function unPauseLuxuryShop(luxuryShop) {
+  const updatedAtTimestamp = Date.parse(luxuryShop.updatedAt);
+  const currentTimestamp = Date.now();
+  if (updatedAtTimestamp + 24 * 60 * 60 * 1000 <= currentTimestamp) {
+    return collection.doc(luxuryShop.id).update({
+      pause: false,
+      pauseMessage: '',
+      updatedAt: FieldValue.serverTimestamp()
+    });
   }
 }
