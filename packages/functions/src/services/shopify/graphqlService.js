@@ -1,10 +1,6 @@
 import {makeGraphQlApi} from '@functions/helpers/api';
 import {addLog} from '@functions/repositories/logRepository';
-import {
-  addMessageWhenPause,
-  getLuxuryShopInfoByShopifyId,
-  getLuxuryShopInfoDocByShopifyId
-} from '@functions/repositories/luxuryRepository';
+import {addMessageWhenPause} from '@functions/repositories/luxuryRepository';
 
 export const GET_LOCATION_QUERY = `
 query location($id: ID){

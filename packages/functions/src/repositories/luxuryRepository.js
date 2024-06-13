@@ -415,7 +415,7 @@ export async function addMessageWhenPause(shopifyId, errors) {
   }
   if (errorMessage) {
     const lxShopDoc = await getLuxuryShopInfoDocByShopifyId(shopifyId);
-    lxShopDoc.ref.update({
+    return lxShopDoc.ref.update({
       pauseMessage: errorMessage,
       pause: true,
       updatedAt: FieldValue.serverTimestamp()
