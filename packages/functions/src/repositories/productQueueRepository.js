@@ -107,9 +107,6 @@ export async function syncProducts(shopId) {
       getShopByIdIncludeAccessToken(shopId)
     ]);
 
-    if (luxuryInfo?.deleteApp || !luxuryInfo?.completeInitQueueAction || luxuryInfo?.pause) {
-      return true;
-    }
     const [
       syncSetting,
       generalSetting,
@@ -1575,10 +1572,6 @@ export async function queueProductBulk({shops, stockId, status}) {
 export async function deleteProductsWhenUninstallByShopId(luxuryShop) {
   const {shopifyId: shopId} = luxuryShop;
   const shop = await getShopByIdIncludeAccessToken(shopId);
-  const luxuryInfo = await getLuxuryShopInfoByShopifyId(shopId);
-  if (!luxuryInfo?.deleteApp) {
-    return true;
-  }
   const shopifyProductDocs = await getShopifyProductDocsWithLimit(shopId, 10);
   return Promise.all(
     shopifyProductDocs.map(doc => Promise.all([deleteShopifyProduct(doc, shop), doc.ref.delete()]))

@@ -1,4 +1,4 @@
-import {getLuxuryShops, unPauseLuxuryShop} from '@functions/repositories/luxuryRepository';
+import {getLuxuryShopsToUnpause, unPauseLuxuryShop} from '@functions/repositories/luxuryRepository';
 import {chunk} from '@avada/utils';
 const CHUNK_SIZE = 50;
 /**
@@ -7,7 +7,7 @@ const CHUNK_SIZE = 50;
  */
 export default async function UnPauseShopSchedule() {
   try {
-    const shopsPause = await getLuxuryShops(true);
+    const shopsPause = await getLuxuryShopsToUnpause();
     console.log('found shops to unpause');
     if (shopsPause) {
       const shopChunks = chunk(shopsPause, CHUNK_SIZE);

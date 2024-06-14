@@ -44,9 +44,6 @@ export async function addOrder(shopifyId, data) {
  * @returns {Promise<unknown[]|boolean>}
  */
 export async function syncOrder(shop) {
-  if (shop?.deleteApp) {
-    return true;
-  }
   let orderUID = '';
   try {
     const {shopifyId} = shop;

@@ -1,5 +1,5 @@
 import {chunk} from '@avada/utils';
-import {getLuxuryShops} from '@functions/repositories/luxuryRepository';
+import {getLuxuryShopsToDeleteWhenUninstall} from '@functions/repositories/luxuryRepository';
 import {deleteProductsWhenUninstallByShopId} from '@functions/repositories/productQueueRepository';
 
 const CHUNK_SIZE = 50;
@@ -10,15 +10,17 @@ const CHUNK_SIZE = 50;
  */
 export default async function deleteProductData() {
   try {
-    const shops = await getLuxuryShops();
-    console.log('found shops to delete product');
-    const shopChunks = chunk(shops, CHUNK_SIZE);
-    for (const shopChunk of shopChunks) {
-      await Promise.all(
-        shopChunk.map(luxuryShop => {
-          return deleteProductsWhenUninstallByShopId(luxuryShop);
-        })
-      );
+    const shops = await getLuxuryShopsToDeleteWhenUninstall();
+    if (shops) {
+      console.log('found shops to delete product');
+      const shopChunks = chunk(shops, CHUNK_SIZE);
+      for (const shopChunk of shopChunks) {
+        await Promise.all(
+          shopChunk.map(luxuryShop => {
+            return deleteProductsWhenUninstallByShopId(luxuryShop);
+          })
+        );
+      }
     }
     return true;
   } catch (e) {

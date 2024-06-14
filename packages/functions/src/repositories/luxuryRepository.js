@@ -306,8 +306,82 @@ export async function getLuxuryShopInfoDocByShopifyId(id) {
  *
  * @returns {Promise<*|null>}
  */
-export async function getLuxuryShops(pause = false) {
-  const docs = await collection.where('pause', '==', pause).get();
+export async function getLuxuryShops() {
+  const docs = await collection.where('deleteApp', '==', false).get();
+  if (docs.empty) {
+    return null;
+  }
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShopsToUnpause() {
+  const docs = await collection
+    .where('pause', '==', true)
+    .where('deleteApp', '==', false)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShopsToDeleteWhenUninstall(pause = false) {
+  const docs = await collection.where('deleteApp', '==', true).get();
+  if (docs.empty) {
+    return null;
+  }
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShopsToInit() {
+  const docs = await collection
+    .where('pause', '==', false)
+    .where('deleteApp', '==', false)
+    .where('completeInitQueueAction', '==', false)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShopsToSyncOrder() {
+  const docs = await collection
+    .where('deleteApp', '==', false)
+    .where('completeInitQueueAction', '==', true)
+    .get();
+  if (docs.empty) {
+    return null;
+  }
+  return docs.docs.map(doc => ({id: doc.id, ...presentDataAndFormatDate(doc)}));
+}
+
+/**
+ *
+ * @returns {Promise<*|null>}
+ */
+export async function getLuxuryShopsToSyncProducts() {
+  const docs = await collection
+    .where('pause', '==', false)
+    .where('deleteApp', '==', false)
+    .where('completeInitQueueAction', '==', true)
+    .get();
   if (docs.empty) {
     return null;
   }
@@ -329,6 +403,8 @@ export async function addLuxuryShopInfo(shopId, data) {
       tokenCreationTime: FieldValue.serverTimestamp(),
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
+      deleteApp: false,
+      completeInitQueueAction: false,
       pause: false
     });
     if (luxuryRef) {

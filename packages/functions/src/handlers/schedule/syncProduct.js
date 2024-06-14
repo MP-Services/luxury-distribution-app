@@ -1,5 +1,5 @@
 import {chunk} from '@avada/utils';
-import {getLuxuryShops} from '@functions/repositories/luxuryRepository';
+import {getLuxuryShopsToSyncProducts} from '@functions/repositories/luxuryRepository';
 import {syncProducts} from '@functions/repositories/productQueueRepository';
 
 const CHUNK_SIZE = 50;
@@ -10,15 +10,17 @@ const CHUNK_SIZE = 50;
  */
 export default async function syncProductData() {
   try {
-    const shops = await getLuxuryShops();
-    console.log('found shops to sync product');
-    const shopChunks = chunk(shops, CHUNK_SIZE);
-    for (const shopChunk of shopChunks) {
-      await Promise.all(
-        shopChunk.map(luxuryShop => {
-          return syncProducts(luxuryShop.shopifyId);
-        })
-      );
+    const shops = await getLuxuryShopsToSyncProducts();
+    if (shops) {
+      console.log('found shops to sync product');
+      const shopChunks = chunk(shops, CHUNK_SIZE);
+      for (const shopChunk of shopChunks) {
+        await Promise.all(
+          shopChunk.map(luxuryShop => {
+            return syncProducts(luxuryShop.shopifyId);
+          })
+        );
+      }
     }
     return true;
   } catch (e) {
