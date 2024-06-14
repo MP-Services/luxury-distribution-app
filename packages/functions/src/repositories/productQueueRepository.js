@@ -562,9 +562,9 @@ export async function actionUpdateShopifyProduct({
     product: {
       id: productId,
       title: generalSetting?.includeBrand ? `${stock.name} ${stock.brand}` : stock.name,
-      descriptionHtml: syncSetting?.description ? stock.description : ''
+      descriptionHtml: !syncSetting || syncSetting?.description ? stock.description : ''
     },
-    media: syncSetting?.images ? productMediaData : []
+    media: !syncSetting || syncSetting?.images ? productMediaData : []
   };
   const {productVariables, margin} = addCollectionsToProductVariables(
     categoryMappings,
@@ -943,7 +943,7 @@ function addCollectionsToProductVariables(
   productVariables
 ) {
   let margin = 1;
-  if (!categoryMappings.empty && syncSetting?.categories) {
+  if (!categoryMappings.empty && (!syncSetting || syncSetting?.categories)) {
     const categoryMapping = categoryMappings.docs.find(
       e => e.data().retailerId == productData.product_category_id
     );
@@ -997,14 +997,14 @@ function getProductVariables({
       title: generalSetting?.includeBrand
         ? `${productData.name} ${productData.brand}`
         : productData.name,
-      descriptionHtml: syncSetting?.description ? productData.description : '',
+      descriptionHtml: !syncSetting || syncSetting?.description ? productData.description : '',
       metafields: metafieldsData,
       productOptions: productOptionsData,
       collectionsToJoin: [],
       status: generalSetting?.productAsDraft ? 'DRAFT' : 'ACTIVE',
       publications: onlineStore ? [{publicationId: onlineStore}] : []
     },
-    media: syncSetting?.images ? productMediaData : []
+    media: !syncSetting || syncSetting?.images ? productMediaData : []
   };
 }
 
