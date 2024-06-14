@@ -333,7 +333,7 @@ export async function getLuxuryShopsToUnpause() {
  *
  * @returns {Promise<*|null>}
  */
-export async function getLuxuryShopsToDeleteWhenUninstall(pause = false) {
+export async function getLuxuryShopsToDeleteWhenUninstall() {
   const docs = await collection.where('deleteApp', '==', true).get();
   if (docs.empty) {
     return null;
