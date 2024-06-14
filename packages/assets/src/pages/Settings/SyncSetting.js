@@ -5,7 +5,7 @@ import {useHistory} from 'react-router-dom';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
 import {api} from '@assets/helpers';
 import SyncSettingHeader from '@assets/components/SyncSettingHeader/SyncSettingHeader';
-import syncSetting from '@avada/functions/src/const/settings/sync';
+import defaultSyncSetting from '@avada/functions/src/const/settings/sync';
 import {setToast, setLoader} from '@assets/actions/storeActions';
 import {useStore} from '@assets/reducers/storeReducer';
 import ToggleMenu from '@assets/components/ToogleMenu/ToggleMenu';
@@ -20,7 +20,7 @@ import TableInfoHeader from '@assets/components/TableInfoHeader/TableInfoHeader'
 export default function SyncSetting() {
   const {data: input, setData: setInput, loading} = useFetchApi({
     url: '/setting/sync',
-    defaultData: syncSetting
+    defaultData: defaultSyncSetting
   });
   const {dispatch} = useStore();
   const {isActiveMenu} = useMenu();

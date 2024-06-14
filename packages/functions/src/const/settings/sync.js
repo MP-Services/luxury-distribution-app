@@ -1,4 +1,4 @@
-const syncSetting = {
+const defaultSyncSetting = {
   sku: true,
   title: true,
   price: true,
@@ -9,4 +9,4 @@ const syncSetting = {
   ean: true
 };
 
-export default syncSetting;
+export default defaultSyncSetting;

@@ -1,10 +1,16 @@
-import React, {useState} from 'react';
+import React from 'react';
 import useFetchApi from '@assets/hooks/api/useFetchApi';
+import defaultSyncSetting from '@avada/functions/src/const/settings/sync';
 export default function SyncSettingHeader({syncSettingData}) {
   let syncSetting = syncSettingData;
   if (!syncSetting) {
-    const {data: syncSettingData} = useFetchApi({url: '/setting/sync'});
-    syncSetting = syncSettingData;
+    const {data: syncSettingDatFetch, fetched} = useFetchApi({
+      url: '/setting/sync',
+      defaultData: defaultSyncSetting
+    });
+    if (fetched) {
+      syncSetting = syncSettingDatFetch;
+    }
   }
 
   if (!syncSetting) {
@@ -24,12 +30,23 @@ export default function SyncSettingHeader({syncSettingData}) {
         <p>Sync setting</p>
       </div>
       <div className="sync-items">
-        {syncSettingsDataArr.map(([key, value]) => (
-          <span key={key} className="sync-item">
-            <i className="check"></i>
-            <span>{key}</span>
-          </span>
-        ))}
+        {syncSettingsDataArr.map(([key, value]) => {
+          let title = key;
+          switch (key) {
+            case 'sku':
+            case 'ean':
+              title = title.toUpperCase();
+              break;
+            default:
+              title = title.charAt(0).toUpperCase() + title.slice(1);
+          }
+          return (
+            <span key={key} className="sync-item">
+              <i className="check"></i>
+              <span>{title}</span>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
