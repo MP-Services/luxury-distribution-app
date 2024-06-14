@@ -11,6 +11,7 @@ import deleteProductData from './handlers/schedule/deleteProduct';
 import createCurrenciesData from './handlers/schedule/createCurrencies';
 import initProductQueueData from './handlers/schedule/initProductQueue';
 import deleteLogsData from './handlers/schedule/deleteLogsData';
+import unPauseShopAction from './handlers/schedule/unPauseShopSchedule';
 import deleteQueueAndWebhookLogData from './handlers/schedule/deleteQueueAndWebhookLogData';
 import subscribeBrandFilterCreateHandling from './handlers/pubsub/subscribeBrandFilterCreateHandling';
 import subscribeBrandFilterUpdateHandling from './handlers/pubsub/subscribeBrandFilterUpdateHandling';
@@ -59,6 +60,11 @@ export const createCurrencies = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
   .pubsub.schedule('0 0 * * *')
   .onRun(createCurrenciesData);
+
+export const unPauseShop = functions
+  .runWith({timeoutSeconds: 540, memory: '2GB'})
+  .pubsub.schedule('0 * * * *')
+  .onRun(unPauseShopAction);
 
 export const deleteLogs = functions
   .runWith({timeoutSeconds: 540, memory: '2GB'})
