@@ -68,10 +68,6 @@
         "function": "authSa"
       },
       {
-        "source": "/login",
-        "destination": "/login/pages/login.html"
-      },
-      {
         "source": "/embed/**",
         "destination": "/embed.html"
       },
