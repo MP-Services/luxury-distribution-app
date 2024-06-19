@@ -12,7 +12,8 @@ import {runMetafieldDelete, runMetafieldsQuery} from '@functions/services/shopif
 const firestore = new Firestore();
 const collection = firestore.collection('luxuryShopInfos');
 
-const CURRENCY_API_KEY = 'cur_live_VdJkKvqmHQul2RNVCxxIad7KGe8SU8uprCSH7Iw2';
+// const CURRENCY_API_KEY = 'cur_live_VdJkKvqmHQul2RNVCxxIad7KGe8SU8uprCSH7Iw2';
+const CURRENCY_API_KEY = 'cur_live_nCjkkWtv3yMzvXaBTEEg9IeAsuY0kf8GZjMD1brh';
 
 /**
  *
@@ -174,12 +175,27 @@ async function sendRequest({url, shopInfo, method = 'GET', data = null}) {
  */
 export async function createOrder(shopInfo, data) {
   return await sendLXRequest({
-    url: LUXURY_API_V1_URL + '/test-order',
+    url: LUXURY_API_V1_URL + '/order',
     shopInfo,
     data,
     method: 'POST'
   });
 }
+
+// /**
+//  *
+//  * @param shopInfo
+//  * @param data
+//  * @returns {Promise<*|null>}
+//  */
+// export async function createOrder(shopInfo, data) {
+//   return await sendLXRequest({
+//     url: LUXURY_API_V1_URL + '/test-order',
+//     shopInfo,
+//     data,
+//     method: 'POST'
+//   });
+// }
 
 /**
  *
